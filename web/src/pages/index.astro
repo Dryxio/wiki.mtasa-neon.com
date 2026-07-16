@@ -1,179 +1,58 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import { Image } from 'astro:assets';
-import { getAssetImagePath } from '@src/utils/general';
-
-import { MTA_CURRENT_VERSION } from '@src/content.constants';
-import { Icon } from '@astrojs/starlight/components';
 ---
 
 <StarlightPage frontmatter={{
-    template: 'doc',
-    tableOfContents: false,
-    title: 'Multi Theft Auto: Wiki',
-    head: [
-        {
-            tag: 'title',
-            content: 'Multi Theft Auto: Wiki',
-        }
-    ],
+  template: 'splash',
+  title: 'MTA:SA Neon Documentation',
+  description: 'Choose the isolated Neon documentation or the preserved upstream MTA reference.',
+  tableOfContents: false,
 }}>
-<div class="mtahero">
-    <div class="mtahero_left">
-        <Image src={getAssetImagePath("mta_logo.png")} alt="Multi Theft Auto Logo"/>
+  <main class="gateway">
+    <div class="gateway-kicker">ONE CODEBASE · TWO CLEAR REFERENCES</div>
+    <h1>MTA:SA <span>NEON</span> Documentation</h1>
+    <p class="gateway-lead">Neon extends Multi Theft Auto with experimental engine work. This documentation keeps those additions in their own unmistakable section while preserving the upstream MTA reference.</p>
+
+    <div class="gateway-grid">
+      <a class="gateway-card neon-card" href="/neon">
+        <div class="card-label">NEON ONLY</div>
+        <h2>Explore Neon additions</h2>
+        <p>76 API entries, extended-world systems, native GTA services, compatibility rules, source commits, and test resources.</p>
+        <strong>Open Neon documentation →</strong>
+      </a>
+
+      <a class="gateway-card upstream-card" href="/reference/Lua_API">
+        <div class="card-label">UPSTREAM BASE</div>
+        <h2>Browse the MTA reference</h2>
+        <p>The standard MTA Lua API, events, elements, configuration, and articles inherited from the official data-driven wiki.</p>
+        <strong>Open upstream reference →</strong>
+      </a>
     </div>
 
-    <div class="mtahero_right">
-        <p>Welcome to the <strong>new Multi Theft Auto Wiki</strong> (work in progress). Visit this wiki's <a href="https://github.com/multitheftauto/wiki.multitheftauto.com" target="_blank">GitHub repository</a> for more information about the project and how to contribute. The old wiki is still active at <a href="https://wiki.multitheftauto.com/wiki/Main_Page">wiki.multitheftauto.com</a> (where unofficial articles and pages are still available).</p>
-        
-        <p>There are many <a href="/Contributing">things you can do</a> to help us improve MTA - create a map, a gamemode, help document scripting functions, write example code, write tutorials or just play MTA and report the bugs you find.</p>
-
-        <p>If you have any questions or problems related to scripting, feel free to get in touch with us on <a href="https://discord.com/invite/mtasa" target="_blank">Discord</a>.</p>
-
-        <p class="bigtext">[ Stop playing with yourself ]</p>
-    </div>
-</div>
-
-<div class="mtagrid">
-    <div class="mtabox">
-        <h3>Play</h3>
-        <div>
-            <a class="downloadmta mtagreen" href="https://multitheftauto.com/"><Icon size="1.8rem" name="download" class="mtadownload-icon mtagreen" />Download <strong>Multi Theft Auto: San Andreas</strong> ({MTA_CURRENT_VERSION.full})</a>
-        </div>
-        <ul>
-            <li><a href="/Where_to_buy_GTASA">Where to buy GTASA</a></li>
-            <li><a href="/Client_Manual">Client Manual</a></li>
-            <li><a href={"/Changes_in_"+MTA_CURRENT_VERSION.full}>Changes in {MTA_CURRENT_VERSION.full}</a></li>
-            <li><a href="/Known_Issues_-_FAQ">Known Issues</a></li>
-            <li><a href="/Server_Manual">Server Manual</a></li>
-            <li><a href="/Map_manager">Map Manager</a></li>
-        </ul>
-
-        <h3>Map Editor</h3>
-        <ul>
-            <li><a href="/Resource:Editor">Manual</a></li>
-            <li><a href="/Resource:Editor/EDF">Editor Definition Format</a></li>
-            <li><a href="/Resource:Editor/Plugins">Plugins</a></li>
-            <li><a href="/Resource:Editor#FAQ">Frequently Asked Questions</a></li>
-        </ul>
-    </div>
-
-    <div class="mtabox">
-        <h3>Community</h3>
-        <ul>
-            <li><a href="/Category:Resource">Resource Catalogue</a></li>
-            <li><a href="https://forum.multitheftauto.com/">Forum</a></li>
-            <li><a href="https://discord.com/invite/mtasa">Official MTA Discord server</a> (<a href="https://forum.multitheftauto.com/topic/95008-multi-theft-autos-official-discord-server/">Forum post</a>)</li>
-            <li><a href="https://discord.com/invite/GNN6PRtTnu">Development Discord</a></li>
-            <li><a href="https://community.multitheftauto.com/">MTA Community</a></li>
-            <li><a href="https://twitter.com/MTAQA">Twitter</a>, <a href="https://www.youtube.com/user/MTAQA">YouTube</a>, <a href="https://www.facebook.com/multitheftauto">Facebook</a>, <a href="https://www.moddb.com/mods/multi-theft-auto-san-andreas">ModDB</a></li>
-        </ul>
-    </div>
-
-    <div class="mtabox">
-        <h3>Developing Multi Theft Auto</h3>
-        <ul>
-            <li><a href="https://nightly.mtasa.com/">Nightly builds</a></li>
-            <li><a href="/Compiling_MTASA">Compiling MTASA on Windows</a></li>
-            <li><a href="/Building_MTASA_Server_on_GNU_Linux">Compiling MTASA on GNU/Linux</a></li>
-            <li><a href="https://github.com/multitheftauto/mtasa-blue">Main GitHub repository</a></li>
-            <li><a href="https://github.com/multitheftauto/mtasa-blue/milestones">Roadmap</a></li>
-            <li><a href="https://github.com/multitheftauto/mtasa-blue/issues">Bugtracker (GitHub Issues)</a></li>
-        </ul>
-    </div>
-
-
-    <div class="mtabox">
-        <h3>Scripting</h3>
-        <ul>
-            <li><a href="/articles/scripting-introduction">Introduction to Scripting</a></li>
-            <li><a href="/articles/gui-introduction">Introduction to Scripting the GUI</a></li>
-            <li><a href="/Debugging">Debugging Tutorial</a></li>
-            <li><a href="/Resources">Introduction to Resources</a>
-            <ul>
-                <li><a href="/reference/Resource_Web_Access">Resource Web Access</a></li>
-                <li><a href="/reference/CEF-tutorial">CEF Tutorial</a></li>
-                <li><a href="/Category:Resource">Resource Catalogue</a></li>
-                <li><a href="/reference/Meta.xml">Meta.xml</a></li>
-                <li><a href="/reference/Access_Control_List">ACL</a></li>
-            </ul>
-            </li>
-            <li><a href="/Writing_Gamemodes">Writing Gamemodes</a></li>
-            <li><a href="/articles/script-security">Script security</a></li>
-            <li><a href="/Modules">Server Modules</a></li>
-        </ul>
-        <p>Forum Links</p>
-        <ul>
-            <li><a href="https://forum.multitheftauto.com/forum/71-scripting/">Scripting Sub-Forum</a></li>
-            <li><a href="https://forum.multitheftauto.com/forum/123-tutorials/">Scripting Tutorials Sub-Forum</a></li>
-            <li><a href="https://forum.multitheftauto.com/topic/24702-mtasa-wiki-offline-copies-online-mirrors/">Offline Wiki Copies</a></li>
-        </ul>
-        <h3>General Lua Help</h3>
-        <ul>
-            <li><a href="http://www.lua.org/pil/index.html">Programming in Lua Manual</a></li>
-            <li><a href="http://www.lua.org/manual/5.1/#index">Internal Lua functions reference</a></li>
-            <li><a href="http://lua-users.org/wiki/TutorialDirectory">Lua Wiki</a></li>
-            <li><a href="http://nixstaller.sourceforge.net/manual/0.5.1/nixstaller_10.html">Lua Guide from Nixstaller</a></li>
-        </ul>
-    </div>
-
-    <div class="mtabox">
-        <h3>Reference</h3>
-        <ul>
-            <li><a href="/reference/Lua_API">MTA Lua API Reference</a></li>
-            <li><a href="/reference/ID_Lists">ID Lists</a></li>
-        </ul>
-    </div>
-</div>
-
+    <p class="gateway-disclaimer">MTA:SA Neon is an independent experimental fork. It is not affiliated with or endorsed by the Multi Theft Auto team.</p>
+  </main>
 </StarlightPage>
 
 <style>
-    .bigtext {
-        font-size: 1.4em;
-        font-weight: bold;
-    }
-
-    .mtahero {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .mtahero_left {
-        flex: 1;
-        align-self: flex-start;
-        padding-right: 16px;
-    }
-    .mtahero_right {
-        flex: 3;
-    }
-
-    .mtagrid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 2rem;
-        align-items: flex-start;
-        justify-content: flex-start;
-    }
-
-    .mtabox {
-        padding: 4px 8px 8px 8px;
-        padding: 1rem;
-    }
-
-    .downloadmta {
-        font-size: 1.2em;
-    }
-    .mtadownload-icon {
-        display: inline-block;
-        vertical-align: top;
-        margin-right: 6px;
-    }
-    .mtagreen {
-        color: lightgreen !important;
-    }
-    :root[data-theme="light"] .mtagreen {
-        color: #00ac09 !important;
-    }
-
+  .gateway { max-width: 72rem; margin: 0 auto; padding: clamp(2rem, 7vw, 7rem) 1rem; }
+  .gateway-kicker { color: #64f4ae; font-size: .8rem; font-weight: 800; letter-spacing: .22em; }
+  h1 { max-width: 14ch; margin: .8rem 0 1.2rem; font-size: clamp(3rem, 8vw, 6.8rem); line-height: .9; letter-spacing: -.06em; }
+  h1 span { color: #64f4ae; text-shadow: 0 0 40px rgba(100,244,174,.28); }
+  .gateway-lead { max-width: 52rem; color: var(--sl-color-gray-2); font-size: clamp(1.05rem, 2vw, 1.3rem); }
+  .gateway-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin: 3rem 0 2rem; }
+  .gateway-card { position: relative; min-height: 18rem; padding: 2rem; overflow: hidden; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: 1.25rem; background: rgba(10,16,20,.72); transition: transform .2s ease, border-color .2s ease; }
+  .gateway-card:hover { transform: translateY(-4px); }
+  .gateway-card h2 { margin: 2.25rem 0 .8rem; font-size: 1.8rem; }
+  .gateway-card p { color: var(--sl-color-gray-2); }
+  .card-label { display: inline-flex; padding: .35rem .65rem; border-radius: 999px; font-size: .72rem; font-weight: 900; letter-spacing: .12em; }
+  .neon-card { border-color: rgba(100,244,174,.5); background: radial-gradient(circle at 95% 0%, rgba(100,244,174,.18), transparent 44%), #07110e; }
+  .neon-card:hover { border-color: #64f4ae; }
+  .neon-card .card-label { color: #06110d; background: #64f4ae; }
+  .neon-card strong { color: #64f4ae; }
+  .upstream-card { background: radial-gradient(circle at 95% 0%, rgba(232,115,0,.16), transparent 44%), #11100d; }
+  .upstream-card:hover { border-color: var(--color-mta-orange); }
+  .upstream-card .card-label { color: white; background: var(--color-mta-orange); }
+  .upstream-card strong { color: #f4a55d; }
+  .gateway-disclaimer { color: var(--sl-color-gray-3); font-size: .88rem; }
+  @media (max-width: 720px) { .gateway-grid { grid-template-columns: 1fr; } .gateway-card { min-height: 15rem; } }
 </style>

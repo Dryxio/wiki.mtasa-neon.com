@@ -1,63 +1,56 @@
-# Contributing to wiki.multitheftauto.com
+# Contributing to MTA:SA Neon Documentation
 
-Thanks for your interest in contributing to the MTA:SA Lua API documentation!
+This repository has two intentionally separate documentation surfaces:
 
-We are currently restructuring and modernizing how the API is documented in this repository. Please follow the priorities below when contributing.
+- `/neon` documents only behavior added or changed by MTA:SA Neon.
+- The retained articles and reference document upstream Multi Theft Auto.
 
-## 📚 Philosophy & Objective
+Do not present a Neon-only function or behavior as part of upstream MTA. When Neon extends an existing API, document the extension in the Neon compatibility guide and mark the function entry as an extension.
 
-The goal of this new documentation system is to provide a clean, structured, and authoritative reference for the **MTA:SA Lua API and core engine features only**.
+## Evidence requirements
 
-This repository is not intended to serve as a general-purpose wiki or community hub. It will only host official documentation related to:
-- Built-in Lua functions
-- Events
-- Elements and element types
-- Data structures and native MTA functionality
+Neon documentation should be checked against the engine implementation, not inferred from a function name. Use the relevant registration and implementation code, commit description, focused test resource, and runtime evidence when available.
 
-We are deliberately excluding community-created content, such as:
-- Third-party resources (e.g. DGS, scoreboard, etc.)
-- Tutorials, guides, or scripting best practices
-- Pages about servers, mods, or other fan-made projects
+For work that exists only in the engine worktree:
 
-These kinds of content are valuable to the community, but they will be organized and maintained elsewhere, outside this repository, in a more suitable space (e.g. community wiki, forums, or Discord).
+- label it as current, uncommitted, or experimental;
+- distinguish implemented behavior from planned behavior;
+- avoid presenting it as released or fully verified; and
+- update the page when the implementation is committed, changed, or removed.
 
-By keeping this documentation focused and consistent, we aim to create a high-quality, structured, and future-proof source of truth for all MTA:SA development.
+Each Lua API entry should describe its execution side, signature, argument constraints and defaults, return behavior, ownership or cleanup rules, source file, introduction commit, and focused test resource where one exists.
 
-## 🥇 Priority 1: Finish the Lua API Structure
+## Development
 
-Help us refine and complete the YAML schema definitions for all API types:
-- `functions/`
-- `events/`
-- `elements/`
+Requires Node.js 22 or newer.
 
-The goal is to have a complete **YAML schema** for each API type (function, event, element), with all the necessary information (syntax, notes, return values, code examples, etc.), **ready for automatic generation of documentation pages**. Ensure that the YAML files are well-structured and follow the conventions used in the existing files.
+```sh
+cd web
+npm ci
+npm run dev
+```
 
-## 🥈 Priority 2: Finish the Site UI and UX
+Open `http://localhost:4321/neon`, then validate a production build with:
 
-Ensure the site properly renders:
-- Function pages
-- Event pages
-- Element pages
-- Code examples and cross-references
-- Additional articles
+```sh
+npm run build
+```
 
-Report issues or inconsistencies in the frontend rendering or contribute layout/fix improvements via pull request.
+## Upstream synchronization
 
-You may also submit additional site improvements, such as a bookmarks system or other features that enhance user experience.
+This is an independent repository with the complete upstream Git history. Keep the official wiki configured as `upstream` and the Neon repository as `origin`:
 
-## 🥉 Later Phase: Port Legacy Wiki Content
+```sh
+git remote add upstream https://github.com/multitheftauto/wiki.multitheftauto.com.git
+git fetch upstream
+```
 
-Once the structure and display are complete, we’ll begin porting all legacy wiki documentation into YAML format.
+Review upstream merges carefully so the Neon gateway, navigation, and visual separation remain intact.
 
-This phase is not the current focus, but feel free to experiment or prepare tools/scripts to assist with this process.
+## Commit messages
 
-## Getting Started
+Commit messages should record the prompt or problem, goal, motivation, relevant implementation reasoning, evidence used, and exactly how the documentation was tested. A terse title alone is not enough for changes that affect technical claims.
 
-1. Fork the repository
-2. Clone your fork (creates a local copy)
-3. To work on a contribution, create a new branch for your changes (based on `main`)
-4. Make your changes and commit them with a clear message (e.g. `Fix code example display for function pages`)
+## Licenses
 
-## Keep in Touch
-
-Join the [MTA Development Discord server](https://forum.multitheftauto.com/topic/133917-our-dedicated-mta-development-discord-server/) and ask for help in the #data-driven-docs channel. We are happy to assist you with any questions or issues you may have while contributing.
+Documentation is available under the repository's GNU Free Documentation License. Source code in `web` is licensed under GPLv3; see `web/LICENSE`.

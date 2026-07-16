@@ -1,0 +1,646 @@
+export type NeonSide = "client" | "server" | "shared";
+
+export interface NeonArgument {
+  name: string;
+  type: string;
+  optional?: boolean;
+  default?: string;
+  description: string;
+}
+
+export interface NeonFunction {
+  name: string;
+  category: keyof typeof neonCategories;
+  side: NeonSide;
+  signature: string;
+  summary: string;
+  arguments?: NeonArgument[];
+  returns: string;
+  notes?: string[];
+  oop?: string[];
+  source: string;
+  commit: string;
+  example?: string;
+  extension?: boolean;
+}
+
+export const neonCategories = {
+  radar: {
+    title: "Extended native radar",
+    guide: "/neon/extended-world#extended-radar-and-f11-map",
+    test: "test-resources/extended-radar-test",
+    lifecycle: "Tile registrations belong to the resource that created the TXD. Destroying that TXD or stopping the resource unregisters its tiles.",
+  },
+  models: {
+    title: "Server-authoritative models",
+    guide: "/neon/models-and-streaming",
+    test: "test-resources/server-model-registry-test",
+    lifecycle: "Logical IDs are server-stable and resource-owned. Runtime GTA slots are client-local. Resource shutdown remaps surviving elements to their native parent before freeing slots.",
+  },
+  rendering: {
+    title: "Renderer and distant lights",
+    guide: "/neon/rendering-and-limits",
+    test: "test-resources/project2dfx-test",
+    lifecycle: "Renderer counters are process-local. Distant lights are disabled by default and remain a client resource opt-in.",
+  },
+  cull: {
+    title: "Native CULL zones",
+    guide: "/neon/rendering-and-limits#native-cull-zones",
+    test: "test-resources/cull-zone-test",
+    lifecycle: "Custom zones are deleted and claimed vanilla zones are restored automatically when their owner stops.",
+  },
+  markers: {
+    title: "Marker diagnostics",
+    guide: "/neon/rendering-and-limits#markers-checkpoints-and-coronas",
+    test: "test-resources/marker-limit-test",
+    lifecycle: "The important-area primitive submits geometry for one frame; call it from onClientPreRender while it should remain visible.",
+  },
+  seabed: {
+    title: "Procedural seabed",
+    guide: "/neon/extended-world#water-and-seabed",
+    test: "test-resources/seabed-boundary-test",
+    lifecycle: "The server synchronizes the selected boundary. Reset restores the unlimited procedural seabed.",
+  },
+  walking: {
+    title: "Model-native walking styles",
+    guide: "/neon/story-runtime#model-native-walking",
+    test: null,
+    lifecycle: "The policy follows model changes, stream cycles, joins, and native ped recreation. Numeric setPedWalkingStyle calls remain last-writer-wins.",
+  },
+  tasks: {
+    title: "Native ped tasks and gang tags",
+    guide: "/neon/story-runtime#native-ped-tasks",
+    test: "test-resources/native-ped-go-to-test",
+    lifecycle: "Task and combat mutations require the calling client to simulate the living streamed ped. Current tasks have no resource handle or syncer-migration reconstruction.",
+  },
+  camera: {
+    title: "Native script camera",
+    guide: "/neon/story-runtime#script-camera",
+    test: "test-resources/native-script-camera-test",
+    lifecycle: "One resource owns the global script-camera lease. Generation tokens reject stale callbacks, and stop, restart, disconnect, or an authoritative server camera RPC revokes the lease.",
+  },
+  audio: {
+    title: "Native mission audio",
+    guide: "/neon/story-runtime#mission-audio",
+    test: "test-resources/native-mission-audio-test",
+    lifecycle: "Opaque handles are generation-scoped to the calling resource. Resource shutdown releases every owned native slot; the service never preempts a foreign slot.",
+  },
+  text: {
+    title: "Native mission text",
+    guide: "/neon/story-runtime#mission-text",
+    test: "test-resources/tagging-up-turf",
+    lifecycle: "GTA has one mission-text table, so the lease is resource-exclusive. Shutdown clears tracked HUD pointers before ownership is released.",
+  },
+  recording: {
+    title: "Native vehicle recordings",
+    guide: "/neon/story-runtime#recorded-car-playback",
+    test: "test-resources/native-vehicle-recording-test",
+    lifecycle: "Playback stops on resource shutdown, native vehicle destruction, stream-out, or sync ownership loss. Playback is direct, non-looped opcode 05EB behavior.",
+  },
+  compatibility: {
+    title: "Existing API extensions",
+    guide: "/neon/compatibility",
+    test: "test-resources",
+    lifecycle: "These are Neon extensions to existing MTA functions. Scripts must feature-detect or require a matching Neon build.",
+  },
+} as const;
+
+const arg = (name: string, type: string, description: string, optional = false, defaultValue?: string): NeonArgument => ({
+  name,
+  type,
+  description,
+  optional,
+  default: defaultValue,
+});
+
+export const neonFunctions: NeonFunction[] = [
+  {
+    name: "engineSetRadarMapTile", category: "radar", side: "client",
+    signature: "bool engineSetRadarMapTile(int column, int row, txd tile)",
+    summary: "Registers or replaces a resource-owned TXD in one cell of Neon's sparse 40 × 40 native radar grid.",
+    arguments: [arg("column", "int", "Logical radar column from 0 through 39."), arg("row", "int", "Logical radar row from 0 through 39."), arg("tile", "txd", "A TXD created by the calling resource and containing the radar tile texture.")],
+    returns: "true when the tile was accepted; false for an invalid/protected cell, foreign TXD, unreadable TXD data, or registration failure.",
+    notes: ["The stock 12 × 12 San Andreas cells are protected.", "Compressed source bytes are copied into engine-owned state; the source TXD still anchors ownership."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "766727162",
+    example: "local tile = engineLoadTXD(\"radar/radar00.txd\")\nassert(tile and engineSetRadarMapTile(30, 20, tile))",
+  },
+  {
+    name: "engineResetRadarMapTile", category: "radar", side: "client",
+    signature: "bool engineResetRadarMapTile(int column, int row)",
+    summary: "Removes a radar tile owned by the calling resource and restores the native ocean fallback.",
+    arguments: [arg("column", "int", "Logical radar column from 0 through 39."), arg("row", "int", "Logical radar row from 0 through 39.")],
+    returns: "true when the caller owned and removed the tile; false otherwise.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "766727162",
+    example: "engineResetRadarMapTile(30, 20)",
+  },
+  {
+    name: "engineGetRadarMapStats", category: "radar", side: "client",
+    signature: "table engineGetRadarMapStats()",
+    summary: "Returns the current extended-radar hook, registration, loading, failure, and source-byte counters.",
+    returns: "A table with hooksInstalled, registeredTiles, loadedTiles, failedTiles, and sourceBytes.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "766727162",
+    example: "local stats = engineGetRadarMapStats()\noutputDebugString((\"radar: %d/%d loaded\"):format(stats.loadedTiles, stats.registeredTiles))",
+  },
+
+  {
+    name: "engineRequestModel", category: "models", side: "server",
+    signature: "int|false engineRequestModel(string type, int parentID [, string name = \"\"])",
+    summary: "Allocates a stable, resource-owned logical model for an object, vehicle, or ped.",
+    arguments: [arg("type", "string", "object, vehicle, or ped."), arg("parentID", "int", "Native GTA model used for gameplay behavior and legacy fallback."), arg("name", "string", "Optional resource-local registry name.", true, "\"\"")],
+    returns: "A logical model ID starting at 30000, or false when validation, naming, quota, parent, or registry-capacity checks fail.",
+    notes: ["Logical IDs are not reused during the server process.", "The server qualifies a non-empty name with the owning resource."],
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "a7a20d32b",
+    example: "local model = assert(engineRequestModel(\"vehicle\", 411, \"mission_infernus\"))\nlocal vehicle = createVehicle(model, 0, 0, 3)",
+  },
+  {
+    name: "engineFreeModel", category: "models", side: "server",
+    signature: "bool engineFreeModel(int model)",
+    summary: "Releases a logical model owned by the calling resource after remapping surviving elements to their native parent.",
+    arguments: [arg("model", "int", "Active server logical model ID owned by the caller.")],
+    returns: "true when the definition was safely released; false for an unknown or foreign model.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "a7a20d32b",
+    example: "if isElement(vehicle) then destroyElement(vehicle) end\nengineFreeModel(model)",
+  },
+  {
+    name: "engineGetModelParent", category: "models", side: "server",
+    signature: "int|false engineGetModelParent(int model)",
+    summary: "Returns the native GTA parent of an active server-managed logical model.",
+    arguments: [arg("model", "int", "Logical model ID.")], returns: "The native parent model ID, or false when the model is not registered.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "a7a20d32b",
+  },
+  {
+    name: "engineGetModelName", category: "models", side: "server",
+    signature: "string|false engineGetModelName(int model)",
+    summary: "Returns the active model's resource-qualified registry name.",
+    arguments: [arg("model", "int", "Logical model ID.")], returns: "The qualified name, or false when the model is not registered.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "a7a20d32b",
+  },
+  {
+    name: "engineGetModelType", category: "models", side: "server",
+    signature: "string|false engineGetModelType(int model)",
+    summary: "Returns whether a server-managed model is an object, vehicle, or ped.",
+    arguments: [arg("model", "int", "Logical model ID.")], returns: "object, vehicle, ped, or false when the model is unknown.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "dc25a615c",
+  },
+  {
+    name: "engineGetModelIDFromName", category: "models", side: "server",
+    signature: "int|false engineGetModelIDFromName(string name)",
+    summary: "Resolves a server-managed model by resource-local or fully qualified name.",
+    arguments: [arg("name", "string", "Local name, or resource:name for an explicit qualified lookup.")], returns: "The logical model ID, or false when no active definition matches.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "dc25a615c",
+  },
+  {
+    name: "engineGetModels", category: "models", side: "server",
+    signature: "table|false engineGetModels([string type])",
+    summary: "Enumerates active server-managed logical model IDs, optionally filtered by type.",
+    arguments: [arg("type", "string", "Optional object, vehicle, or ped filter.", true)], returns: "An array of logical model IDs, or false for an invalid filter.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "dc25a615c",
+  },
+  {
+    name: "engineIsModelAllocated", category: "models", side: "server",
+    signature: "bool engineIsModelAllocated(int model)",
+    summary: "Reports whether a logical model definition is currently active.",
+    arguments: [arg("model", "int", "Logical model ID.")], returns: "true when the definition exists; false otherwise.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "dc25a615c",
+  },
+  {
+    name: "engineGetModelAvailableCount", category: "models", side: "server",
+    signature: "int engineGetModelAvailableCount()",
+    summary: "Returns the number of additional model definitions the calling resource may allocate.",
+    returns: "Remaining per-resource capacity, or 0 when there is no calling resource.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaModelDefs.cpp", commit: "dc25a615c",
+  },
+  {
+    name: "engineGetModelRuntimeID", category: "models", side: "client",
+    signature: "int|false engineGetModelRuntimeID(int serverModel)",
+    summary: "Resolves a stable server model ID to the GTA runtime slot allocated on this client.",
+    arguments: [arg("serverModel", "int", "Server logical model ID.")], returns: "The local runtime slot, or false while no slot is active.",
+    notes: ["Replacement APIs that operate on GTA slots must receive this runtime ID, not the stable logical ID."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "a7a20d32b",
+  },
+  {
+    name: "engineGetModelServerID", category: "models", side: "client",
+    signature: "int|false engineGetModelServerID(int runtimeModel)",
+    summary: "Reverse-resolves a client runtime slot to its stable server logical model ID.",
+    arguments: [arg("runtimeModel", "int", "Client-local GTA runtime slot.")], returns: "The server logical ID, or false when the slot is not server-managed.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "a7a20d32b",
+  },
+
+  {
+    name: "engineGetRendererStats", category: "rendering", side: "client",
+    signature: "table engineGetRendererStats()",
+    summary: "Returns current, session-high-water, and capacity counters for Neon's expanded renderer arrays.",
+    returns: "A table containing visibleEntities, visibleEntityHighWater, visibleEntityCapacity, visibleLods, visibleLodHighWater, visibleLodCapacity, streamingRwObjects, streamingRwObjectHighWater, and streamingRwObjectCapacity.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "bc3f9d9e6",
+  },
+  {
+    name: "engineResetRendererStats", category: "rendering", side: "client",
+    signature: "bool engineResetRendererStats()",
+    summary: "Resets renderer high-water measurements without changing capacities or active objects.", returns: "Always true after resetting the measurement window.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "bc3f9d9e6",
+  },
+  {
+    name: "engineSetDistantLightsEnabled", category: "rendering", side: "client",
+    signature: "bool engineSetDistantLightsEnabled(bool enabled)",
+    summary: "Enables or disables Neon's native Project2DFX distant static lights.",
+    arguments: [arg("enabled", "bool", "Desired state.")], returns: "true when the state was applied.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "d0a91316b",
+  },
+  {
+    name: "engineSetDistantLightsDrawDistance", category: "rendering", side: "client",
+    signature: "bool engineSetDistantLightsDrawDistance(float distance)",
+    summary: "Sets the distant-light draw distance.",
+    arguments: [arg("distance", "float", "Finite distance from 300 through 5000 world units.")], returns: "true for an accepted distance; false outside the supported range.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "d0a91316b",
+  },
+  {
+    name: "engineRebuildDistantLights", category: "rendering", side: "client",
+    signature: "bool engineRebuildDistantLights()",
+    summary: "Rebuilds the distant-light definition cache from the currently available world data.", returns: "Always true after scheduling the rebuild.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "d0a91316b",
+  },
+  {
+    name: "engineGetDistantLightStats", category: "rendering", side: "client",
+    signature: "table engineGetDistantLightStats()",
+    summary: "Returns Project2DFX state and capacity counters.", returns: "A table containing enabled, definitions, activeCoronas, coronaCapacity, and drawDistance.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "d0a91316b",
+  },
+
+  {
+    name: "engineGetCullZones", category: "cull", side: "client",
+    signature: "table engineGetCullZones([string type = \"\"])",
+    summary: "Lists adopted vanilla and custom CULL zones, optionally filtered by zone type.",
+    arguments: [arg("type", "string", "Empty for all zones, or attribute, tunnel, or mirror.", true, "\"\"")],
+    returns: "An array of zone tables containing id, type, position, dimensions, rotation, flags, mirror plane, enabled, and original fields.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+  {
+    name: "engineCreateCullZone", category: "cull", side: "client",
+    signature: "int|false engineCreateCullZone(string type, float x, float y, float z, float width, float depth, float height, int flags [, float rotation = 0, float mirrorV = 0, float normalX = 0, float normalY = 0, float normalZ = 1])",
+    summary: "Creates a resource-owned native CULL zone and returns its stable ID.",
+    arguments: [arg("type", "string", "attribute, tunnel, or mirror."), arg("x, y, z", "float", "Zone center; GTA stores signed 16-bit whole units."), arg("width, depth, height", "float", "Positive zone dimensions."), arg("flags", "int", "Native flags from 0 through 65535."), arg("rotation", "float", "Rotation in degrees.", true, "0"), arg("mirrorV", "float", "Mirror-plane V term.", true, "0"), arg("normalX, normalY, normalZ", "float", "Mirror plane normal.", true, "0, 0, 1")],
+    returns: "A non-zero stable zone ID, or false when validation or capacity checks fail.",
+    notes: ["Fractional positions are truncated to GTA's whole-unit representation."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+  {
+    name: "engineSetCullZone", category: "cull", side: "client",
+    signature: "bool engineSetCullZone(int id, string type, float x, float y, float z, float width, float depth, float height, int flags [, float rotation = 0, float mirrorV = 0, float normalX = 0, float normalY = 0, float normalZ = 1])",
+    summary: "Replaces an owned or claimed zone definition while retaining its stable ID.",
+    arguments: [arg("id", "int", "Stable zone ID."), arg("type", "string", "attribute, tunnel, or mirror."), arg("x, y, z", "float", "Zone center."), arg("width, depth, height", "float", "Zone dimensions."), arg("flags", "int", "Native flags from 0 through 65535."), arg("rotation and mirror plane", "float", "Same optional values as engineCreateCullZone.", true)],
+    returns: "true when the caller may edit the zone and the new definition is valid; false otherwise.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+  {
+    name: "engineSetCullZoneEnabled", category: "cull", side: "client",
+    signature: "bool engineSetCullZoneEnabled(int id, bool enabled)",
+    summary: "Enables or disables a custom zone or a vanilla zone claimed by the caller.",
+    arguments: [arg("id", "int", "Stable zone ID."), arg("enabled", "bool", "Desired state.")], returns: "true when ownership and state checks pass; false otherwise.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+  {
+    name: "engineRemoveCullZone", category: "cull", side: "client",
+    signature: "bool engineRemoveCullZone(int id)",
+    summary: "Deletes an owned custom zone or temporarily removes a claimed vanilla zone.",
+    arguments: [arg("id", "int", "Stable zone ID.")], returns: "true when the zone was removed under caller ownership; false otherwise.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+  {
+    name: "engineRestoreCullZone", category: "cull", side: "client",
+    signature: "bool engineRestoreCullZone(int id)",
+    summary: "Restores a claimed vanilla zone to its original definition and releases the caller's edit state.",
+    arguments: [arg("id", "int", "Stable original-zone ID.")], returns: "true when the original was restored; false for a custom, unknown, or foreign zone.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "89558e874",
+  },
+
+  {
+    name: "getMarkerLimitStats", category: "markers", side: "client",
+    signature: "table getMarkerLimitStats()",
+    summary: "Returns MTA marker-streamer usage plus GTA 3D marker, checkpoint, and direction-arrow capacities.",
+    returns: "A table of current counts, limits, and allocated native capacities used by the marker stress resources.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaMarkerDefs.cpp", commit: "87e237bc0",
+  },
+  {
+    name: "renderScriptImportantArea", category: "markers", side: "client",
+    signature: "bool renderScriptImportantArea(Vector3 center, float radiusX, float radiusY [, int localId])",
+    summary: "Submits GTA's SCM important-area visual: three pulsing additive red cylinders with native ground correction.",
+    arguments: [arg("center", "Vector3", "Finite center position."), arg("radiusX", "float", "Positive X radius."), arg("radiusY", "float", "Positive Y radius."), arg("localId", "int", "Optional caller-local identity mixed with the resource identity.", true)],
+    returns: "true after a valid frame submission; false for invalid dimensions, missing resource context, or unavailable marker service.",
+    notes: ["This is visual only and creates no collision shape."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaMarkerDefs.cpp", commit: "3dc633a89",
+    example: "addEventHandler(\"onClientPreRender\", root, function()\n    renderScriptImportantArea(Vector3(2100.48, -1649.14, 12.47), 4, 4, 1)\nend)",
+  },
+
+  {
+    name: "setWorldSeaBedOuterBoundary", category: "seabed", side: "server",
+    signature: "bool setWorldSeaBedOuterBoundary(float boundary)",
+    summary: "Sets and synchronizes the square procedural-seabed boundary.",
+    arguments: [arg("boundary", "float", "Value from 3000 through 10000; rounded upward to GTA's 500-unit blocks.")],
+    returns: "true when the boundary was accepted and synchronized; false otherwise.",
+    notes: ["This does not remove the infinite ocean or change water physics."],
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaWaterDefs.cpp", commit: "6de74b113",
+  },
+  {
+    name: "resetWorldSeaBedOuterBoundary", category: "seabed", side: "server",
+    signature: "bool resetWorldSeaBedOuterBoundary()", summary: "Restores and synchronizes GTA's unlimited procedural seabed.", returns: "true when the reset was applied.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaWaterDefs.cpp", commit: "6de74b113",
+  },
+  {
+    name: "getWorldSeaBedOuterBoundary", category: "seabed", side: "server",
+    signature: "float|false getWorldSeaBedOuterBoundary()", summary: "Returns the currently applied procedural-seabed boundary.", returns: "The boundary in world units, or false while the seabed is unlimited.",
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaWaterDefs.cpp", commit: "6de74b113",
+  },
+
+  {
+    name: "setPedUseNativeWalkingStyle", category: "walking", side: "shared",
+    signature: "bool setPedUseNativeWalkingStyle(ped thePed, bool enabled)",
+    summary: "Makes a ped follow the current skin model's native motion group, or restores MTA's explicit walking-style path.",
+    arguments: [arg("thePed", "ped", "Target ped or player."), arg("enabled", "bool", "Whether model-native selection is active.")], returns: "true when the policy was applied; false for an invalid element.",
+    oop: ["ped:setUseNativeWalkingStyle(enabled)", "ped.usingNativeWalkingStyle = enabled"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "012f05529",
+  },
+  {
+    name: "isPedUsingNativeWalkingStyle", category: "walking", side: "shared",
+    signature: "bool isPedUsingNativeWalkingStyle(ped thePed)",
+    summary: "Reports whether model-native walking-style selection is active for a ped.",
+    arguments: [arg("thePed", "ped", "Target ped or player.")], returns: "The current policy, or false for an invalid element.",
+    oop: ["ped:isUsingNativeWalkingStyle()", "ped.usingNativeWalkingStyle"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "012f05529",
+  },
+
+  {
+    name: "setPedGoTo", category: "tasks", side: "client",
+    signature: "bool setPedGoTo(ped thePed, Vector3 target [, string movement = \"walk\", float radius = 0.5, float slowdownRadius = 2.0, int timeout = -2])",
+    summary: "Replaces the owned ped's primary task with GTA's native go-to-and-stand-still task.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite destination."), arg("movement", "string", "walk, run, or sprint.", true, "walk"), arg("radius", "float", "Positive arrival radius.", true, "0.5"), arg("slowdownRadius", "float", "Slowdown radius not smaller than radius.", true, "2.0"), arg("timeout", "int", "-2 for untimed, -1 for SCM-compatible 20 seconds, or a non-negative millisecond timeout.", true, "-2")],
+    returns: "true when the native task was installed; false when ownership, streaming, liveness, target, movement, radius, or timeout checks fail.",
+    oop: ["ped:setGoTo(target, movement, radius, slowdownRadius, timeout)"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
+  },
+  {
+    name: "setPedEnterVehicle", category: "tasks", side: "client", extension: true,
+    signature: "bool setPedEnterVehicle(ped thePed [, vehicle theVehicle, bool|int passengerOrSeat])",
+    summary: "Extends MTA's authoritative vehicle-entry lifecycle with a verified native passenger-entry task after server confirmation.",
+    arguments: [arg("thePed", "ped", "Ped requesting entry."), arg("theVehicle", "vehicle", "Target vehicle; the established MTA inference remains available.", true), arg("passengerOrSeat", "bool|int", "Passenger flag or explicit MTA seat. Seat 0 is driver; seat 1 is the first passenger/SCM passenger index 0.", true)],
+    returns: "true when the authoritative request was accepted; false otherwise.",
+    oop: ["ped:setEnterVehicle(vehicle, passengerOrSeat)"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
+  },
+  {
+    name: "setPedExitVehicle", category: "tasks", side: "client", extension: true,
+    signature: "bool setPedExitVehicle(ped thePed)",
+    summary: "Extends MTA's authoritative vehicle-exit lifecycle with a verified native leave-car task on the syncer.",
+    arguments: [arg("thePed", "ped", "Ped requesting exit.")], returns: "true when the authoritative exit request was accepted; false otherwise.",
+    oop: ["ped:setExitVehicle()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
+  },
+  {
+    name: "setPedDriveWander", category: "tasks", side: "client",
+    signature: "bool setPedDriveWander(ped thePed, vehicle theVehicle, float speed [, string|int drivingStyle = 0])",
+    summary: "Assigns GTA's indefinite road-cruising task to an owned ped already driving an owned vehicle.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("theVehicle", "vehicle", "Streamed, non-blown vehicle occupied by the ped as driver."), arg("speed", "float", "Finite speed from 0 through 255."), arg("drivingStyle", "string|int", "Integer 0..6 or one of the documented stop/avoid/plough-through names.", true, "0")],
+    returns: "true when the native wander task was assigned; false when ownership, vehicle, seat, speed, or style checks fail.",
+    oop: ["ped:setDriveWander(vehicle, speed, drivingStyle)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
+  },
+  {
+    name: "setPedMissionActor", category: "tasks", side: "client",
+    signature: "bool setPedMissionActor(ped thePed, bool enabled)",
+    summary: "Persists GTA's PED_MISSION classification on a script-created ped across native model recreation.",
+    arguments: [arg("thePed", "ped", "Script ped only; players are rejected."), arg("enabled", "bool", "Desired local policy.")],
+    returns: "true when the client-local policy was stored; false for a player or invalid element.",
+    notes: ["This policy may be set while the native ped is streamed out.", "It is client-local and last-writer-wins; synchronized resources must replicate and clear it deliberately."],
+    oop: ["ped:setMissionActor(enabled)", "ped.missionActor = enabled"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
+  },
+  {
+    name: "isPedMissionActor", category: "tasks", side: "client",
+    signature: "bool isPedMissionActor(ped thePed)", summary: "Reports the locally persisted mission-actor policy, including while the native model is streamed out.",
+    arguments: [arg("thePed", "ped", "Script ped only.")], returns: "true when enabled; false when disabled or when the target is not a script ped.",
+    oop: ["ped:isMissionActor()", "ped.missionActor"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
+  },
+  {
+    name: "setPedShootAt", category: "tasks", side: "client",
+    signature: "bool setPedShootAt(ped thePed, Vector3 target [, int duration = 1000, int burstLength = 5])",
+    summary: "Replaces the owned ped's primary task with GTA's native coordinate GunControl firing task.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite target; an XY value of 0,0 is rejected because GTA treats it as no coordinate."), arg("duration", "int", "Milliseconds; every negative value is indefinite.", true, "1000"), arg("burstLength", "int", "Positive native burst size.", true, "5")],
+    returns: "true when the native task was installed; false for failed ownership, liveness, target, or burst validation.",
+    oop: ["ped:setShootAt(target, duration, burstLength)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
+  },
+  {
+    name: "setPedWeaponShootingRate", category: "tasks", side: "client",
+    signature: "bool setPedWeaponShootingRate(ped thePed, int rate)", summary: "Sets GTA's persistent shooting-rate byte used by native gun tasks.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("rate", "int", "Value from 0 through 255.")], returns: "true when applied; false for ownership, streaming, liveness, or range failure.",
+    oop: ["ped:setWeaponShootingRate(rate)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
+  },
+  {
+    name: "setPedWeaponAccuracy", category: "tasks", side: "client",
+    signature: "bool setPedWeaponAccuracy(ped thePed, int accuracy)", summary: "Sets GTA's persistent 0–255 weapon-accuracy byte used for shot spread.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("accuracy", "int", "Value from 0 through 255.")], returns: "true when applied; false for ownership, streaming, liveness, or range failure.",
+    oop: ["ped:setWeaponAccuracy(accuracy)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
+  },
+  {
+    name: "setObjectGangTagAlpha", category: "tasks", side: "client",
+    signature: "bool setObjectGangTagAlpha(object theObject, int|false alpha)", summary: "Sets a logical 0–255 Grove-material alpha on a streamed native gang-tag object, or clears the opt-in override.",
+    arguments: [arg("theObject", "object", "Streamed object using model 1490 or 1524 through 1531."), arg("alpha", "int|false", "0..255, or false to relinquish the override.")],
+    returns: "true when the supported streamed object's material state was updated; false otherwise.",
+    notes: ["Reapply after stream-in or native object recreation."], oop: ["object:setGangTagAlpha(alpha)"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "a9745bb5b",
+  },
+
+  {
+    name: "acquireScriptCamera", category: "camera", side: "client",
+    signature: "int|false acquireScriptCamera([bool inhibitControls = false])",
+    summary: "Acquires the resource-exclusive GTA script camera and returns a generation token.",
+    arguments: [arg("inhibitControls", "bool", "Also engage the reference-counted gameplay inhibitor and native player-safe braking bit.", true, "false")],
+    returns: "A non-zero generation token, or false when another resource owns the lease.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+    example: "local token = assert(acquireScriptCamera(true))\nassert(setScriptCameraFixed(token, Vector3(0, 0, 20), Vector3(0, 0, 0)))",
+  },
+  {
+    name: "releaseScriptCamera", category: "camera", side: "client",
+    signature: "bool releaseScriptCamera(int token [, bool preserveFade = false])",
+    summary: "Restores captured gameplay camera state and optionally leaves a successful scene under its black fade.",
+    arguments: [arg("token", "int", "Current lease generation token."), arg("preserveFade", "bool", "Keep the fade black so gameplay can fade in after restoration.", true, "false")],
+    returns: "true when the calling resource released its current generation; false for stale or foreign tokens.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "isScriptCameraLeaseActive", category: "camera", side: "client",
+    signature: "bool isScriptCameraLeaseActive(int token)", summary: "Reports whether the calling resource still owns the specified camera generation.",
+    arguments: [arg("token", "int", "Generation token returned by acquireScriptCamera.")], returns: "true only for the current generation and owner.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "28b42898b",
+  },
+  {
+    name: "setScriptCameraFixed", category: "camera", side: "client",
+    signature: "bool setScriptCameraFixed(int token, Vector3 position, Vector3 target [, float upOffset = 0, bool jumpCut = true])",
+    summary: "Activates GTA's fixed script camera and native point-at control.",
+    arguments: [arg("token", "int", "Current lease token."), arg("position", "Vector3", "Finite camera position."), arg("target", "Vector3", "Finite look-at target."), arg("upOffset", "float", "Native vertical point-at offset.", true, "0"), arg("jumpCut", "bool", "Use an immediate cut rather than a transition.", true, "true")],
+    returns: "true when the current lease accepted the fixed camera; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "moveScriptCamera", category: "camera", side: "client",
+    signature: "bool moveScriptCamera(int token, Vector3 from, Vector3 to, int durationMs [, bool ease = true])",
+    summary: "Starts GTA's native camera-position vector track.",
+    arguments: [arg("token", "int", "Current lease token."), arg("from", "Vector3", "Start position."), arg("to", "Vector3", "End position."), arg("durationMs", "int", "Positive duration in milliseconds."), arg("ease", "bool", "Use GTA's eased track instead of linear motion.", true, "true")],
+    returns: "true when the track started; false for stale ownership or invalid vectors/duration.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "trackScriptCamera", category: "camera", side: "client",
+    signature: "bool trackScriptCamera(int token, Vector3 from, Vector3 to, int durationMs [, bool ease = true])",
+    summary: "Starts GTA's native look-at target vector track.",
+    arguments: [arg("token", "int", "Current lease token."), arg("from", "Vector3", "Initial target."), arg("to", "Vector3", "Final target."), arg("durationMs", "int", "Positive duration in milliseconds."), arg("ease", "bool", "Use eased tracking.", true, "true")],
+    returns: "true when the target track started; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "setScriptCameraPersist", category: "camera", side: "client",
+    signature: "bool setScriptCameraPersist(int token, bool position, bool target)", summary: "Selects whether completed position and target tracks retain their endpoints.",
+    arguments: [arg("token", "int", "Current lease token."), arg("position", "bool", "Persist completed position track."), arg("target", "bool", "Persist completed target track.")], returns: "true for the current owner and generation; false otherwise.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "resetScriptCamera", category: "camera", side: "client",
+    signature: "bool resetScriptCamera(int token)", summary: "Resets GTA's scriptable camera interpolation components without releasing the lease.",
+    arguments: [arg("token", "int", "Current lease token.")], returns: "true when reset; false for stale or foreign ownership.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "fadeScriptCamera", category: "camera", side: "client",
+    signature: "bool fadeScriptCamera(int token, bool fadeIn, float durationSeconds [, int red = 0, int green = 0, int blue = 0])",
+    summary: "Runs GTA's native fade under the current camera lease.",
+    arguments: [arg("token", "int", "Current lease token."), arg("fadeIn", "bool", "true to reveal, false to fade to color."), arg("durationSeconds", "float", "Non-negative fade duration."), arg("red, green, blue", "int", "Fade color channels from 0 through 255.", true, "0, 0, 0")],
+    returns: "true when the native fade was accepted; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "isScriptCameraFading", category: "camera", side: "client",
+    signature: "bool isScriptCameraFading(int token)", summary: "Reports the native fade state for the current camera generation.",
+    arguments: [arg("token", "int", "Current lease token.")], returns: "true while fading; false when idle or when the lease is not current.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "isScriptCameraMoveRunning", category: "camera", side: "client",
+    signature: "bool isScriptCameraMoveRunning(int token)", summary: "Reports whether the native position track is still running.",
+    arguments: [arg("token", "int", "Current lease token.")], returns: "true while running; false otherwise or for a stale lease.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "isScriptCameraTrackRunning", category: "camera", side: "client",
+    signature: "bool isScriptCameraTrackRunning(int token)", summary: "Reports whether the native look-at track is still running.",
+    arguments: [arg("token", "int", "Current lease token.")], returns: "true while running; false otherwise or for a stale lease.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "setScriptCameraWidescreen", category: "camera", side: "client",
+    signature: "bool setScriptCameraWidescreen(int token, bool enabled)", summary: "Uses GTA's native widescreen transition under the current lease.",
+    arguments: [arg("token", "int", "Current lease token."), arg("enabled", "bool", "Desired widescreen state.")], returns: "true when applied; false for a stale or foreign lease.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+  {
+    name: "setScriptCameraNearClip", category: "camera", side: "client",
+    signature: "bool setScriptCameraNearClip(int token, float|false distance)", summary: "Sets GTA's scripted near clip, or clears the override with false.",
+    arguments: [arg("token", "int", "Current lease token."), arg("distance", "float|false", "Positive finite near clip, or false to restore captured behavior.")], returns: "true when applied; false for invalid distance or lease ownership.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
+  },
+
+  {
+    name: "requestMissionAudio", category: "audio", side: "client",
+    signature: "int|false requestMissionAudio(int eventId)", summary: "Preloads a supported GTA script-audio event and returns a resource-owned opaque handle.",
+    arguments: [arg("eventId", "int", "Native event in 1800..1829 or 2000..45400; custom event 65535 is rejected.")],
+    returns: "An opaque generation-scoped handle, or false when the event is unsupported or all four native slots are occupied.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "28b42898b",
+  },
+  {
+    name: "isMissionAudioLoaded", category: "audio", side: "client",
+    signature: "bool isMissionAudioLoaded(int handle)", summary: "Reports whether an owned native mission-audio event has finished loading.",
+    arguments: [arg("handle", "int", "Opaque handle returned by requestMissionAudio.")], returns: "true once loaded; false for pending, stale, foreign, or lost slots.",
+    notes: ["While an owned unplayed event remains pending, polling periodically re-arms a native hardware request that GTA may silently drop."], source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "28b42898b",
+  },
+  {
+    name: "playMissionAudio", category: "audio", side: "client",
+    signature: "bool playMissionAudio(int handle)", summary: "Starts one loaded mission-audio handle exactly once through GTA's native player.",
+    arguments: [arg("handle", "int", "Owned loaded handle.")], returns: "true when playback started; false for unloaded, already played, stale, or foreign handles.", source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "28b42898b",
+  },
+  {
+    name: "isMissionAudioFinished", category: "audio", side: "client",
+    signature: "bool isMissionAudioFinished(int handle)", summary: "Reports natural completion after playback has started.",
+    arguments: [arg("handle", "int", "Owned played handle.")], returns: "true after natural completion; false before playback, while playing, or for invalid ownership.", source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "28b42898b",
+  },
+  {
+    name: "releaseMissionAudio", category: "audio", side: "client",
+    signature: "bool releaseMissionAudio(int handle)", summary: "Clears an owned native event and releases its physical mission-audio slot.",
+    arguments: [arg("handle", "int", "Owned opaque handle.")], returns: "true when released; false for stale or foreign handles.", source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "28b42898b",
+  },
+
+  {
+    name: "acquireMissionText", category: "text", side: "client",
+    signature: "bool acquireMissionText(string blockName)", summary: "Exclusively loads one GTA mission GXT block for the calling resource.",
+    arguments: [arg("blockName", "string", "Mission GXT block name, limited to GTA's seven-character key format.")], returns: "true when acquired or refreshed by the current owner; false when another resource owns the global table or the name is invalid.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "showMissionText", category: "text", side: "client",
+    signature: "bool showMissionText(string key, int duration [, int flags = 1])", summary: "Queues a translated key through GTA's native small-message PRINT_NOW path.",
+    arguments: [arg("key", "string", "GXT key of at most seven characters."), arg("duration", "int", "Display duration in milliseconds."), arg("flags", "int", "Native unsigned 16-bit message flags.", true, "1")], returns: "true when the current text owner queued the key; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "showMissionHelp", category: "text", side: "client",
+    signature: "bool showMissionHelp(string key [, bool permanent = false])", summary: "Displays a translated key through GTA's native help-message HUD.",
+    arguments: [arg("key", "string", "GXT key of at most seven characters."), arg("permanent", "bool", "Keep the help active until cleared.", true, "false")], returns: "true when displayed by the current owner; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "showMissionBigText", category: "text", side: "client",
+    signature: "bool showMissionBigText(string key, int duration [, int style = 1, int number])", summary: "Queues GTA's native big mission text, optionally substituting one number.",
+    arguments: [arg("key", "string", "GXT key of at most seven characters."), arg("duration", "int", "Display duration in milliseconds."), arg("style", "int", "Original one-based SCM big-text style.", true, "1"), arg("number", "int", "Optional numeric substitution.", true)], returns: "true when queued by the current owner; false for invalid key, style, or ownership.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "clearMissionTexts", category: "text", side: "client",
+    signature: "bool clearMissionTexts()", summary: "Clears the calling resource's tracked small and big native messages.", returns: "true for the current text owner; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "clearMissionHelp", category: "text", side: "client",
+    signature: "bool clearMissionHelp()", summary: "Clears the calling resource's native help message.", returns: "true for the current text owner; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+  {
+    name: "releaseMissionText", category: "text", side: "client",
+    signature: "bool releaseMissionText()", summary: "Clears owned messages/help and releases the exclusive mission-text lease.", returns: "true when the calling resource released its lease; false otherwise.",
+    notes: ["The loaded block remains cached until another owner replaces it."], source: "Client/mods/deathmatch/logic/luadefs/CLuaPlayerDefs.cpp", commit: "3dc633a89",
+  },
+
+  {
+    name: "requestVehicleRecording", category: "recording", side: "client",
+    signature: "bool requestVehicleRecording(int recordingId)", summary: "Acquires and requests one registered GTA carrec recording for the calling resource.",
+    arguments: [arg("recordingId", "int", "Registered native recording ID.")], returns: "true when requested or already owned; false for unknown recordings or load failure.",
+    notes: ["Repeated calls are idempotent and may reload a buffer released by natural completion."], source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "eafc816e6",
+  },
+  {
+    name: "isVehicleRecordingLoaded", category: "recording", side: "client",
+    signature: "bool isVehicleRecordingLoaded(int recordingId)", summary: "Reports whether a registered recording currently has a streamed native frame buffer.",
+    arguments: [arg("recordingId", "int", "Registered native recording ID.")], returns: "true while the frame buffer is loaded; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "eafc816e6",
+  },
+  {
+    name: "startVehiclePlayback", category: "recording", side: "client",
+    signature: "bool startVehiclePlayback(vehicle theVehicle, int recordingId)", summary: "Starts direct non-looped GTA recorded-car playback on a vehicle owned by the local unoccupied-vehicle syncer.",
+    arguments: [arg("theVehicle", "vehicle", "Streamed, non-frozen, non-blown vehicle under valid local sync ownership."), arg("recordingId", "int", "Loaded recording owned by the calling resource.")],
+    returns: "true when a native slot started; false for unknown/unloaded recordings, foreign ownership, duplicate/full pools, player drivers, or invalid vehicle state.",
+    oop: ["vehicle:startPlayback(recordingId)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "eafc816e6",
+  },
+  {
+    name: "stopVehiclePlayback", category: "recording", side: "client",
+    signature: "bool stopVehiclePlayback(vehicle theVehicle)", summary: "Stops playback when the calling resource owns the vehicle's active native slot.",
+    arguments: [arg("theVehicle", "vehicle", "Streamed vehicle with playback owned by the caller.")], returns: "true when stopped; false for inactive, foreign, or unavailable playback.",
+    oop: ["vehicle:stopPlayback()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "eafc816e6",
+  },
+  {
+    name: "isVehiclePlaybackActive", category: "recording", side: "client",
+    signature: "bool isVehiclePlaybackActive(vehicle theVehicle)", summary: "Reports whether GTA's native 16-slot player currently contains the vehicle.",
+    arguments: [arg("theVehicle", "vehicle", "Streamed vehicle.")], returns: "true while native playback is active; false otherwise.",
+    oop: ["vehicle:isPlaybackActive()", "vehicle.playbackActive"], source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "eafc816e6",
+  },
+
+  {
+    name: "setGlitchEnabled", category: "compatibility", side: "server", extension: true,
+    signature: "bool setGlitchEnabled(string glitchName, bool enabled)", summary: "Adds the Neon-only fastweaponstrafe option to MTA's existing synchronized glitch API.",
+    arguments: [arg("glitchName", "string", "Use fastweaponstrafe for Neon's SA-MP-style weapon movement."), arg("enabled", "bool", "Desired synchronized state.")],
+    returns: "The existing MTA success result. fastweaponstrafe is disabled by default.", notes: ["Neon preserves the high-FPS weapon path when disabled and uses a versioned map-info bit for capable clients."],
+    source: "Server/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp", commit: "1c22304f5",
+    example: "setGlitchEnabled(\"fastweaponstrafe\", true)",
+  },
+  {
+    name: "isGlitchEnabled", category: "compatibility", side: "server", extension: true,
+    signature: "bool isGlitchEnabled(string glitchName)", summary: "Reads the synchronized Neon fastweaponstrafe state through MTA's existing glitch API.",
+    arguments: [arg("glitchName", "string", "Use fastweaponstrafe.")], returns: "true when enabled; false otherwise.", source: "Server/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp", commit: "1c22304f5",
+    example: "local enabled = isGlitchEnabled(\"fastweaponstrafe\")",
+  },
+];
+
+export const neonFunctionByName = new Map(neonFunctions.map((entry) => [entry.name, entry]));

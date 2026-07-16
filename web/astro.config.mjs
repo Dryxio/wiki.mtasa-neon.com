@@ -46,7 +46,7 @@ export default defineConfig({
       favicon: "favicon.ico",
       title: SITE_TITLE,
       logo: {
-        replacesTitle: true,
+        replacesTitle: false,
         light: "./src/assets/images/logo-black.png",
         dark: "./src/assets/images/logo-white.png",
       },
@@ -54,12 +54,12 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/multitheftauto/wiki.multitheftauto.com",
+          href: "https://github.com/Dryxio/wiki.mtasa-neon.com",
         },
       ],
       editLink: {
         baseUrl:
-          "https://github.com/multitheftauto/wiki.multitheftauto.com/edit/main/web/",
+          "https://github.com/Dryxio/wiki.mtasa-neon.com/edit/main/web/",
       },
       components: {
         // Override some default components
@@ -70,10 +70,25 @@ export default defineConfig({
       disable404Route: true,
       sidebar: [
         {
-          label: "Welcome",
+          label: "Neon",
+          items: [
+            { label: "Neon overview", link: "/neon" },
+            { label: "What's different", link: "/neon/features" },
+            { label: "Neon Lua API", link: "/neon/functions" },
+            { label: "Extended world", link: "/neon/extended-world" },
+            { label: "Native world packs", link: "/neon/native-world" },
+            { label: "Models & streaming", link: "/neon/models-and-streaming" },
+            { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
+            { label: "Story runtime", link: "/neon/story-runtime" },
+            { label: "Compatibility", link: "/neon/compatibility" },
+            { label: "Tooling & verification", link: "/neon/tooling-and-verification" },
+          ],
+        },
+        {
+          label: "Upstream MTA documentation",
           items: [
             {
-              label: "Introduction",
+              label: "Documentation gateway",
               link: "/",
             },
             {
@@ -83,11 +98,11 @@ export default defineConfig({
           ],
         },
         {
-          label: "Articles",
+          label: "Upstream MTA articles",
           autogenerate: { directory: "articles" },
         },
         {
-          label: "Reference",
+          label: "Upstream MTA reference",
           items: [
             {
               label: "Resources",

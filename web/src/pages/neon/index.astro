@@ -1,0 +1,99 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { neonFunctions, neonCategories } from '@src/data/neon-functions';
+
+const clientCount = neonFunctions.filter((entry) => entry.side === 'client').length;
+const serverCount = neonFunctions.filter((entry) => entry.side === 'server').length;
+const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').length;
+---
+
+<StarlightPage frontmatter={{
+  template: 'doc',
+  title: 'Neon',
+  description: 'Only the features and APIs added or extended by MTA:SA Neon.',
+  tableOfContents: false,
+}}>
+  <div class="neon-hero">
+    <div class="neon-orbit" aria-hidden="true"></div>
+    <p class="eyebrow">MTA:SA ENGINE LABORATORY</p>
+    <h2>Everything here is <span>Neon-specific.</span></h2>
+    <p class="hero-copy">No ambiguity with standard MTA. This section documents only the engine limits, native-world pipeline, scripting APIs, compatibility rules, developer tooling, and reproducible tests introduced by Neon.</p>
+    <div class="hero-actions">
+      <a class="primary" href="/neon/features">See what changed</a>
+      <a href="/neon/functions">Browse the Neon Lua API</a>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div><strong>{neonFunctions.length}</strong><span>documented API entries</span></div>
+    <div><strong>{clientCount}</strong><span>client entries</span></div>
+    <div><strong>{serverCount}</strong><span>server entries</span></div>
+    <div><strong>{sharedCount}</strong><span>shared entries</span></div>
+  </div>
+
+  <section class="section-block">
+    <p class="eyebrow">SYSTEM MAP</p>
+    <h2>Built deeper into San Andreas</h2>
+    <div class="system-grid">
+      <a href="/neon/extended-world"><span>01</span><h3>Extended world</h3><p>20 km world domain, water, radar, F11 composition, city residency, and native spatial streaming.</p></a>
+      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Closed payload validation, immutable cache, server transport, and the current inert startup authorization checkpoint.</p></a>
+      <a href="/neon/models-and-streaming"><span>03</span><h3>Models & streaming</h3><p>Stable server logical IDs, client runtime mappings, parent fallbacks, and teardown-safe IMG residency.</p></a>
+      <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Expanded pools, renderer telemetry, Project2DFX lights, CULL editing, and marker diagnostics.</p></a>
+      <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native ped tasks, camera leases, mission audio/text, recorded cars, and co-op mission primitives.</p></a>
+      <a href="/neon/tooling-and-verification"><span>06</span><h3>Tooling & proof</h3><p>VM checkpoint builds, generators, validators, focused resources, profiling, and recorded runtime evidence.</p></a>
+    </div>
+  </section>
+
+  <section class="status-strip">
+    <div><p class="eyebrow">CURRENT NATIVE-WORLD CHECKPOINT</p><h2>Authorization is persisted. Activation is still intentionally inert.</h2></div>
+    <p>The uncommitted worktree adds a DPAPI-backed, 15-minute, one-shot pending record bound to the current server identity, numeric endpoint, resource generation, offer, and exact content ID. It still logs <code>activation=no lease=no</code>; record-driven GTA activation remains a later checkpoint.</p>
+    <a href="/neon/native-world#inert-startup-authorization-current-worktree">Read the exact boundary →</a>
+  </section>
+
+  <section class="section-block">
+    <p class="eyebrow">API GROUPS</p>
+    <div class="category-cloud">
+      {Object.entries(neonCategories).map(([key, category]) => {
+        const count = neonFunctions.filter((entry) => entry.category === key).length;
+        return <a href={`/neon/functions#${key}`}><strong>{category.title}</strong><span>{count} entries</span></a>;
+      })}
+    </div>
+  </section>
+
+  <div class="neon-warning"><strong>Compatibility:</strong> Neon servers and clients may negotiate extended packet formats. Legacy connections retain standard MTA encodings or native-parent fallbacks where explicitly documented; scripts must not assume every MTA installation exposes this section's APIs.</div>
+</StarlightPage>
+
+<style>
+  .neon-hero { position: relative; min-height: 30rem; display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 6vw, 5rem); overflow: hidden; border: 1px solid rgba(100,244,174,.32); border-radius: 1.5rem; background: radial-gradient(circle at 82% 30%, rgba(100,244,174,.18), transparent 30%), linear-gradient(135deg, #07110e, #0a1215); }
+  .neon-orbit { position: absolute; right: -8rem; top: -9rem; width: 28rem; height: 28rem; border: 1px solid rgba(100,244,174,.28); border-radius: 50%; box-shadow: inset 0 0 80px rgba(100,244,174,.08), 0 0 80px rgba(100,244,174,.08); }
+  .eyebrow { margin: 0; color: #64f4ae; font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
+  .neon-hero h2 { position: relative; max-width: 13ch; margin: 1rem 0; font-size: clamp(2.6rem, 6vw, 5.2rem); line-height: .94; letter-spacing: -.05em; }
+  .neon-hero h2 span { color: #64f4ae; }
+  .hero-copy { position: relative; max-width: 48rem; color: var(--sl-color-gray-2); font-size: 1.08rem; }
+  .hero-actions { position: relative; display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+  .hero-actions a { padding: .75rem 1rem; color: #dfffee; text-decoration: none; border: 1px solid rgba(100,244,174,.35); border-radius: .6rem; }
+  .hero-actions .primary { color: #06110d; font-weight: 800; background: #64f4ae; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: 1rem 0 4rem; }
+  .stat-grid div { display: flex; flex-direction: column; padding: 1.1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .8rem; background: var(--sl-color-bg-nav); }
+  .stat-grid strong { color: #64f4ae; font-size: 1.8rem; line-height: 1; }
+  .stat-grid span { margin-top: .45rem; color: var(--sl-color-gray-3); font-size: .78rem; }
+  .section-block { margin: 4rem 0; }
+  .section-block > h2 { margin-top: .6rem; font-size: 2rem; }
+  .system-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
+  .system-grid a { padding: 1.4rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: 1rem; background: linear-gradient(145deg, rgba(100,244,174,.04), transparent); }
+  .system-grid a:hover { border-color: rgba(100,244,174,.65); }
+  .system-grid span { color: #64f4ae; font-family: monospace; font-size: .75rem; }
+  .system-grid h3 { margin: .75rem 0 .35rem; }
+  .system-grid p { margin: 0; color: var(--sl-color-gray-3); }
+  .status-strip { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; padding: 2rem; border-left: 4px solid #64f4ae; background: rgba(100,244,174,.06); }
+  .status-strip h2 { margin: .7rem 0 0; font-size: 1.5rem; }
+  .status-strip p { margin: 0; color: var(--sl-color-gray-2); }
+  .status-strip > a { grid-column: 2; color: #64f4ae; font-weight: 700; }
+  .category-cloud { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-top: 1rem; }
+  .category-cloud a { display: flex; flex-direction: column; padding: 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .75rem; }
+  .category-cloud a:hover { border-color: #64f4ae; }
+  .category-cloud span { color: var(--sl-color-gray-3); font-size: .78rem; }
+  .neon-warning { margin-top: 3rem; padding: 1rem 1.2rem; border: 1px solid rgba(100,244,174,.25); border-radius: .75rem; background: rgba(100,244,174,.05); }
+  @media (max-width: 780px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .system-grid, .status-strip { grid-template-columns: 1fr; } .status-strip > a { grid-column: 1; } .category-cloud { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .category-cloud { grid-template-columns: 1fr; } }
+</style>
