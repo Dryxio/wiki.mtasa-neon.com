@@ -1,13 +1,13 @@
 ---
 title: What's different in Neon
-description: A Neon-only inventory of engine limits, runtime systems, APIs, and development workflows.
+description: A practical overview of the engine limits, systems, APIs, and tools added by Neon.
 sidebar:
   order: 1
 ---
 
-This page intentionally lists **only changes introduced by MTA:SA Neon**. Standard MTA behavior remains documented in the upstream reference section.
+This page covers **only what MTA:SA Neon changes**. For standard MTA behavior, use the [official MTA Wiki](https://wiki.multitheftauto.com/wiki/Main_Page).
 
-Neon is an experimental engine fork. Capacity patches preserve ordinary San Andreas defaults unless a server or resource opts into the expanded behavior.
+Neon is still experimental. Its capacity patches keep the normal San Andreas defaults unless a server or resource opts into the larger limits.
 
 ## World and streaming
 
@@ -64,16 +64,16 @@ Neon is an experimental engine fork. Capacity patches preserve ordinary San Andr
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Exact-path, SHA-256-verified incremental VM synchronization and smallest-project builds.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Reproducible resource harnesses for limits, CULL zones, models, radar, native tasks, cameras, audio, recordings, transport, and performance attribution.
+- Test resources for limits, CULL zones, models, radar, native tasks, cameras, audio, recordings, transport, and performance attribution.
 - An uncommitted React server-browser prototype tracked as exploratory tooling, not an engine feature.
 
 ## API inventory
 
-The [Neon Lua API](/neon/functions) currently contains **76 documented entries**:
+The [Neon Lua API](/neon/functions) has **76 documented entries**:
 
 - 72 registrations added in Neon;
 - two existing vehicle-entry/exit APIs with Neon-native task and lifecycle behavior;
 - two existing glitch APIs extended with `fastweaponstrafe`;
 - server-side extensions of model functions that already existed on the client are labeled by their actual side.
 
-The inventory is derived from the C++ registrations and implementation commits. It deliberately includes five server-model introspection functions that are not yet present in the engine repository's README table.
+The list comes from the C++ registrations and the commits that implemented them. It also includes five server-side model inspection functions that are missing from the engine README table.

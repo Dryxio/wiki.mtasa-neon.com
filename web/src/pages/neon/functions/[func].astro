@@ -17,7 +17,7 @@ const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
 <StarlightPage frontmatter={{ template: 'doc', title: func.name, description: func.summary, tableOfContents: true }}>
   <div class="neon-function-banner">
     <div><span>NEON {func.extension ? 'EXTENSION' : 'API'}</span><a href={`/neon/functions#${func.category}`}>{category.title}</a></div>
-    <p>{func.extension ? 'Existing MTA API extended by Neon' : 'Not part of the standard MTA API'}</p>
+    <p>{func.extension ? 'A standard MTA API with Neon behavior' : 'Available in Neon, not standard MTA'}</p>
   </div>
 
   <p class="summary">{func.summary}</p>
@@ -53,14 +53,14 @@ const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
     <Code code={func.example} lang="lua" />
   </>}
 
-  <h2 id="implementation-evidence">Implementation evidence</h2>
+  <h2 id="implementation-evidence">Where this comes from</h2>
   <div class="evidence-grid">
     <a href={sourceUrl}><span>SOURCE</span><strong>{func.source.split('/').pop()}</strong><small>{func.source}</small></a>
-    <a href={commitUrl}><span>INTRODUCED / EXTENDED</span><strong>{func.commit}</strong><small>Open the implementation commit and its design record</small></a>
+    <a href={commitUrl}><span>INTRODUCED / EXTENDED</span><strong>{func.commit}</strong><small>Read the commit and why the change was made</small></a>
     {category.test && <a href={`https://github.com/Dryxio/mtasa-neon/tree/master/${category.test}`}><span>TEST RESOURCE</span><strong>{category.test.split('/').pop()}</strong><small>{category.test}</small></a>}
   </div>
 
-  <p class="back-link"><a href="/neon/functions">← All Neon Lua API entries</a> · <a href={category.guide}>Read the {category.title} system guide →</a></p>
+  <p class="back-link"><a href="/neon/functions">← Back to the Neon Lua API</a> · <a href={category.guide}>How {category.title} works →</a></p>
 </StarlightPage>
 
 <style>

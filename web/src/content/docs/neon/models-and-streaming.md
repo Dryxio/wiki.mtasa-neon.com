@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-Neon's custom-model architecture separates the identity used by the server and network from the physical GTA slot chosen independently by each client.
+A Neon custom model has two identities: a stable ID used by the server and network, and a physical GTA slot chosen locally by each client.
 
 ## Server-authoritative model registry
 
@@ -17,7 +17,7 @@ server logical ID (30000+) ──network identity──> client definition
                                                 └─ client-local GTA runtime slot
 ```
 
-Properties:
+In practice:
 
 - logical IDs begin at 30,000 and are not reused during the server process;
 - each definition has a resource owner, type, native parent, and optional qualified name;
@@ -47,11 +47,11 @@ if runtime then
 end
 ```
 
-Never persist a runtime ID as the network identity. It is meaningful only on that client for the current allocation lifecycle.
+Do not save or synchronize a runtime ID as the model identity. That number only makes sense on one client for the lifetime of its current allocation.
 
 ## Resident IMG streaming
 
-Large imported-city resources link IMG archives into GTA and coordinate bounded DFF/TXD pools per client. The lifecycle fixes in [`a53602ba7`](https://github.com/Dryxio/mtasa-neon/commit/a53602ba7) are as important as loading:
+Large imported-city resources link IMG archives into GTA and manage bounded DFF/TXD pools on each client. Loading is only half the job; commit [`a53602ba7`](https://github.com/Dryxio/mtasa-neon/commit/a53602ba7) also fixes the shutdown path:
 
 - pending streaming work is drained before teardown;
 - client entities are destroyed before the slots they reference;
@@ -59,7 +59,7 @@ Large imported-city resources link IMG archives into GTA and coordinate bounded 
 - IPL building ranges are clamped after pool shrink;
 - preload barriers and generation tokens reject stale city-switch completions.
 
-The resident-city workflow supports explicit switching between finite slot sets. It is not the same as the startup-native world-pack architecture.
+Resident cities switch between finite sets of slots while GTA is running. Native world packs use a different startup path.
 
 ## Pickup and extended-coordinate handling
 
@@ -76,4 +76,4 @@ GTA stores pickup positions in signed 16-bit eighth-unit fields. Neon keeps MTA'
 - release while elements survive;
 - resource cleanup and parent fallback.
 
-The commit record includes Release x64 server, Release Win32 client, spawn/respawn, replacement, safe free, and post-free crash-regression testing.
+The commit was tested with Release x64 server and Release Win32 client builds, plus spawn/respawn, model replacement, safe freeing, and the post-free crash regression.

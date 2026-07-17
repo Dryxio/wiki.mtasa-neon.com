@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Neon relocates fixed GTA arrays only after auditing initialization, lookup, update, render, cleanup, reset, and executable identity sites. These are native capacity changes, not script-side counters pretending the old arrays are larger.
+Neon moves GTA's real fixed-size arrays and patches every verified place that initializes, reads, updates, renders, clears, or resets them. These are native capacity changes, not Lua-side counters pretending the old arrays are larger.
 
 ## Renderer capacity
 
@@ -25,7 +25,7 @@ Commit [`4b7a1f523`](https://github.com/Dryxio/mtasa-neon/commit/4b7a1f523) relo
 
 Commit [`d0a91316b`](https://github.com/Dryxio/mtasa-neon/commit/d0a91316b) reads `SALodLights.dat` and renders distant static coronas and timed traffic lights through that pool. The feature is disabled by default and supports a 300–5,000 unit draw-distance range.
 
-Current scope:
+What works today:
 
 - static distant coronas;
 - directional timed traffic-light phases;
@@ -39,7 +39,7 @@ Searchlight cones are recorded for future work. Distant cars, static shadows, an
 
 The final marker relocation commit [`87e237bc0`](https://github.com/Dryxio/mtasa-neon/commit/87e237bc0) expands 3D markers and checkpoints from 32 to 4,096 and direction arrows from 5 to 4,096.
 
-[`getMarkerLimitStats`](/neon/functions/getMarkerLimitStats) exposes MTA streamer usage and native allocations. [`renderScriptImportantArea`](/neon/functions/renderScriptImportantArea) reproduces the visual emitted by the nonzero area flag of SCM `LOCATE_*` commands for one frame; it intentionally does not create collision or mission logic.
+[`getMarkerLimitStats`](/neon/functions/getMarkerLimitStats) reports MTA streamer usage and native allocations. [`renderScriptImportantArea`](/neon/functions/renderScriptImportantArea) draws the visual used by the nonzero area flag of SCM `LOCATE_*` commands for one frame. It does not add collision or mission logic.
 
 ## Native CULL zones
 
@@ -64,4 +64,4 @@ The relocation and CRUD lifecycle have been exercised in game. Dedicated tunnel 
 
 ## Dense-entity profiling
 
-Neon adds aggregate timing scopes, the local `timingdebug [on|off]` command, reproducible entity mixes, and recorded profiles that separate MTA traversal, GTA native entity time, and collision attribution. The profiling resources are diagnostic tools; their results should be compared with model mix, collision, draw distance, and unrelated stress resources held constant.
+Neon adds aggregate timing scopes, the local `timingdebug [on|off]` command, repeatable entity mixes, and profiles that separate MTA traversal, GTA native entity time, and collision cost. Compare profiles only when the model mix, collision, draw distance, and unrelated stress resources stay the same.

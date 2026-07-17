@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-Neon's story-runtime work exposes reusable GTA primitives rather than hard-coding one mission in C++. `Tagging Up Turf` is the vertical integration harness: orchestration remains server-authoritative while the syncer/client invokes native tasks, camera, audio, text, and recorded-car systems.
+Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. The `Tagging Up Turf` resource tests them together: the server runs the mission, while the current syncer or client handles native tasks, camera work, audio, text, and recorded cars.
 
 ## Model-native walking
 
@@ -36,7 +36,7 @@ Current limitations:
 
 The [camera API group](/neon/functions#camera) wraps GTA's fixed/look-at, vector move/track, persistence, fade, widescreen, and scripted near-clip primitives.
 
-The global camera uses a resource-exclusive generation-token lease:
+GTA has one global camera, so Neon gives control to one resource at a time and returns a generation token:
 
 1. `acquireScriptCamera` captures gameplay state and returns a token.
 2. Every later call proves both resource ownership and the current generation.
@@ -71,7 +71,7 @@ The [recording APIs](/neon/functions#recording) expose GTA's direct non-looped o
 
 The calling resource must own the requested recording and the playback slot. The vehicle must be streamed, locally synchronized through the unoccupied-vehicle path, non-frozen, non-blown, and not player-driven. A locally synchronized script ped may remain driver after its competing task is cleared.
 
-Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops playback. Neon intentionally does not attempt unsafe resumption at a missing network frame index.
+Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops playback. If the network frame is gone, Neon stops instead of guessing where playback should resume.
 
 ## Integrated validation
 
@@ -85,4 +85,4 @@ The recorded commit evidence includes:
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-Some final cinematic fidelity checks remain explicitly user-owned and should not be inferred solely from successful builds.
+Successful builds cover the code path, not the final cinematic feel. That still needs an in-game pass by the user.

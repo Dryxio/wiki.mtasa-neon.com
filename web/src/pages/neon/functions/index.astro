@@ -3,11 +3,11 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { neonFunctions, neonCategories } from '@src/data/neon-functions';
 ---
 
-<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Only functions added or extended by MTA:SA Neon.', tableOfContents: true }}>
+<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Functions added or extended by MTA:SA Neon.', tableOfContents: true }}>
   <div class="neon-api-intro">
     <span>NEON-ONLY REFERENCE</span>
     <h2>{neonFunctions.length} documented API entries</h2>
-    <p>This list is generated from the actual Neon registrations and implementation history. It includes five server-model introspection functions absent from the engine README and marks extensions to existing MTA APIs separately.</p>
+    <p>This list comes straight from Neon's registered functions and commit history. It includes five server-side model inspection functions missing from the engine README, and labels extensions to existing MTA APIs.</p>
   </div>
 
   {Object.entries(neonCategories).map(([key, category]) => {

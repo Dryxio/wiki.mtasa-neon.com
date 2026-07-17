@@ -10,14 +10,14 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
 <StarlightPage frontmatter={{
   template: 'doc',
   title: 'Neon',
-  description: 'Only the features and APIs added or extended by MTA:SA Neon.',
+  description: 'The features and APIs added or extended by MTA:SA Neon.',
   tableOfContents: false,
 }}>
   <div class="neon-hero">
     <div class="neon-orbit" aria-hidden="true"></div>
     <p class="eyebrow">SAN ANDREAS · CUSTOM ENGINE</p>
-    <h2>Everything here is <span>Neon-specific.</span></h2>
-    <p class="hero-copy">No ambiguity with standard MTA. This section documents only the engine limits, native-world pipeline, scripting APIs, compatibility rules, developer tooling, and reproducible tests introduced by Neon.</p>
+    <h2>Built by Neon. <span>Documented here.</span></h2>
+    <p class="hero-copy">This site sticks to what Neon adds: larger engine limits, native world packs, new Lua APIs, compatibility notes, developer tools, and the tests used to prove the work.</p>
     <div class="hero-actions">
       <a class="primary" href="/neon/features">See what changed</a>
       <a href="/neon/functions">Browse the Neon Lua API</a>
@@ -33,21 +33,21 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
 
   <section class="section-block">
     <p class="eyebrow">SYSTEM MAP</p>
-    <h2>Built deeper into San Andreas</h2>
+    <h2>What Neon changes under the hood</h2>
     <div class="system-grid">
-      <a href="/neon/extended-world"><span>01</span><h3>Extended world</h3><p>20 km world domain, water, radar, F11 composition, city residency, and native spatial streaming.</p></a>
-      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Closed payload validation, immutable cache, server transport, and the current inert startup authorization checkpoint.</p></a>
-      <a href="/neon/models-and-streaming"><span>03</span><h3>Models & streaming</h3><p>Stable server logical IDs, client runtime mappings, parent fallbacks, and teardown-safe IMG residency.</p></a>
-      <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Expanded pools, renderer telemetry, Project2DFX lights, CULL editing, and marker diagnostics.</p></a>
-      <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native ped tasks, camera leases, mission audio/text, recorded cars, and co-op mission primitives.</p></a>
-      <a href="/neon/tooling-and-verification"><span>06</span><h3>Tooling & proof</h3><p>VM checkpoint builds, generators, validators, focused resources, profiling, and recorded runtime evidence.</p></a>
+      <a href="/neon/extended-world"><span>01</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
+      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Server-delivered city packs, strict file auditing, an immutable cache, and startup authorization.</p></a>
+      <a href="/neon/models-and-streaming"><span>03</span><h3>Models & streaming</h3><p>Stable server model IDs mapped to local GTA slots, with safe fallbacks and cleanup.</p></a>
+      <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
+      <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
+      <a href="/neon/tooling-and-verification"><span>06</span><h3>Tooling & proof</h3><p>The VM build workflow, generators, validators, focused test resources, and runtime profiles.</p></a>
     </div>
   </section>
 
   <section class="status-strip">
-    <div><p class="eyebrow">CURRENT NATIVE-WORLD CHECKPOINT</p><h2>Authorization is persisted. Activation is still intentionally inert.</h2></div>
-    <p>The uncommitted worktree adds a DPAPI-backed, 15-minute, one-shot pending record bound to the current server identity, numeric endpoint, resource generation, offer, and exact content ID. It still logs <code>activation=no lease=no</code>; record-driven GTA activation remains a later checkpoint.</p>
-    <a href="/neon/native-world#inert-startup-authorization-current-worktree">Read the exact boundary →</a>
+    <div><p class="eyebrow">CURRENT NATIVE-WORLD CHECKPOINT</p><h2>The authorization record is saved. Neon still will not activate it.</h2></div>
+    <p>The current uncommitted code stores a DPAPI-protected, one-shot record for 15 minutes. It is tied to the exact server, endpoint, resource generation, offer, and content ID, but it still reports <code>activation=no lease=no</code>.</p>
+    <a href="/neon/native-world#inert-startup-authorization-current-worktree">See exactly what is and is not implemented →</a>
   </section>
 
   <section class="section-block">
@@ -60,7 +60,7 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     </div>
   </section>
 
-  <div class="neon-warning"><strong>Compatibility:</strong> Neon servers and clients may negotiate extended packet formats. Legacy connections retain standard MTA encodings or native-parent fallbacks where explicitly documented; scripts must not assume every MTA installation exposes this section's APIs.</div>
+  <div class="neon-warning"><strong>Compatibility:</strong> Neon can negotiate larger packet formats with supported clients. Older connections keep standard MTA encodings or the documented parent-model fallback. Do not assume these APIs exist on every MTA installation.</div>
 </StarlightPage>
 
 <style>

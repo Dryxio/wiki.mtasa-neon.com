@@ -1,11 +1,11 @@
 ---
 title: Compatibility
-description: How Neon APIs, packet capabilities, legacy clients, and upstream MTA behavior coexist.
+description: What works between Neon, standard MTA clients, and older packet layouts.
 sidebar:
   order: 7
 ---
 
-Neon preserves MTA's resource model and ordinary gameplay behavior while adding opt-in engine capabilities. Compatibility must be evaluated per feature; “it connects” does not imply that every Neon API or extended packet field is available.
+Neon keeps MTA's resource model and normal gameplay defaults. Its extra engine features are opt-in, and compatibility varies from one feature to another. A client being able to connect does not mean it understands every Neon API or packet field.
 
 ## Detect Neon APIs
 
@@ -20,11 +20,11 @@ end
 local stats = engineGetRendererStats()
 ```
 
-For a resource whose content fundamentally requires Neon, fail early with a clear message instead of silently degrading halfway through a lifecycle.
+If a resource cannot work without Neon, stop early with a clear error. That is much easier to diagnose than failing halfway through startup.
 
 ## Capability-gated network changes
 
-Neon uses bitstream capabilities for packet-layout changes including:
+Neon advertises bitstream capabilities before it changes a packet layout. This applies to:
 
 - extended low-precision world coordinates;
 - extended absolute camera coordinates;
@@ -33,13 +33,13 @@ Neon uses bitstream capabilities for packet-layout changes including:
 - the separate startup-authorization request;
 - synchronized `fastweaponstrafe` state.
 
-Older clients retain the packet layout they understand. Native-world engine-only files and descriptors are omitted entirely for clients lacking the transport capability.
+Older clients keep the packet layout they already understand. If a client does not support native-world transport, the server leaves those engine-only files and descriptors out completely.
 
 ## Model fallback
 
 Server-managed elements retain a native parent. A capable client maps the stable logical ID to one of its own runtime slots; a legacy client or a client without an active slot renders and simulates the parent model instead.
 
-This fallback preserves connectivity and basic behavior, but it does not reproduce the custom model's appearance. Resources must decide whether that is acceptable for their gameplay.
+This keeps the client connected and the element usable, but it cannot reproduce the custom model's appearance. The resource still has to decide whether that fallback is good enough for its gameplay.
 
 ## Existing MTA APIs extended by Neon
 
@@ -55,11 +55,11 @@ The current custom `netc.dll` must remain paired with the current Neon source AB
 
 ## Native world requirements
 
-Native-world transport and authorization require matching capable client/server builds. Activation, once implemented, will also require a clean startup transaction and exact server identity/endpoint continuity. Hot-loading an audited cache object into a running GTA process is not a supported compatibility path.
+Native-world transport and authorization need matching client and server builds. Future activation will also need a clean startup transaction with the same server identity and endpoint. Neon will not hot-load an audited cache object into an already running GTA process.
 
 ## Local preview security
 
-Drag-and-drop DFF/TXD and IFP preview features are intentionally insecure local developer prototypes. They do not provide server authorization and must not be treated as a competitive-client feature. Replacing a base model also changes every locally rendered ped using that model.
+The drag-and-drop DFF/TXD and IFP tools are local previews, not secure multiplayer features. They do not ask the server for permission. Replacing a base model also changes every locally rendered ped that uses it.
 
 ## Project identity
 

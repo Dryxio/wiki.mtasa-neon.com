@@ -5,9 +5,9 @@ sidebar:
   order: 3
 ---
 
-The native-world project aims to let a server distribute additional static cities and let GTA stream their IDE, IMG, COL, and binary IPL data through its original spatial system. Once safely activated at startup, travel between San Andreas and added cities should require neither a custom Lua streamer nor a visible transition.
+Native world packs are meant to let a server send extra static cities and have GTA stream their IDE, IMG, COL, and binary IPL data through its own spatial system. Once startup activation is safe, players should be able to travel between San Andreas and those cities without a Lua streamer or a visible transition.
 
-This page distinguishes **implemented and tested**, **present in the current uncommitted worktree**, and **not implemented** behavior.
+The status matters here, so each section says whether the work is **implemented and tested**, **only in the current uncommitted worktree**, or **not implemented yet**.
 
 ## Implemented checkpoints
 
@@ -20,7 +20,7 @@ This page distinguishes **implemented and tested**, **present in the current unc
 | [`5d43f18e5`](https://github.com/Dryxio/mtasa-neon/commit/5d43f18e5) | Immutable ProgramData cache keyed by a domain-separated semantic SHA-256 content ID, guarded by leases and atomic same-volume publication. |
 | [`7c38a9278`](https://github.com/Dryxio/mtasa-neon/commit/7c38a9278) | Version-gated resource transport, bounded HTTP streaming, asynchronous closed audit, cancellation, quotas, quarantine re-audit, and atomic cache publication. |
 
-The tested native path currently supports one compiled Bullworth policy for exact audited GTA SA 1.0 US executable identities. It is not a general arbitrary-IDE loader.
+The tested path supports one compiled Bullworth policy on exact, audited GTA SA 1.0 US executables. It cannot load arbitrary IDE content.
 
 ## Transport contract
 
@@ -33,11 +33,11 @@ A resource declares exactly three automatic-download files and one engine-owned 
 <native_world format="1" manifest="native/native-world.json" />
 ```
 
-Capable clients receive the descriptor and file metadata in the versioned `ResourceStart` group. Legacy clients see neither the group nor the engine-only payloads.
+Compatible clients receive the descriptor and file metadata in the versioned `ResourceStart` group. Older clients receive neither that group nor the engine-only payloads.
 
-After normal size and checksum checks, a cancellable worker performs the complete closed payload audit, copies into a locked same-volume quarantine, re-audits the copy, atomically publishes the directory, and revalidates the final immutable object.
+After the usual size and checksum checks, a cancellable worker audits the complete payload. It copies the files into a locked quarantine on the same volume, audits the copy again, publishes the directory atomically, and validates the final immutable object once more.
 
-Successful transport remains inert:
+A successful download still does nothing to GTA:
 
 ```text
 downloaded bytes -> checksum -> closed semantic audit -> immutable cache
@@ -58,7 +58,7 @@ Current closed Bullworth quotas are a 4 KiB manifest, 1 MiB IDE, 256 MiB IMG, fo
 
 > **Worktree checkpoint:** this section documents the uncommitted implementation currently present in `mtasa-neon`. It is not yet a released or committed Neon contract and may change during review and VM validation.
 
-The current worktree implements the first authorization checkpoint while deliberately keeping activation disabled.
+The current worktree can save the first startup authorization record. It still refuses to activate the pack.
 
 The resource may request it explicitly:
 
@@ -70,7 +70,7 @@ The resource may request it explicitly:
   policy="bullworth" />
 ```
 
-Key properties visible in the code:
+The code currently does the following:
 
 - a separate `NativeWorldStartupAuthorization` bitstream capability;
 - an authorization-aware packet tag that leaves the older `N` transport layout unchanged;
@@ -88,7 +88,7 @@ Expected diagnostics continue to state:
 [NativeWorldAuthorization] state=pending ... activation=no lease=no restart-required=yes
 ```
 
-This checkpoint **does not select a cache object for GTA, acquire an activation lease, restart the client, or register a native pack**. Its purpose is to prove that one precise server/session/resource/cache authorization can be persisted and terminalized safely before any irreversible engine mutation.
+This checkpoint **does not select a cache object for GTA, acquire an activation lease, restart the client, or register a native pack**. For now, it only proves that Neon can save and safely finish one exact server/session/resource/cache authorization before touching irreversible engine state.
 
 ## Trust boundary
 
@@ -119,4 +119,4 @@ The committed transport series records:
 - user-run Bullworth spatial streaming, collision, travel, reconnect, and restart checks;
 - rollback to ordinary San Andreas behavior with the native environment switch disabled.
 
-The uncommitted authorization checkpoint still requires its own review, formatting, tests, VM builds, and user-owned runtime validation before it can be called complete.
+The authorization code is still uncommitted. Before it can be called complete, it needs review, formatting, focused tests, VM builds, and an in-game validation pass by the user.

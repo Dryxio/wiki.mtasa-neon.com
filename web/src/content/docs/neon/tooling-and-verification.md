@@ -5,7 +5,7 @@ sidebar:
   order: 8
 ---
 
-Neon's tooling is part of the feature contract: deep GTA changes are documented with executable identities, patch manifests, validation scripts, focused builds, reproducible resources, and user-run gameplay evidence.
+The tools matter as much as the patches. Deep GTA changes need exact executable identities, patch manifests, validation scripts, focused builds, repeatable test resources, and real gameplay evidence.
 
 ## Canonical source and VM builds
 
@@ -62,11 +62,11 @@ Inputs are size-bounded and use the existing validation/replacement paths, but t
 
 ## Server browser prototype — current worktree
 
-The uncommitted `Tools/server-browser-prototype` directory contains a React/Vite UI with server table virtualization, filters, details, password/connect overlays, state management, and a mock backend contract. It is exploratory tooling and is **not integrated into the MTA client**. Documentation tracks it so the uncommitted Neon work is visible without presenting it as shipped behavior.
+The uncommitted `Tools/server-browser-prototype` directory contains a React/Vite UI with a virtualized server table, filters, details, password and connection overlays, state management, and a mock backend. It is an experiment and is **not integrated into the MTA client**. It is documented here so the work is visible without making it look shipped.
 
 ## Verification language
 
-Each feature page distinguishes:
+Each feature page labels its evidence clearly:
 
 - compiled successfully;
 - passed static/unit/format validation;
@@ -75,4 +75,4 @@ Each feature page distinguishes:
 - remains a prescribed regression test;
 - remains uncommitted or unvalidated.
 
-Build success alone is not described as gameplay validation. Native-world executable writes, downloaded native data, authorization, cache leases, worker cancellation, native object lifetimes, and aggregate pool allocation require focused review before runtime claims are upgraded.
+A successful build proves that the code compiles; it does not prove the gameplay path. Native-world executable writes, downloaded data, authorization, cache leases, worker cancellation, native object lifetimes, and large pool allocations all need their own focused review before the docs claim runtime success.

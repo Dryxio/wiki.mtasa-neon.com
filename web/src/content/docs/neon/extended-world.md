@@ -5,13 +5,13 @@ sidebar:
   order: 2
 ---
 
-Neon expands the usable San Andreas world without moving the stock map. The supported XY domain is **−10,000 through +9,999**, backed by relocated GTA sector grids and matching validation, rendering, line-of-sight, pickup, water, and versioned network paths.
+Neon makes more of the San Andreas world usable without moving the original map. The supported XY range is **−10,000 through +9,999**. GTA's sector grids and the related validation, rendering, line-of-sight, pickup, water, and network code all understand that range.
 
 ## Sector relocation
 
-Commit [`842983c91`](https://github.com/Dryxio/mtasa-neon/commit/842983c91) relocates the main grid from 120 × 120 to 400 × 400 and the LOD grid from 30 × 30 to 100 × 100. Neon patches the verified GTA 1.0 US initialization, lookup, renderer, and scanning references rather than placing a script abstraction over the old grids.
+Commit [`842983c91`](https://github.com/Dryxio/mtasa-neon/commit/842983c91) moves the main grid from 120 × 120 to 400 × 400 and the LOD grid from 30 × 30 to 100 × 100. It patches the real GTA 1.0 US initialization, lookup, rendering, and scanning code; this is not a Lua wrapper pretending the old grids are larger.
 
-Important consequences:
+What that means:
 
 - San Andreas stays at its original coordinates.
 - `createBuilding`, world linking, LOS, rendering, and LOD scans use the active relocated grid.
@@ -44,7 +44,7 @@ Use the [extended radar APIs](/neon/functions#radar) and the `extended-radar-tes
 
 Commit [`a53602ba7`](https://github.com/Dryxio/mtasa-neon/commit/a53602ba7) adds resource-managed per-client residency for large Liberty City, Vice City, Carcer City, and Bullworth packs.
 
-The workflow:
+The switch works like this:
 
 1. registers bounded DFF/TXD allocations;
 2. links a runtime IMG;
@@ -54,11 +54,11 @@ The workflow:
 6. deletes client entities before releasing model slots;
 7. releases dynamic TXD registry entries so later cities can reuse them.
 
-This is distinct from [native world packs](/neon/native-world). Resident city resources deliberately manage runtime slots and switching; native packs register IDE/IMG/IPL data into GTA's startup-native spatial streaming path.
+This is separate from [native world packs](/neon/native-world). Resident city resources manage runtime slots and city switches themselves. Native packs register IDE/IMG/IPL data in GTA's startup spatial-streaming path.
 
-## Demonstration maps are not bundled worlds
+## Test maps are not bundled worlds
 
-Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are validation inputs for generic Neon systems. Generated game assets are intentionally excluded from Git and must be produced locally from lawfully obtained source material. Neon does not embed or redistribute those cities.
+Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are test cases for Neon's generic systems. Generated game assets stay out of Git and must be built locally from lawfully obtained source material. Neon does not include or redistribute those cities.
 
 ## Current boundaries
 
