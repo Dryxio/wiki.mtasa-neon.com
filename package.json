@@ -1,7 +1,0 @@
-{
-  "name": "mtasa-neon-wiki-hosting",
-  "private": true,
-  "scripts": {
-    "build": "npm --prefix web ci && npm --prefix web run build && node scripts/prepare-sites.mjs"
-  }
-}
