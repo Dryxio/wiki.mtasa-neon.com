@@ -15,7 +15,7 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
 }}>
   <div class="neon-hero">
     <div class="neon-orbit" aria-hidden="true"></div>
-    <p class="eyebrow">MTA:SA ENGINE LABORATORY</p>
+    <p class="eyebrow">SAN ANDREAS · CUSTOM ENGINE</p>
     <h2>Everything here is <span>Neon-specific.</span></h2>
     <p class="hero-copy">No ambiguity with standard MTA. This section documents only the engine limits, native-world pipeline, scripting APIs, compatibility rules, developer tooling, and reproducible tests introduced by Neon.</p>
     <div class="hero-actions">
@@ -64,36 +64,36 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
 </StarlightPage>
 
 <style>
-  .neon-hero { position: relative; min-height: 30rem; display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 6vw, 5rem); overflow: hidden; border: 1px solid rgba(100,244,174,.32); border-radius: 1.5rem; background: radial-gradient(circle at 82% 30%, rgba(100,244,174,.18), transparent 30%), linear-gradient(135deg, #07110e, #0a1215); }
-  .neon-orbit { position: absolute; right: -8rem; top: -9rem; width: 28rem; height: 28rem; border: 1px solid rgba(100,244,174,.28); border-radius: 50%; box-shadow: inset 0 0 80px rgba(100,244,174,.08), 0 0 80px rgba(100,244,174,.08); }
-  .eyebrow { margin: 0; color: #64f4ae; font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
+  .neon-hero { position: relative; min-height: 30rem; display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 6vw, 5rem); overflow: hidden; border: 1px solid rgba(242,140,24,.35); border-radius: .35rem; background: radial-gradient(circle at 82% 30%, rgba(242,140,24,.16), transparent 30%), linear-gradient(135deg, #090807, #16110c); box-shadow: .5rem .5rem 0 rgba(87,42,5,.22); }
+  .neon-orbit { position: absolute; right: -5rem; top: -8rem; width: 20rem; height: 34rem; opacity: .18; transform: rotate(32deg); border: 0; border-radius: 0; background: repeating-linear-gradient(180deg, #f28c18 0 3.2rem, transparent 3.2rem 5.8rem); }
+  .eyebrow { margin: 0; color: #f28c18; font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
   .neon-hero h2 { position: relative; max-width: 13ch; margin: 1rem 0; font-size: clamp(2.6rem, 6vw, 5.2rem); line-height: .94; letter-spacing: -.05em; }
-  .neon-hero h2 span { color: #64f4ae; }
+  .neon-hero h2 span { color: #f28c18; text-shadow: .07em .07em 0 #582a06; }
   .hero-copy { position: relative; max-width: 48rem; color: var(--sl-color-gray-2); font-size: 1.08rem; }
   .hero-actions { position: relative; display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
-  .hero-actions a { padding: .75rem 1rem; color: #dfffee; text-decoration: none; border: 1px solid rgba(100,244,174,.35); border-radius: .6rem; }
-  .hero-actions .primary { color: #06110d; font-weight: 800; background: #64f4ae; }
+  .hero-actions a { padding: .75rem 1rem; color: #f3eadc; text-decoration: none; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: #14110e; }
+  .hero-actions .primary { color: #0a0806; font-weight: 800; background: #f28c18; box-shadow: .25rem .25rem 0 #5b2a06; }
   .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: 1rem 0 4rem; }
   .stat-grid div { display: flex; flex-direction: column; padding: 1.1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .8rem; background: var(--sl-color-bg-nav); }
-  .stat-grid strong { color: #64f4ae; font-size: 1.8rem; line-height: 1; }
+  .stat-grid strong { color: #f28c18; font-size: 1.8rem; line-height: 1; }
   .stat-grid span { margin-top: .45rem; color: var(--sl-color-gray-3); font-size: .78rem; }
   .section-block { margin: 4rem 0; }
   .section-block > h2 { margin-top: .6rem; font-size: 2rem; }
   .system-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
-  .system-grid a { padding: 1.4rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: 1rem; background: linear-gradient(145deg, rgba(100,244,174,.04), transparent); }
-  .system-grid a:hover { border-color: rgba(100,244,174,.65); }
-  .system-grid span { color: #64f4ae; font-family: monospace; font-size: .75rem; }
+  .system-grid a { padding: 1.4rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .25rem; background: linear-gradient(145deg, rgba(242,140,24,.055), transparent); }
+  .system-grid a:hover { border-color: rgba(242,140,24,.72); transform: translateY(-2px); }
+  .system-grid span { color: #f28c18; font-family: monospace; font-size: .75rem; }
   .system-grid h3 { margin: .75rem 0 .35rem; }
   .system-grid p { margin: 0; color: var(--sl-color-gray-3); }
-  .status-strip { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; padding: 2rem; border-left: 4px solid #64f4ae; background: rgba(100,244,174,.06); }
+  .status-strip { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; padding: 2rem; border-left: 4px solid #f28c18; background: rgba(242,140,24,.065); }
   .status-strip h2 { margin: .7rem 0 0; font-size: 1.5rem; }
   .status-strip p { margin: 0; color: var(--sl-color-gray-2); }
-  .status-strip > a { grid-column: 2; color: #64f4ae; font-weight: 700; }
+  .status-strip > a { grid-column: 2; color: #ffad35; font-weight: 700; }
   .category-cloud { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-top: 1rem; }
   .category-cloud a { display: flex; flex-direction: column; padding: 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .75rem; }
-  .category-cloud a:hover { border-color: #64f4ae; }
+  .category-cloud a:hover { border-color: #f28c18; }
   .category-cloud span { color: var(--sl-color-gray-3); font-size: .78rem; }
-  .neon-warning { margin-top: 3rem; padding: 1rem 1.2rem; border: 1px solid rgba(100,244,174,.25); border-radius: .75rem; background: rgba(100,244,174,.05); }
+  .neon-warning { margin-top: 3rem; padding: 1rem 1.2rem; border: 1px solid rgba(242,140,24,.28); border-radius: .2rem; background: rgba(242,140,24,.055); }
   @media (max-width: 780px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .system-grid, .status-strip { grid-template-columns: 1fr; } .status-strip > a { grid-column: 1; } .category-cloud { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 480px) { .category-cloud { grid-template-columns: 1fr; } }
 </style>

@@ -1,7 +1,11 @@
 ---
-import { functionTypePrettyName } from "@src/utils/functions";
 const funcType = Astro.locals.side;
 const hasFunctionType = funcType === "client" || funcType === "server" || funcType === "shared";
+const functionTypePrettyName = {
+    client: "Client-side",
+    server: "Server-side",
+    shared: "Shared",
+} as const;
 ---
 
 <div class={`page-title-container ${hasFunctionType ? `type-${funcType}` : ""}`}>
@@ -137,5 +141,3 @@ window.addEventListener("load", () => {
   new ResizeObserver(adjust).observe(container);
 });
 </script>
-
-<script type="module" src="/mta-keyword_linker.js"></script>

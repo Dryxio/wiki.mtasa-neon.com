@@ -1,9 +1,9 @@
 # Contributing to MTA:SA Neon Documentation
 
-This repository has two intentionally separate documentation surfaces:
+This repository publishes one intentionally narrow documentation surface:
 
 - `/neon` documents only behavior added or changed by MTA:SA Neon.
-- The retained articles and reference document upstream Multi Theft Auto.
+- Standard MTA documentation remains canonical on the official MTA Wiki and is linked externally.
 
 Do not present a Neon-only function or behavior as part of upstream MTA. When Neon extends an existing API, document the extension in the Neon compatibility guide and mark the function entry as an extension.
 
@@ -45,7 +45,7 @@ git remote add upstream https://github.com/multitheftauto/wiki.multitheftauto.co
 git fetch upstream
 ```
 
-Review upstream merges carefully so the Neon gateway, navigation, and visual separation remain intact.
+Review upstream merges carefully. Do not re-enable upstream reference collections, routes, articles, or bulk assets in the public Neon build.
 
 ## Commit messages
 

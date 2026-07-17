@@ -17,7 +17,7 @@ const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
 <StarlightPage frontmatter={{ template: 'doc', title: func.name, description: func.summary, tableOfContents: true }}>
   <div class="neon-function-banner">
     <div><span>NEON {func.extension ? 'EXTENSION' : 'API'}</span><a href={`/neon/functions#${func.category}`}>{category.title}</a></div>
-    <p>Not part of the standard MTA API</p>
+    <p>{func.extension ? 'Existing MTA API extended by Neon' : 'Not part of the standard MTA API'}</p>
   </div>
 
   <p class="summary">{func.summary}</p>
@@ -64,24 +64,24 @@ const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
 </StarlightPage>
 
 <style>
-  .neon-function-banner { display: flex; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; border: 1px solid rgba(100,244,174,.35); border-radius: .7rem; background: rgba(100,244,174,.06); }
+  .neon-function-banner { display: flex; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: rgba(242,140,24,.065); }
   .neon-function-banner div { display: flex; align-items: center; gap: .7rem; }
-  .neon-function-banner span { padding: .22rem .45rem; color: #06110d; background: #64f4ae; border-radius: .3rem; font-size: .65rem; font-weight: 900; letter-spacing: .08em; }
-  .neon-function-banner a { color: #64f4ae; font-weight: 700; }
+  .neon-function-banner span { padding: .22rem .45rem; color: #0a0806; background: #f28c18; border-radius: .12rem; font-size: .65rem; font-weight: 900; letter-spacing: .08em; }
+  .neon-function-banner a { color: #ffad35; font-weight: 700; }
   .neon-function-banner p { margin: 0; color: var(--sl-color-gray-3); font-size: .8rem; }
   .summary { margin: 2rem 0; font-size: 1.2rem; color: var(--sl-color-gray-2); }
   .argument-list { display: grid; gap: .65rem; }
-  .argument-list > div { padding: .9rem 1rem; border-left: 2px solid rgba(100,244,174,.55); background: var(--sl-color-bg-nav); }
+  .argument-list > div { padding: .9rem 1rem; border-left: 2px solid rgba(242,140,24,.62); background: var(--sl-color-bg-nav); }
   .argument-list > div > div { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
-  .argument-list span { color: #64f4ae; font-family: monospace; font-size: .78rem; }
+  .argument-list span { color: #ffad35; font-family: monospace; font-size: .78rem; }
   .argument-list em { color: var(--sl-color-gray-3); font-size: .74rem; }
   .argument-list p { margin: .4rem 0 0; }
   .notes { margin: 1.5rem 0; padding: 1rem 1.2rem; border: 1px solid rgba(245,194,107,.35); border-radius: .7rem; background: rgba(245,194,107,.06); }
   .notes ul { margin-bottom: 0; }
   .evidence-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .7rem; }
   .evidence-grid a { display: flex; flex-direction: column; min-width: 0; padding: 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; }
-  .evidence-grid a:hover { border-color: #64f4ae; }
-  .evidence-grid span { color: #64f4ae; font-size: .62rem; font-weight: 900; letter-spacing: .1em; }
+  .evidence-grid a:hover { border-color: #f28c18; transform: translateY(-2px); }
+  .evidence-grid span { color: #f28c18; font-size: .62rem; font-weight: 900; letter-spacing: .1em; }
   .evidence-grid strong { margin: .35rem 0; }
   .evidence-grid small { overflow-wrap: anywhere; color: var(--sl-color-gray-3); }
   .back-link { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--sl-color-gray-5); }

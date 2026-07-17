@@ -4,55 +4,57 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
 <StarlightPage frontmatter={{
   template: 'splash',
-  title: 'MTA:SA Neon Documentation',
-  description: 'Choose the isolated Neon documentation or the preserved upstream MTA reference.',
+  title: 'MTA:SA Neon',
+  description: 'Technical documentation for the engine systems and Lua APIs added by MTA:SA Neon.',
   tableOfContents: false,
 }}>
   <main class="gateway">
-    <div class="gateway-kicker">ONE CODEBASE · TWO CLEAR REFERENCES</div>
-    <h1>MTA:SA <span>NEON</span> Documentation</h1>
-    <p class="gateway-lead">Neon extends Multi Theft Auto with experimental engine work. This documentation keeps those additions in their own unmistakable section while preserving the upstream MTA reference.</p>
+    <div class="road-mark" aria-hidden="true"></div>
+    <p class="gateway-kicker">CUSTOM ENGINE · DOCUMENTED FROM SOURCE</p>
+    <h2>MTA:SA <span>NEON</span></h2>
+    <p class="gateway-lead">Extended-world systems, native GTA services, compatibility contracts, and every Lua API introduced or extended by Neon.</p>
+
+    <div class="gateway-actions">
+      <a class="primary" href="/neon">Enter Neon documentation <span>→</span></a>
+      <a href="/neon/functions">Browse all 76 API entries</a>
+    </div>
 
     <div class="gateway-grid">
-      <a class="gateway-card neon-card" href="/neon">
-        <div class="card-label">NEON ONLY</div>
-        <h2>Explore Neon additions</h2>
-        <p>76 API entries, extended-world systems, native GTA services, compatibility rules, source commits, and test resources.</p>
-        <strong>Open Neon documentation →</strong>
-      </a>
-
-      <a class="gateway-card upstream-card" href="/reference/Lua_API">
-        <div class="card-label">UPSTREAM BASE</div>
-        <h2>Browse the MTA reference</h2>
-        <p>The standard MTA Lua API, events, elements, configuration, and articles inherited from the official data-driven wiki.</p>
-        <strong>Open upstream reference →</strong>
-      </a>
+      <div><strong>76</strong><span>documented API entries</span></div>
+      <div><strong>08</strong><span>system guides</span></div>
+      <div><strong>100%</strong><span>Neon-specific content</span></div>
     </div>
+
+    <aside class="official-link">
+      <div><span>STANDARD MTA REFERENCE</span><strong>Looking for the official MTA API?</strong></div>
+      <a href="https://wiki.multitheftauto.com/wiki/Main_Page">Open the official MTA Wiki ↗</a>
+    </aside>
 
     <p class="gateway-disclaimer">MTA:SA Neon is an independent experimental fork. It is not affiliated with or endorsed by the Multi Theft Auto team.</p>
   </main>
 </StarlightPage>
 
 <style>
-  .gateway { max-width: 72rem; margin: 0 auto; padding: clamp(2rem, 7vw, 7rem) 1rem; }
-  .gateway-kicker { color: #64f4ae; font-size: .8rem; font-weight: 800; letter-spacing: .22em; }
-  h1 { max-width: 14ch; margin: .8rem 0 1.2rem; font-size: clamp(3rem, 8vw, 6.8rem); line-height: .9; letter-spacing: -.06em; }
-  h1 span { color: #64f4ae; text-shadow: 0 0 40px rgba(100,244,174,.28); }
-  .gateway-lead { max-width: 52rem; color: var(--sl-color-gray-2); font-size: clamp(1.05rem, 2vw, 1.3rem); }
-  .gateway-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin: 3rem 0 2rem; }
-  .gateway-card { position: relative; min-height: 18rem; padding: 2rem; overflow: hidden; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: 1.25rem; background: rgba(10,16,20,.72); transition: transform .2s ease, border-color .2s ease; }
-  .gateway-card:hover { transform: translateY(-4px); }
-  .gateway-card h2 { margin: 2.25rem 0 .8rem; font-size: 1.8rem; }
-  .gateway-card p { color: var(--sl-color-gray-2); }
-  .card-label { display: inline-flex; padding: .35rem .65rem; border-radius: 999px; font-size: .72rem; font-weight: 900; letter-spacing: .12em; }
-  .neon-card { border-color: rgba(100,244,174,.5); background: radial-gradient(circle at 95% 0%, rgba(100,244,174,.18), transparent 44%), #07110e; }
-  .neon-card:hover { border-color: #64f4ae; }
-  .neon-card .card-label { color: #06110d; background: #64f4ae; }
-  .neon-card strong { color: #64f4ae; }
-  .upstream-card { background: radial-gradient(circle at 95% 0%, rgba(232,115,0,.16), transparent 44%), #11100d; }
-  .upstream-card:hover { border-color: var(--color-mta-orange); }
-  .upstream-card .card-label { color: white; background: var(--color-mta-orange); }
-  .upstream-card strong { color: #f4a55d; }
-  .gateway-disclaimer { color: var(--sl-color-gray-3); font-size: .88rem; }
-  @media (max-width: 720px) { .gateway-grid { grid-template-columns: 1fr; } .gateway-card { min-height: 15rem; } }
+  .gateway { position: relative; max-width: 72rem; margin: 0 auto; padding: clamp(2rem, 7vw, 6.5rem) 1rem; overflow: hidden; }
+  .road-mark { position: absolute; z-index: -1; top: 1rem; right: 8%; width: 7rem; height: 36rem; opacity: .12; transform: rotate(32deg); background: repeating-linear-gradient(180deg, #f28c18 0 3.6rem, transparent 3.6rem 6.4rem); }
+  .gateway-kicker { margin: 0; color: #f28c18; font-size: .76rem; font-weight: 900; letter-spacing: .24em; }
+  h2 { max-width: 10ch; margin: 1rem 0; color: #f3eadc; font-size: clamp(4.4rem, 13vw, 10rem); line-height: .78; letter-spacing: -.025em; text-transform: uppercase; }
+  h2 span { display: block; color: #f28c18; text-shadow: .08em .08em 0 #512506; }
+  .gateway-lead { max-width: 48rem; color: var(--sl-color-gray-2); font-size: clamp(1.05rem, 2vw, 1.3rem); }
+  .gateway-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0 3rem; }
+  .gateway-actions a { padding: .85rem 1.1rem; color: #f3eadc; text-decoration: none; border: 1px solid #4d3a28; background: #12100e; }
+  .gateway-actions a:hover { border-color: #f28c18; transform: translateY(-2px); }
+  .gateway-actions .primary { color: #0a0806; font-weight: 900; background: #f28c18; border-color: #f28c18; box-shadow: .3rem .3rem 0 #5b2a06; }
+  .gateway-actions .primary span { margin-left: .5rem; }
+  .gateway-grid { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 52rem; border-top: 1px solid #4d3a28; border-bottom: 1px solid #4d3a28; }
+  .gateway-grid div { display: flex; flex-direction: column; padding: 1.25rem; border-right: 1px solid #4d3a28; }
+  .gateway-grid div:last-child { border-right: 0; }
+  .gateway-grid strong { color: #f28c18; font-family: Impact, sans-serif; font-size: 2rem; letter-spacing: .04em; }
+  .gateway-grid span { color: var(--sl-color-gray-3); font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; }
+  .official-link { display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-top: 3rem; padding: 1.3rem 1.5rem; border-left: 5px solid #f28c18; background: #17130f; }
+  .official-link div { display: flex; flex-direction: column; }
+  .official-link span { color: #f28c18; font-size: .62rem; font-weight: 900; letter-spacing: .16em; }
+  .official-link a { color: #ffb454; font-weight: 800; white-space: nowrap; }
+  .gateway-disclaimer { margin-top: 1.5rem; color: var(--sl-color-gray-3); font-size: .82rem; }
+  @media (max-width: 650px) { .gateway-grid { grid-template-columns: 1fr; } .gateway-grid div { border-right: 0; border-bottom: 1px solid #4d3a28; } .gateway-grid div:last-child { border-bottom: 0; } .official-link { align-items: flex-start; flex-direction: column; gap: .8rem; } .official-link a { white-space: normal; } }
 </style>

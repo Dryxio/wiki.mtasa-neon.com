@@ -26,22 +26,22 @@ import { neonFunctions, neonCategories } from '@src/data/neon-functions';
 </StarlightPage>
 
 <style>
-  .neon-api-intro { padding: 1.5rem; border: 1px solid rgba(100,244,174,.35); border-radius: 1rem; background: linear-gradient(135deg, rgba(100,244,174,.1), transparent); }
-  .neon-api-intro > span, .category-heading p { margin: 0; color: #64f4ae; font-size: .7rem; font-weight: 900; letter-spacing: .15em; }
+  .neon-api-intro { padding: 1.5rem; border: 1px solid rgba(242,140,24,.38); border-radius: .25rem; background: linear-gradient(135deg, rgba(242,140,24,.11), transparent); box-shadow: .35rem .35rem 0 rgba(91,42,6,.18); }
+  .neon-api-intro > span, .category-heading p { margin: 0; color: #f28c18; font-size: .7rem; font-weight: 900; letter-spacing: .15em; }
   .neon-api-intro h2 { margin: .5rem 0; }
   .neon-api-intro p { margin-bottom: 0; color: var(--sl-color-gray-2); }
   .api-category { margin: 4rem 0; scroll-margin-top: 5rem; }
   .category-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
   .category-heading h2 { margin: .3rem 0 0; }
-  .category-heading a { color: #64f4ae; font-size: .85rem; }
+  .category-heading a { color: #ffad35; font-size: .85rem; }
   .api-table { display: grid; gap: .55rem; }
   .api-table > a { display: grid; grid-template-columns: minmax(14rem, .75fr) 1.5fr auto; align-items: center; gap: 1rem; padding: .85rem 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; }
-  .api-table > a:hover { border-color: rgba(100,244,174,.7); background: rgba(100,244,174,.04); }
+  .api-table > a:hover { border-color: rgba(242,140,24,.75); background: rgba(242,140,24,.05); transform: translateX(3px); }
   .api-table p { margin: 0; color: var(--sl-color-gray-3); font-size: .86rem; }
-  .extension { margin-left: .5rem; padding: .15rem .35rem; color: #f5c26b; border: 1px solid rgba(245,194,107,.5); border-radius: .3rem; font-size: .58rem; font-weight: 900; }
+  .extension { margin-left: .5rem; padding: .15rem .35rem; color: #ffc274; border: 1px solid rgba(242,140,24,.55); border-radius: .15rem; font-size: .58rem; font-weight: 900; }
   .side { padding: .22rem .45rem; border-radius: 999px; font-size: .66rem; font-weight: 800; white-space: nowrap; }
   .side-client { color: #ff9191; background: rgba(221,91,91,.12); }
-  .side-server { color: #f5bd59; background: rgba(212,154,47,.12); }
-  .side-shared { color: #75bfff; background: rgba(47,135,212,.12); }
+  .side-server { color: #f6a11a; background: rgba(246,161,26,.12); }
+  .side-shared { color: #d5cec5; background: rgba(213,206,197,.1); }
   @media (max-width: 820px) { .api-table > a { grid-template-columns: 1fr auto; } .api-table p { grid-column: 1 / -1; grid-row: 2; } }
 </style>

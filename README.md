@@ -1,17 +1,17 @@
 ## MTA:SA Neon Documentation
 
-This repository is the documentation site for **MTA:SA Neon**, built on top of the data-driven Multi Theft Auto wiki. It keeps the complete upstream Git history while remaining an independent GitHub repository rather than a GitHub fork.
+This repository is the documentation site for **MTA:SA Neon**. It keeps the complete upstream Git history while remaining an independent GitHub repository rather than a GitHub fork.
 
-Neon content has its own clearly marked section under `/neon`. The original MTA articles and API reference remain available as upstream documentation; Neon-specific behavior is not silently merged into that reference.
+The published site contains Neon-specific documentation only. Standard MTA APIs, events, elements, and concepts link to the canonical [official MTA Wiki](https://wiki.multitheftauto.com/wiki/Main_Page) instead of being republished here.
 
 The Neon section is derived from the implementation, commit history, test resources, and explicitly identified current worktree changes in [`Dryxio/mtasa-neon`](https://github.com/Dryxio/mtasa-neon).
 
 ## Repository layout
 
 - `web/src/pages/neon`: Neon landing and generated Lua API pages.
-- `web/src/content/docs/neon`: Neon system guides and compatibility notes.
+- `web/src/content/docs/neon`: Neon-only system guides and compatibility notes.
 - `web/src/data/neon-functions.ts`: structured Neon-only API reference.
-- `web/src/content/docs`, `functions`, `events`, and `elements`: retained upstream MTA documentation.
+- `functions`, `events`, `elements`, `types`, and `assets`: upstream source data retained in Git history and excluded from the active site.
 
 ## Local development
 
@@ -34,7 +34,7 @@ git fetch upstream
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing either the Neon section or retained upstream documentation.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing technical claims or adding new Neon APIs.
 
 ## License
 
