@@ -1,0 +1,18 @@
+{
+  "name": "mtasa-neon-wiki-hosting",
+  "private": true,
+  "scripts": {
+    "prepare:docs": "npm --prefix web ci && npm --prefix web run build && node scripts/prepare-sites.mjs",
+    "prebuild": "npm run prepare:docs",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
+  }
+}
