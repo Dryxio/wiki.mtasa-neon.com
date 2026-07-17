@@ -8,8 +8,8 @@ import { SITE_TITLE, SITE_URL } from "./src/content.constants";
 export default defineConfig({
   site: SITE_URL,
   build: {
-    // Keep canonical URLs extensionless while emitting deployable static files.
-    format: "file",
+    // Directory indexes keep public routes extensionless on static hosts.
+    format: "directory",
   },
   vite: {
     ssr: {
