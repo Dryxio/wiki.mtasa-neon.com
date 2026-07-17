@@ -2,7 +2,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import path from "node:path";
-import starlightScrollToTop from "starlight-scroll-to-top";
 import { SITE_TITLE, SITE_URL } from "./src/content.constants";
 
 export default defineConfig({
@@ -23,13 +22,6 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      plugins: [
-        starlightScrollToTop({
-          tooltipText: { en: "Scroll to top" },
-          showTooltip: true,
-          showProgressRing: false,
-        }),
-      ],
       favicon: "favicon.svg",
       title: SITE_TITLE,
       social: [

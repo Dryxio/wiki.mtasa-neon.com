@@ -3,7 +3,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { neonFunctions, neonCategories } from '@src/data/neon-functions';
 ---
 
-<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Functions added or extended by MTA:SA Neon.', tableOfContents: true }}>
+<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Functions added or extended by MTA:SA Neon.', tableOfContents: false }}>
   <div class="neon-api-intro">
     <span>NEON-ONLY REFERENCE</span>
     <h2>{neonFunctions.length} documented API entries</h2>
@@ -30,7 +30,7 @@ import { neonFunctions, neonCategories } from '@src/data/neon-functions';
   .neon-api-intro > span, .category-heading p { margin: 0; color: #f28c18; font-size: .7rem; font-weight: 900; letter-spacing: .15em; }
   .neon-api-intro h2 { margin: .5rem 0; }
   .neon-api-intro p { margin-bottom: 0; color: var(--sl-color-gray-2); }
-  .api-category { margin: 4rem 0; scroll-margin-top: 5rem; }
+  .api-category { margin: 4rem 0; content-visibility: auto; contain-intrinsic-size: auto 40rem; scroll-margin-top: 5rem; }
   .category-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
   .category-heading h2 { margin: .3rem 0 0; }
   .category-heading a { color: #ffad35; font-size: .85rem; }

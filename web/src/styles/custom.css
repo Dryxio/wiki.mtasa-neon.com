@@ -48,7 +48,8 @@ body {
     linear-gradient(rgba(242, 140, 24, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(242, 140, 24, 0.018) 1px, transparent 1px),
     radial-gradient(circle at 82% 12%, rgba(242, 140, 24, 0.08), transparent 28rem);
-  background-size: 42px 42px, 42px 42px, auto;
+  background-repeat: repeat, repeat, no-repeat;
+  background-size: 42px 42px, 42px 42px, 100% 56rem;
 }
 
 ::selection {
