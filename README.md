@@ -4,7 +4,7 @@ This repository is the documentation site for **MTA:SA Neon**. It keeps the comp
 
 The published site contains Neon-specific documentation only. Standard MTA APIs, events, elements, and concepts link to the canonical [official MTA Wiki](https://wiki.multitheftauto.com/wiki/Main_Page) instead of being republished here.
 
-The Neon section is derived from the implementation, commit history, test resources, and explicitly identified current worktree changes in [`Dryxio/mtasa-neon`](https://github.com/Dryxio/mtasa-neon).
+The Neon section is derived from the implementation, commit history, and test resources in [`Dryxio/mtasa-neon`](https://github.com/Dryxio/mtasa-neon).
 
 ## Repository layout
 

@@ -51,7 +51,7 @@ While a resource owns the Neon script-camera lease, legacy client camera setters
 
 ## Client binary pairing
 
-The current custom `netc.dll` must remain paired with the current Neon source ABI. The old MTA 1.6 network module is not a drop-in replacement. Keep official MTA installations isolated from the custom build.
+Use client binaries from the same Neon build. Mixing `netc.dll` from an official or older MTA installation with a current Neon client is unsupported because the module ABI may differ.
 
 ## Native world requirements
 

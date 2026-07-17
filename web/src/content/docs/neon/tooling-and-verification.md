@@ -1,26 +1,21 @@
 ---
 title: Tooling and verification
-description: Neon's VM build workflow, asset pipelines, test resources, profiling, and experimental developer tools.
+description: Neon's asset pipelines, validators, focused test resources, profiling, and verification standards.
 sidebar:
   order: 8
 ---
 
 The tools matter as much as the patches. Deep GTA changes need exact executable identities, patch manifests, validation scripts, focused builds, repeatable test resources, and real gameplay evidence.
 
-## Canonical source and VM builds
+## How Neon is verified
 
-Source changes, reviews, commits, and pushes happen in the canonical macOS checkout. The Windows VM-local copy is a disposable build/runtime mirror.
+Neon features are checked at several levels because no single result proves the whole gameplay path:
 
-`utils/vm-build.ps1` replaces timestamp-driven mirroring with an explicit checkpoint:
-
-1. name only the files owned by the checkpoint;
-2. produce a read-only synchronization/build plan;
-3. review exact-path SHA-256 decisions and the smallest affected projects;
-4. rerun with `-Execute`;
-5. verify outputs and runtime behavior;
-6. run the broader build appropriate to ABI/protocol scope.
-
-The helper preserves VM-generated CEF, Discord/RapidJSON, archives, and Unifont state; detects regeneration requirements; serializes transactions; checks output locks; and refuses dependency/bootstrap paths that require an intentional full setup.
+- patch guards check the exact supported GTA executable before native memory is changed;
+- the affected client and server projects must compile together when they share an ABI or protocol;
+- static checks and focused tests cover formats, limits, ownership, cleanup, and failure paths;
+- small test resources exercise one system at a time;
+- in-game checks cover connection, resource restart, reconnection, cleanup, and ordinary San Andreas behavior after the feature is disabled.
 
 ## Extended-world pipeline
 
@@ -37,7 +32,7 @@ The helper preserves VM-generated CEF, Discord/RapidJSON, archives, and Unifont 
 
 Generated city game assets remain outside Git.
 
-## Focused resource harnesses
+## Focused test resources
 
 Representative resources include:
 
@@ -60,19 +55,15 @@ Neon includes developer-only drop workflows:
 
 Inputs are size-bounded and use the existing validation/replacement paths, but there is no server authorization. These are local prototypes, not production features.
 
-## Server browser prototype — current worktree
-
-The uncommitted `Tools/server-browser-prototype` directory contains a React/Vite UI with a virtualized server table, filters, details, password and connection overlays, state management, and a mock backend. It is an experiment and is **not integrated into the MTA client**. It is documented here so the work is visible without making it look shipped.
-
 ## Verification language
 
 Each feature page labels its evidence clearly:
 
 - compiled successfully;
 - passed static/unit/format validation;
-- reached a ready local server;
-- was exercised by a user in game;
+- reached a running server;
+- was exercised in game;
 - remains a prescribed regression test;
-- remains uncommitted or unvalidated.
+- remains experimental or still needs runtime validation.
 
 A successful build proves that the code compiles; it does not prove the gameplay path. Native-world executable writes, downloaded data, authorization, cache leases, worker cancellation, native object lifetimes, and large pool allocations all need their own focused review before the docs claim runtime success.

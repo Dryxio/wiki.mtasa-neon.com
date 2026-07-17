@@ -75,7 +75,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 
 ## Integrated validation
 
-The recorded commit evidence includes:
+Validation includes:
 
 - isolated go-to, enter, leave, drive-wander, camera, braking, mission-audio, and recorded-car harnesses;
 - a 15.011-second native drive covering 71.95 synchronized metres;
@@ -85,4 +85,4 @@ The recorded commit evidence includes:
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-Successful builds cover the code path, not the final cinematic feel. That still needs an in-game pass by the user.
+Successful builds cover the code path, not the final cinematic feel. Cinematic quality still needs an in-game review.

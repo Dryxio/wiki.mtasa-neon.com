@@ -76,4 +76,4 @@ GTA stores pickup positions in signed 16-bit eighth-unit fields. Neon keeps MTA'
 - release while elements survive;
 - resource cleanup and parent fallback.
 
-The commit was tested with Release x64 server and Release Win32 client builds, plus spawn/respawn, model replacement, safe freeing, and the post-free crash regression.
+Runtime checks cover spawn and respawn, model replacement, safe freeing, and the post-free crash regression.

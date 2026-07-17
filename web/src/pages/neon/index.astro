@@ -40,14 +40,14 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
       <a href="/neon/models-and-streaming"><span>03</span><h3>Models & streaming</h3><p>Stable server model IDs mapped to local GTA slots, with safe fallbacks and cleanup.</p></a>
       <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
       <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
-      <a href="/neon/tooling-and-verification"><span>06</span><h3>Tooling & proof</h3><p>The VM build workflow, generators, validators, focused test resources, and runtime profiles.</p></a>
+      <a href="/neon/tooling-and-verification"><span>06</span><h3>Testing & tooling</h3><p>Generators, validators, focused test resources, and the evidence behind each feature.</p></a>
     </div>
   </section>
 
   <section class="status-strip">
-    <div><p class="eyebrow">CURRENT NATIVE-WORLD CHECKPOINT</p><h2>The authorization record is saved. Neon still will not activate it.</h2></div>
-    <p>The current uncommitted code stores a DPAPI-protected, one-shot record for 15 minutes. It is tied to the exact server, endpoint, resource generation, offer, and content ID, but it still reports <code>activation=no lease=no</code>.</p>
-    <a href="/neon/native-world#inert-startup-authorization-current-worktree">See exactly what is and is not implemented →</a>
+    <div><p class="eyebrow">NATIVE-WORLD STATUS</p><h2>Transport and authorization exist. Native activation does not.</h2></div>
+    <p>Neon can audit and cache a pack, then save a one-shot authorization tied to the exact server, resource, and content. GTA still does not load the pack from that record, and diagnostics report <code>activation=no lease=no</code>.</p>
+    <a href="/neon/native-world#startup-authorization-is-not-activation">See exactly what is and is not implemented →</a>
   </section>
 
   <section class="section-block">

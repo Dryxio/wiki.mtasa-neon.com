@@ -59,13 +59,11 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Gang-tag material | Disabled single-player tag path | Opt-in per-object Grove material alpha |
 | Fast weapon strafe | Not available | Synchronized `fastweaponstrafe` glitch, disabled by default |
 
-## Developer workflows
+## Tools and tests
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
-- Exact-path, SHA-256-verified incremental VM synchronization and smallest-project builds.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
 - Test resources for limits, CULL zones, models, radar, native tasks, cameras, audio, recordings, transport, and performance attribution.
-- An uncommitted React server-browser prototype tracked as exploratory tooling, not an engine feature.
 
 ## API inventory
 
