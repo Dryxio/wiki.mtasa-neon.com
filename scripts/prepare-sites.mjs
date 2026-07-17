@@ -1,4 +1,4 @@
-import { cp, readdir, rm } from "node:fs/promises";
+import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -7,6 +7,10 @@ const destination = path.join(root, "dist");
 
 await rm(destination, { recursive: true, force: true });
 await cp(source, destination, { recursive: true });
+await mkdir(path.join(destination, "server"), { recursive: true });
+await mkdir(path.join(destination, ".openai"), { recursive: true });
+await cp(path.join(root, "sites", "server", "index.js"), path.join(destination, "server", "index.js"));
+await cp(path.join(root, ".openai", "hosting.json"), path.join(destination, ".openai", "hosting.json"));
 
 const htmlFiles = [];
 
