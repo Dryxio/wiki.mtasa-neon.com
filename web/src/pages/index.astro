@@ -1,5 +1,6 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { neonFunctions } from '@src/data/neon-functions';
 ---
 
 <StarlightPage frontmatter={{
@@ -16,11 +17,11 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
     <div class="gateway-actions">
       <a class="primary" href="/neon">Read the Neon docs <span>→</span></a>
-      <a href="/neon/functions">Browse the 76 Lua APIs</a>
+      <a href="/neon/functions">Browse the {neonFunctions.length} Lua APIs</a>
     </div>
 
     <div class="gateway-grid">
-      <div><strong>76</strong><span>documented API entries</span></div>
+      <div><strong>{neonFunctions.length}</strong><span>documented API entries</span></div>
       <div><strong>08</strong><span>system guides</span></div>
       <div><strong>100%</strong><span>Neon-specific content</span></div>
     </div>

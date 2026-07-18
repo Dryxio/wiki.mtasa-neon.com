@@ -36,7 +36,7 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     <h2>What Neon changes under the hood</h2>
     <div class="system-grid">
       <a href="/neon/extended-world"><span>01</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
-      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Server-delivered city packs, strict file auditing, an immutable cache, and startup authorization.</p></a>
+      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Server-delivered static worlds, strict auditing, one-shot restart authorization, native activation, and server isolation.</p></a>
       <a href="/neon/models-and-streaming"><span>03</span><h3>Custom models</h3><p>Stable server model IDs mapped to local GTA slots, with native-parent fallback and resource cleanup.</p></a>
       <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
       <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
@@ -45,9 +45,9 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
   </section>
 
   <section class="status-strip">
-    <div><p class="eyebrow">NATIVE-WORLD STATUS</p><h2>Transport and authorization exist. Native activation does not.</h2></div>
-    <p>Neon can audit and cache a pack, then save a one-shot authorization tied to the exact server, resource, and content. GTA still does not load the pack from that record, and diagnostics report <code>activation=no lease=no</code>.</p>
-    <a href="/neon/native-world#startup-authorization-is-not-activation">See exactly what is and is not implemented →</a>
+    <div><p class="eyebrow">NATIVE-WORLD STATUS</p><h2>Authorized startup activation is live.</h2></div>
+    <p>Neon can audit and cache a closed format-1 or format-2 pack, persist one exact authorization, restart to the same passwordless numeric endpoint, and promote the validated pack to a process lease. Changing servers requires a clean MTA process.</p>
+    <a href="/neon/native-world#the-two-launch-activation">Read the activation contract and limits →</a>
   </section>
 
   <section class="section-block">

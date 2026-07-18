@@ -29,8 +29,8 @@ Neon advertises bitstream capabilities before it changes a packet layout. This a
 - extended low-precision world coordinates;
 - extended absolute camera coordinates;
 - server model registry definitions and logical IDs;
-- native-world transport;
-- the separate startup-authorization request;
+- native-world format-1 transport and startup authorization;
+- the separate format-2 `static-world-v1` publish and startup capabilities;
 - synchronized `fastweaponstrafe` state.
 
 Older clients keep the packet layout they already understand. If a client does not support native-world transport, the server leaves those engine-only files and descriptors out completely.
@@ -55,7 +55,9 @@ Use client binaries from the same Neon build. Mixing `netc.dll` from an official
 
 ## Native world requirements
 
-Native-world transport and authorization need matching client and server builds. Future activation will also need a clean startup transaction with the same server identity and endpoint. Neon will not hot-load an audited cache object into an already running GTA process.
+Native-world transport and activation need matching Neon client and server builds. A capable client can publish an inert pack without accepting startup authorization; each descriptor is gated independently so older layouts are not reinterpreted.
+
+Activation requires a clean two-launch transaction to the same passwordless numeric endpoint. Once the pack is active, the process is pinned to that endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated; connecting elsewhere requires closing MTA and starting a clean process. Neon does not hot-load or hot-unload a native pack.
 
 ## Local preview security
 

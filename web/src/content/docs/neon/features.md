@@ -25,7 +25,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Native minimap | Fixed 12 × 12 stock grid | Sparse 40 × 40 logical grid with protected stock cells |
 | F11 map | Packaged San Andreas image | Runtime atlas composed from native and registered extended tiles |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
-| Native world packs | Not available | Closed IDE/IMG/IPL audit, immutable cache, server transport, and staged startup authorization |
+| Native world packs | Not available | Closed format-1/format-2 audit, immutable cache, one-shot restart authorization, native startup activation, and owner-server isolation |
 
 ## Rendering and native pools
 
@@ -51,25 +51,27 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Custom model identity | Client-local runtime allocation | Server-stable logical IDs mapped to per-client GTA slots |
 | Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Native ped story tasks | No direct reusable surface | Go-to, shooting, drive-wander, mission-actor, and verified enter/exit lifecycles |
+| Native ped story tasks | No direct reusable surface | Go-to, shooting, chat, stand-still, seek-offset, combat, wander, drive-wander, mission-actor, and verified enter/exit lifecycles |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |
 | Mission audio | No owned GTA mission slots | Four resource-owned native slots with load recovery and cleanup |
 | Mission GXT text | No resource-owned native lease | Exclusive block lease with small/help/big text queues |
 | Recorded-car playback | Not exposed | Resource-owned direct non-looped native playback |
-| Gang-tag material | Disabled single-player tag path | Opt-in per-object Grove material alpha |
+| Gang tags | Disabled single-player tag path | Resource-owned native spray hits, persistent 8-alpha progress, Grove rendering, and cleanup |
+| Directional scene load | Not exposed | GTA `0A0B` directional preload sequence with finite input validation |
+| Vehicle story gates | Approximate public checks | Exact `09D0` all-wheel predicate and verified vehicle-attached script-audio events |
 | Fast weapon strafe | Not available | Synchronized `fastweaponstrafe` glitch, disabled by default |
 
 ## Tools and tests
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Test resources for limits, CULL zones, models, radar, native tasks, cameras, audio, recordings, transport, and performance attribution.
+- Test resources for limits, CULL zones, models, radar, native tasks, gang tags, cameras, audio, recordings, world synchronization, native-world startup, and performance attribution.
 
 ## API inventory
 
-The [Neon Lua API](/neon/functions) has **76 documented entries**:
+The [Neon Lua API](/neon/functions) has **89 documented entries**:
 
-- 72 registrations added in Neon;
+- 85 registrations added in Neon;
 - two existing vehicle-entry/exit APIs with Neon-native task and lifecycle behavior;
 - two existing glitch APIs extended with `fastweaponstrafe`;
 - server-side extensions of model functions that already existed on the client are labeled by their actual side.

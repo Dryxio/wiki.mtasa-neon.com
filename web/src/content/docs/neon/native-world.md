@@ -1,111 +1,141 @@
 ---
 title: Native world packs
-description: Closed native payloads, immutable cache transport, and the startup-authorization boundary.
+description: Audited static-world packs, immutable caches, one-shot startup authorization, and process-lifetime activation.
 sidebar:
   order: 3
 ---
 
-Native world packs are meant to let a server send extra static cities and have GTA stream their IDE, IMG, COL, and binary IPL data through its own spatial system. Once startup activation is safe, players should be able to travel between San Andreas and those cities without a Lua streamer or a visible transition.
+Native world packs let GTA register extra IDE, IMG, COL, and binary IPL data through its own startup streaming path. This is different from a Lua city streamer: the pack becomes native GTA state and remains there for the lifetime of that MTA process.
 
-The transport and cache path works, but authorization is not activation. The sections below keep that boundary explicit.
+The complete path is now implemented for the closed Bullworth format and for the closed `static-world-v1` route. A capable server can publish an audited pack, authorize its exact cached content, ask the player to restart, and have the replacement process activate it after reconnecting to the same server.
 
-## Implemented checkpoints
+## What is implemented
 
 | Commit | Capability |
 | --- | --- |
-| [`5edd8e7f9`](https://github.com/Dryxio/mtasa-neon/commit/5edd8e7f9) | Opt-in native Bullworth proof: model-store relocation, IDE/IMG/COL/binary IPL registration, spatial streaming, and reconnect-safe streaming-buffer floor. |
-| [`8bbdd4a31`](https://github.com/Dryxio/mtasa-neon/commit/8bbdd4a31) | Generic static-world manager separated from the immutable Bullworth policy. |
-| [`1304f98d8`](https://github.com/Dryxio/mtasa-neon/commit/1304f98d8) | Minimal versioned runtime manifest with allocation plans derived from validated IDE/IMG bytes. |
-| [`d65e8eee0`](https://github.com/Dryxio/mtasa-neon/commit/d65e8eee0) | Closed RenderWare and COL grammar with semantic, finite-value, recursion, and aggregate-budget validation. |
-| [`5d43f18e5`](https://github.com/Dryxio/mtasa-neon/commit/5d43f18e5) | Immutable ProgramData cache keyed by a domain-separated semantic SHA-256 content ID, guarded by leases and atomic same-volume publication. |
-| [`7c38a9278`](https://github.com/Dryxio/mtasa-neon/commit/7c38a9278) | Version-gated resource transport, bounded HTTP streaming, asynchronous closed audit, cancellation, quotas, quarantine re-audit, and atomic cache publication. |
+| [`5edd8e7f9`](https://github.com/Dryxio/mtasa-neon/commit/5edd8e7f9) | Native Bullworth proof: relocated model stores, IDE/IMG/COL/IPL registration, spatial streaming, and a reconnect-safe streaming-buffer floor. |
+| [`5d43f18e5`](https://github.com/Dryxio/mtasa-neon/commit/5d43f18e5) | Immutable content-addressed cache, atomic publication, complete re-audit, and pending/process leases. |
+| [`7c38a9278`](https://github.com/Dryxio/mtasa-neon/commit/7c38a9278) | Version-gated resource transport, bounded downloads, cancellable worker audit, quotas, and quarantine publication. |
+| [`b9ce96d3c`](https://github.com/Dryxio/mtasa-neon/commit/b9ce96d3c) | Short-lived, one-shot authorization record bound to one server, resource generation, endpoint, policy, and exact content ID. |
+| [`5971c8a67`](https://github.com/Dryxio/mtasa-neon/commit/5971c8a67) | Existing-object-only startup selection, full cache re-audit, typed lease, executable preflight, and atomic ticket claim. |
+| [`163605d59`](https://github.com/Dryxio/mtasa-neon/commit/163605d59) | Record-selected native activation, second-session validation, native commit, and process-lifetime lease. |
+| [`453ca427b`](https://github.com/Dryxio/mtasa-neon/commit/453ca427b) | Explicit credential-free restart to the authorized numeric endpoint. |
+| [`0b8f07565`](https://github.com/Dryxio/mtasa-neon/commit/0b8f07565) | Separate format-2 `static-world-v1` transport and v2 cache identity. |
+| [`c87820afc`](https://github.com/Dryxio/mtasa-neon/commit/c87820afc) | Format-2 one-shot authorization and activation without changing the format-1 wire path. |
+| [`457a83d11`](https://github.com/Dryxio/mtasa-neon/commit/457a83d11) | Process-lifetime server isolation across console, browser, reconnect, Host Game, Editor, and credential paths. |
 
-The tested path supports one compiled Bullworth policy on exact, audited GTA SA 1.0 US executables. It cannot load arbitrary IDE content.
+## Pack formats
 
-## Transport contract
-
-A resource declares exactly three automatic-download files and one engine-owned descriptor:
+Both formats use exactly three engine-owned automatic downloads:
 
 ```xml
 <file src="native/native-world.json" download="true" native_world="true" />
 <file src="native/world.ide" download="true" native_world="true" />
 <file src="native/world.img" download="true" native_world="true" />
-<native_world format="1" manifest="native/native-world.json" />
 ```
 
-Compatible clients receive the descriptor and file metadata in the versioned `ResourceStart` group. Older clients receive neither that group nor the engine-only payloads.
+### Format 1: Bullworth
 
-After the usual size and checksum checks, a cancellable worker audits the complete payload. It copies the files into a locked quarantine on the same volume, audits the copy again, publishes the directory atomically, and validates the final immutable object once more.
-
-A successful download still does nothing to GTA:
-
-```text
-downloaded bytes -> checksum -> closed semantic audit -> immutable cache
-immutable cache  != trusted server authorization
-```
-
-### Cache policy
-
-Current closed Bullworth quotas are a 4 KiB manifest, 1 MiB IDE, 256 MiB IMG, four content objects, 1 GiB counted data, and requested bytes plus a 64 MiB free-space margin. Unsafe paths, unverifiable remnants, immutable conflicts, and quota exhaustion are refused.
-
-## Startup authorization is not activation
-
-Neon can save a short-lived startup authorization record after a payload passes audit and cache publication. It still refuses to activate the pack.
-
-The resource may request it explicitly:
+Format 1 is tied to Neon's compiled Bullworth policy:
 
 ```xml
-<native_world
-  format="1"
-  manifest="native/native-world.json"
-  startup="true"
-  policy="bullworth" />
+<native_world format="1" manifest="native/native-world.json"
+              startup="true" policy="bullworth" />
 ```
 
-The authorization record follows these rules:
+Remove `startup="true"` and `policy="bullworth"` for a publish-only resource. The payload still goes through the full audit and immutable cache, but it cannot create an authorization record or affect GTA.
 
-- it is negotiated separately, so older native-world transport packets keep their existing layout;
-- it is bound to the server identity and endpoint, connection, resource generation, policy, offer, and exact content ID;
-- it is persisted only while the resource and connection that supplied the audited payload are still current;
-- it is protected for the current operating-system user, can be consumed only once, and expires after 15 minutes;
-- storage, path, clock, publication, and revocation checks fail closed;
-- resource-stop revocation for a record still attached to that resource;
-- the F8 command `nativeworldauth status` or `nativeworldauth clear` for inspection and deliberate cleanup.
+### Format 2: static-world-v1
 
-Expected diagnostics continue to state:
+Format 2 separates the audit profile from the pack identity:
+
+```xml
+<native_world format="2" policy="static-world-v1"
+              manifest="native/native-world.json" startup="true" />
+```
+
+Its manifest root contains only `format`, `policy`, a bounded `pack_id`, and the file metadata. `pack_id` must match `[a-z0-9_-]{1,15}`. It participates in the semantic content ID, but it never controls parser budgets, executable patches, native paths, pools, or cache directories.
+
+Format 2 has separate publish and startup capabilities. A client that only understands publish-only format 2 receives an inert descriptor; the server cannot silently upgrade it to activation. Format 1 and format 2 also have separate content-ID domains and cache trees, so one cannot be mistaken for the other.
+
+## Download, audit, and cache
+
+The client accepts one manifest, one IDE, and one IMG. The current ceilings are 4 KiB, 1 MiB, and 256 MiB. After the normal download checks, a cancellable worker:
+
+1. copies the payload into a same-volume quarantine;
+2. parses the closed manifest, IDE, IMG directory, DFF/TXD RenderWare data, COL, and binary IPLs;
+3. derives model, TXD, collision, IPL, archive, coordinate, and streaming budgets from the bytes;
+4. rejects unknown grammar, unsafe names, non-finite values, collisions, overflows, or unsupported content;
+5. publishes the immutable object with one atomic directory rename;
+6. opens and revalidates the final object under no-write/no-delete handles.
+
+The cache holds at most four objects and 1 GiB of counted data per policy, with a 64 MiB free-space margin. Unsafe siblings, reparse points, corrupt objects, quota exhaustion, and ambiguous crash residue fail closed.
+
+A content hash proves only that the bytes are identical. It does not prove who sent them and does not authorize GTA to load them.
+
+## The two-launch activation
+
+Activation is deliberately a two-launch transaction:
 
 ```text
-[NativeWorldAuthorization] state=pending ... activation=no lease=no restart-required=yes
+launch 1: download -> audit -> immutable cache -> pending authorization
+                                      |
+                                      v
+                           nativeworldauth restart
+                                      |
+                                      v
+launch 2: exact cache re-audit -> one-shot claim -> same-server validation
+          -> native registration -> process lease
 ```
 
-This checkpoint **does not select a cache object for GTA, acquire an activation lease, restart the client, or register a native pack**. It only proves that Neon can safely finish one exact server, session, resource, and cache authorization before touching irreversible engine state.
+On launch 1, the authorization record is bound to the exact content ID, pack format and policy, opaque server-ID digest, canonical numeric IPv4 endpoint, resource generation, and negotiated bitstream version. It is protected for the current operating-system user, expires after 15 minutes, and contains no password, raw server key, hostname, file path, or server-chosen executable path.
 
-## Trust boundary
+The player can inspect or continue the transaction from F8:
 
-Neon binds the pending record to the opaque server ID exposed by the established MTA session and to the canonical numeric endpoint. The external network module owns the underlying identity mapping and handshake; the visible source tree does not prove PKI possession or authenticated DNS ownership. Documentation and diagnostics must not claim a stronger identity guarantee than that interface provides.
+```text
+nativeworldauth status
+nativeworldauth restart
+nativeworldauth clear
+```
 
-## Not implemented yet
+`restart` is accepted only for a fresh pending record with at least 60 seconds left. It schedules and reads back one passwordless `mtasa://<numeric-ip>:<port>` action, then cleanly replaces the process. `clear` is for a still-pending record; once native preparation or activation begins, clear and another restart are refused.
 
-- Startup consumption and atomic claim of the pending record.
-- Exact-cache lookup with a startup-transaction lease.
-- Second-session identity and endpoint reproduction before `StartGame`.
-- Native activation from a server-issued record.
-- Safe hot unload or pack switching inside a running GTA process.
-- Transactional aggregate registration of several cities.
-- A general policy for arbitrary IDE/IMG content.
-- Automatic radar, paths, population, zones, audio, interiors, or city environment systems.
+On launch 2, Neon never selects the newest object and never repairs a missing startup object. It opens the one content ID named by the record, fully re-audits it, takes a typed pending lease, validates the GTA executable and patch sites, and atomically spends the one-shot ticket before native mutation. The new connection must reproduce the endpoint, opaque server-ID digest, and bitstream version before `StartGame` installs the pack hook. Only successful native postconditions promote the lease to process lifetime.
+
+## Process-lifetime server isolation
+
+A native pack has no safe hot-unload path. Once a record-driven pack owns the process, every connection route is pinned to its numeric endpoint before the current mod is unloaded, the network is reset, reconnect state is changed, or a credential is read.
+
+- Exact reconnects to the owner endpoint remain available and still repeat the opaque server-ID check.
+- A different target while the pack is active is blocked without destroying the valid session or lease.
+- Connecting to another server requires closing MTA and starting a clean process.
+- Supplied and saved credentials are suppressed throughout every record-driven phase, including active reconnects.
+- Passworded native-world startup is therefore not supported yet.
+
+The endpoint is a locator, not authentication. Server continuity relies on the opaque ID exposed by MTA's external network module; the visible source does not establish PKI, authenticated DNS ownership, or the operator's legal identity.
+
+## Current limits
+
+- The native runtime supports two exact audited GTA SA 1.0 US executable identities.
+- The public path is startup-only: no hot registration, hot unload, or pack switch.
+- One process has one active pack and one owner server; aggregate multi-pack allocation is not implemented.
+- `static-world-v1` is a constrained static-world grammar, not arbitrary IDE support.
+- The format-2 live fixture intentionally reused the known Bullworth bytes. It proves the generic transport/authorization machinery, not a second city.
+- Radar, paths, population, zones, audio, interiors, and environment systems are separate resource or engine work.
+- The old environment-selector route remains a developer path and does not receive the record-driven server-isolation guarantee.
 
 ## Verification evidence
 
-The transport series has been checked with:
+The current series reached **83 focused extended-world tests**, with two optional environment-dependent skips. Live validation covered:
 
-- 38 focused extended-world tests;
-- matching client and server builds;
-- fresh download and `disposition=published` cache publication;
-- exact post-publication hash comparison;
-- reconnect and `disposition=hit` behavior;
-- no quarantine residue after success;
-- Bullworth spatial streaming, collision, travel, reconnect, and restart checks;
-- rollback to ordinary San Andreas behavior with the native environment switch disabled.
+- fresh format-1 and format-2 publication plus exact cache hits;
+- passwordless restart with a new process ID;
+- existing-object-only re-audit, one-shot claim, native registration, and `state=active lease=process`;
+- Bullworth travel, return to San Andreas, reconnect, and resource stop/start;
+- extended positions at X=+9,500 and water at X=−9,990;
+- COL and `moveObject` regression matrices;
+- pending-ticket revocation and missing-cache terminal refusal without recreation;
+- a wrong-port request blocked while the active owner session and lease stayed intact, followed by a successful exact reconnect;
+- matching affected client/server builds with zero errors.
 
-Startup authorization remains experimental. It is not a promise that native pack activation is available.
+The format-2 fixture registered archive 6, 952 models, 166 TXDs, collision slot 252, and seven IPL slots. Those numbers describe the validated Bullworth fixture, not universal `static-world-v1` capacities.

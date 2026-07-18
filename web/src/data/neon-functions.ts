@@ -20,6 +20,7 @@ export interface NeonFunction {
   oop?: string[];
   source: string;
   commit: string;
+  test?: string | null;
   example?: string;
   extension?: boolean;
 }
@@ -71,7 +72,13 @@ export const neonCategories = {
     title: "Native ped tasks and gang tags",
     guide: "/neon/story-runtime#native-ped-tasks",
     test: "test-resources/native-ped-go-to-test",
-    lifecycle: "The calling client must be simulating the living, streamed ped before it can change tasks or combat behavior. Current tasks have no resource handle and are not rebuilt after syncer migration.",
+    lifecycle: "Ped task calls require the client that simulates the living, streamed ped. Gang-tag ownership is resource-exclusive, survives object streaming and recreation, and is released automatically when the owner stops.",
+  },
+  scene: {
+    title: "Native scene primitives",
+    guide: "/neon/story-runtime#scene-loading-and-vehicle-gates",
+    test: "test-resources/tagging-up-turf",
+    lifecycle: "These calls act immediately on streamed native state and do not create a persistent lease. The resource remains responsible for scene timing and authoritative mission progression.",
   },
   camera: {
     title: "Native script camera",
@@ -378,6 +385,55 @@ export const neonFunctions: NeonFunction[] = [
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
   },
   {
+    name: "setPedChatWith", category: "tasks", side: "client",
+    signature: "bool setPedChatWith(ped thePed, ped partner, bool leadSpeaker [, bool updateDirection = true, bool conversationEnabled = true])",
+    summary: "Starts GTA's native partner-chat task between two distinct peds.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("partner", "ped", "Distinct living streamed conversation partner."), arg("leadSpeaker", "bool", "Whether the first ped leads the conversation."), arg("updateDirection", "bool", "Allow the task to turn the speakers toward each other.", true, "true"), arg("conversationEnabled", "bool", "Enable the native conversation exchange.", true, "true")],
+    returns: "true when the native task was queued; false when either ped, streaming state, liveness, simulation ownership, or task construction is invalid.",
+    oop: ["ped:setChatWith(partner, leadSpeaker, updateDirection, conversationEnabled)"],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "setPedStandStill", category: "tasks", side: "client",
+    signature: "bool setPedStandStill(ped thePed [, int duration = 0])",
+    summary: "Queues GTA's simple stand-still task on a simulated ped.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("duration", "int", "Non-negative native task duration in milliseconds; 0 preserves the SCM-style indefinite use.", true, "0")],
+    returns: "true when the native task was queued; false for invalid ownership, streaming, liveness, duration, or task construction.",
+    oop: ["ped:setStandStill(duration)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "setPedGoToOffset", category: "tasks", side: "client",
+    signature: "bool setPedGoToOffset(ped thePed, ped target [, int timeout = -1, float radius = 0.5, float angle = 0.0, bool repeatTask = false])",
+    summary: "Makes a ped seek a radius-and-angle offset around another ped using GTA's native entity task.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped."), arg("timeout", "int", "-1 for GTA's SCM-compatible 50-second seek timeout, or a non-negative timeout in milliseconds.", true, "-1"), arg("radius", "float", "Finite positive distance from the target.", true, "0.5"), arg("angle", "float", "Finite native angular offset around the target.", true, "0.0"), arg("repeatTask", "bool", "Wrap the movement in GTA's native repeating mission sequence.", true, "false")],
+    returns: "true when the native task or repeating sequence was queued; false when validation or construction fails.",
+    oop: ["ped:setGoToOffset(target, timeout, radius, angle, repeatTask)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "setPedKillOnFoot", category: "tasks", side: "client",
+    signature: "bool setPedKillOnFoot(ped thePed, ped target)",
+    summary: "Queues GTA's native on-foot kill task against another ped.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped.")],
+    returns: "true when the combat task was queued; false for invalid peds, liveness, streaming, ownership, or task construction.",
+    oop: ["ped:setKillOnFoot(target)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "setPedWander", category: "tasks", side: "client",
+    signature: "bool setPedWander(ped thePed [, string movement = \"walk\", int direction = -1, bool wanderSensibly = true])",
+    summary: "Starts GTA's standard on-foot wander task.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("movement", "string", "walk or run.", true, "walk"), arg("direction", "int", "-1 for GTA's native random direction, or a direction from 0 through 7.", true, "-1"), arg("wanderSensibly", "bool", "Use the native sensible-wander behavior.", true, "true")],
+    returns: "true when the task was queued; false for invalid movement, direction, ped state, ownership, or task construction.",
+    oop: ["ped:setWander(movement, direction, wanderSensibly)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "setPedScriptedSpeechMuted", category: "tasks", side: "client",
+    signature: "bool setPedScriptedSpeechMuted(ped thePed, bool muted)",
+    summary: "Enables or suppresses a ped's GTA scripted speech without muting unrelated game audio.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("muted", "bool", "Whether scripted speech should be suppressed.")],
+    returns: "true when the native speech flag was applied; false for invalid ownership, streaming, or ped state.",
+    oop: ["ped:setScriptedSpeechMuted(muted)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+  },
+  {
     name: "setPedEnterVehicle", category: "tasks", side: "client", extension: true,
     signature: "bool setPedEnterVehicle(ped thePed [, vehicle theVehicle, bool|int passengerOrSeat])",
     summary: "Extends MTA's authoritative vehicle-entry lifecycle with a verified native passenger-entry task after server confirmation.",
@@ -443,6 +499,62 @@ export const neonFunctions: NeonFunction[] = [
     returns: "true when the supported streamed object's material state was updated; false otherwise.",
     notes: ["Reapply after stream-in or native object recreation."], oop: ["object:setGangTagAlpha(alpha)"],
     source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "a9745bb5b",
+  },
+  {
+    name: "acquireObjectGangTag", category: "tasks", side: "client",
+    signature: "bool acquireObjectGangTag(object theObject [, int progress = 0])",
+    summary: "Gives the calling resource exclusive ownership of a supported tag object and registers it with GTA's native spray path.",
+    arguments: [arg("theObject", "object", "Tag object using model 1490 or 1524 through 1531."), arg("progress", "int", "Initial Grove-material progress from 0 through 255.", true, "0")],
+    returns: "true when ownership was acquired or refreshed by the same resource; false for an unsupported object, invalid progress, or another owner.",
+    notes: ["Ownership and progress survive stream-out and native object recreation.", "GTA advances progress in its original 8-alpha spray steps."],
+    oop: ["object:acquireGangTag(progress)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "33b8fb453", test: "test-resources/native-gang-tag-test",
+  },
+  {
+    name: "setObjectGangTagProgress", category: "tasks", side: "client",
+    signature: "bool setObjectGangTagProgress(object theObject, int progress)",
+    summary: "Applies an authoritative 0–255 progress byte to a gang tag owned by the calling resource.",
+    arguments: [arg("theObject", "object", "Tag object currently owned by the calling resource."), arg("progress", "int", "Authoritative progress from 0 through 255.")],
+    returns: "true when the owned tag was updated; false for invalid progress or ownership.",
+    notes: ["Use this to mirror server-validated client spray reports."], oop: ["object:setGangTagProgress(progress)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "33b8fb453", test: "test-resources/native-gang-tag-test",
+  },
+  {
+    name: "getObjectGangTagProgress", category: "tasks", side: "client",
+    signature: "int|false getObjectGangTagProgress(object theObject)",
+    summary: "Reads the persistent progress byte of an acquired gang tag.",
+    arguments: [arg("theObject", "object", "Tag object to inspect.")], returns: "The current 0–255 progress, or false when the object has no gang-tag owner.",
+    oop: ["object:getGangTagProgress()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "33b8fb453", test: "test-resources/native-gang-tag-test",
+  },
+  {
+    name: "releaseObjectGangTag", category: "tasks", side: "client",
+    signature: "bool releaseObjectGangTag(object theObject)",
+    summary: "Unregisters an owned tag from GTA's native spray path and clears its Grove-material override.",
+    arguments: [arg("theObject", "object", "Tag object owned by the calling resource.")], returns: "true when released; false when the caller does not own the tag.",
+    oop: ["object:releaseGangTag()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp", commit: "33b8fb453", test: "test-resources/native-gang-tag-test",
+  },
+
+  {
+    name: "enginePreloadWorldAreaInDirection", category: "scene", side: "client",
+    signature: "bool enginePreloadWorldAreaInDirection(Vector3 position, float headingDegrees)",
+    summary: "Runs GTA's directional scene request and synchronous load sequence used by story transitions.",
+    arguments: [arg("position", "Vector3", "Finite scene position."), arg("headingDegrees", "float", "Finite direction in degrees.")],
+    returns: "true after GTA completes the directional load; false for non-finite input.",
+    notes: ["This call can block while GTA loads the requested scene; stage it under an appropriate fade."], source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "e4bddaac4", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "reportVehicleMissionAudioEvent", category: "scene", side: "client",
+    signature: "bool reportVehicleMissionAudioEvent(vehicle theVehicle, int eventId)",
+    summary: "Reports one verified GTA script-audio event on a streamed vehicle's native audio entity.",
+    arguments: [arg("theVehicle", "vehicle", "Streamed vehicle with a native GTA instance."), arg("eventId", "int", "One-shot physical-entity script event from 1000 through 1190.")],
+    returns: "true when the event was reported; false for an unavailable vehicle/audio engine or an event outside the verified family.",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaAudioDefs.cpp", commit: "e4bddaac4", test: "test-resources/tagging-up-turf",
+  },
+  {
+    name: "isVehicleOnAllWheels", category: "scene", side: "client",
+    signature: "bool isVehicleOnAllWheels(vehicle theVehicle)",
+    summary: "Reproduces GTA opcode 09D0's exact all-four-contact vehicle gate.",
+    arguments: [arg("theVehicle", "vehicle", "Streamed vehicle with a native GTA instance.")],
+    returns: "true only for an automobile or bike whose native contact counter equals four; false for other classes, missing native state, or fewer contacts.",
+    notes: ["This is intentionally stricter than MTA's broader isVehicleOnGround check."], oop: ["vehicle:isOnAllWheels()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaVehicleDefs.cpp", commit: "7895f0e1e", test: "test-resources/tagging-up-turf",
   },
 
   {

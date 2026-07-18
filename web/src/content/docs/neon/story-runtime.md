@@ -18,11 +18,17 @@ The [native task API group](/neon/functions#tasks) includes:
 - go-to-and-stand-still with walk/run/sprint, radii, and SCM timeout semantics;
 - coordinate `GunControl` shooting plus explicit shooting-rate and accuracy bytes;
 - indefinite `DriveWander` road AI with GTA driving styles;
+- partner chat, stand-still, seek-offset, on-foot kill, and standard wander tasks;
+- per-ped scripted-speech suppression for scenes that provide their own dialogue;
 - verified MTA-authoritative enter/exit lifecycles using GTA passenger/leave tasks;
 - persistent client-local `PED_MISSION` classification for script peds;
-- opt-in gang-tag Grove-material alpha.
+- resource-owned gang tags driven by GTA's real spray hits.
 
 Mutating task/combat calls require a living streamed ped simulated by the caller: the local player, a client-local ped, or a server ped for which the client is current syncer.
+
+[`setPedChatWith`](/neon/functions/setPedChatWith), [`setPedStandStill`](/neon/functions/setPedStandStill), [`setPedGoToOffset`](/neon/functions/setPedGoToOffset), [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot), [`setPedWander`](/neon/functions/setPedWander), and [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) came from restoring the Ballas encounter in `SWEET1`. They queue GTA's own script-command events instead of assigning a primary task directly, so `true` means GTA accepted the command—not that the task has already reached its active state.
+
+Repeat mode in `setPedGoToOffset` uses GTA's mission-sequence pool and `CTaskComplexUseSequence`. It is not a Lua timer that repeatedly moves a ped around its target.
 
 Current limitations:
 
@@ -30,7 +36,29 @@ Current limitations:
 - no native completion events;
 - no automatic task reconstruction after syncer migration;
 - mission-actor policy is client-local and must be replicated/cleared by synchronized resources;
-- tag alpha must be reapplied after stream-in or native object recreation.
+- the server must still own mission progress and validate any client observation before advancing it.
+
+## Native gang tags
+
+[`acquireObjectGangTag`](/neon/functions/acquireObjectGangTag) gives one resource exclusive ownership of a supported tag object. GTA then detects actual spray-can hits through `CShotInfo`, advances the tag in its original eight-alpha steps, renders the Grove material, and emits:
+
+```lua
+onClientObjectGangTagProgress(previousProgress, currentProgress, creator)
+```
+
+The event source is the tag object. `creator` is the client element GTA associated with the spray hit, or `nil` when it cannot be mapped. A synchronized resource should treat that event as a report: validate it on the server, then mirror the accepted byte with [`setObjectGangTagProgress`](/neon/functions/setObjectGangTagProgress).
+
+Progress lives on the MTA object, so it survives stream-out and native object recreation. Explicit release or resource shutdown unregisters the object from the spray path and clears the material override. [`setObjectGangTagAlpha`](/neon/functions/setObjectGangTagAlpha) remains available for visual-only use, but it does not provide ownership or gameplay progress.
+
+## Scene loading and vehicle gates
+
+The [native scene primitives](/neon/functions#scene) expose three small pieces used by the post-rooftop `SWEET1` scene:
+
+- [`enginePreloadWorldAreaInDirection`](/neon/functions/enginePreloadWorldAreaInDirection) reproduces opcode `0A0B`: it asks GTA for objects in one heading, loads the scene, and updates the timer around that blocking work;
+- [`reportVehicleMissionAudioEvent`](/neon/functions/reportVehicleMissionAudioEvent) sends one verified `1000..1190` script-audio event through the streamed vehicle's native audio entity;
+- [`isVehicleOnAllWheels`](/neon/functions/isVehicleOnAllWheels) reproduces opcode `09D0` exactly for automobiles and bikes.
+
+`isVehicleOnAllWheels` is deliberately stricter than `isVehicleOnGround`: it checks GTA's native four-contact counter and has no geometric or streamed-out fallback. Query it on the vehicle syncer, then let the server decide whether the mission gate has passed.
 
 ## Script camera
 
@@ -77,12 +105,17 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 
 Validation includes:
 
-- isolated go-to, enter, leave, drive-wander, camera, braking, mission-audio, and recorded-car harnesses;
+- isolated go-to, enter, leave, drive-wander, gang-tag, camera, braking, mission-audio, and recorded-car harnesses;
+- exact native eight-alpha tag deltas, completion, synchronization, explicit release, and restart cleanup;
+- the Ballas partner-chat/seek/kill/wander encounter through the `Tagging Up Turf` mission;
+- `SWE1_AV` request-before-camera ordering, synchronized natural completion, authoritative exits, then `DriveWander`;
+- exact `09D0` all-wheel arrival gates, including rolled-vehicle cases where `isVehicleOnGround` stayed true but the native predicate stayed false;
 - a 15.011-second native drive covering 71.95 synchronized metres;
 - isolated recording 207 completion at 8,087/8,088 ms;
 - full mission playback completion at 8,040 ms with 0.00 m endpoint error;
+- the post-rooftop directional load, two vehicle audio events, `SWE1_BH`, camera restoration, and Sweet's passenger restoration;
 - script-camera fixed/move/track/fade/restoration completion in 8,620 ms;
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-Successful builds cover the code path, not the final cinematic feel. Cinematic quality still needs an in-game review.
+The mission resource remains a regression harness rather than the final SCM runtime. It proves the current primitives together, while server-owned task handles, completion events, and syncer-migration reconstruction remain future work.

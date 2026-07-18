@@ -19,6 +19,15 @@ What that means:
 - Legacy connections retain MTA's original packet formats.
 - The Perry Island pipeline provides a deterministic generated test around X=9,000.
 
+## Recipient-aware world synchronization
+
+Extended coordinates only work when the server writes each packet in the recipient's negotiated format. Commit [`c223b6b3d`](https://github.com/Dryxio/mtasa-neon/commit/c223b6b3d) fixes two RPCs that previously serialized positions into a legacy temporary bitstream before copying them into versioned packets:
+
+- `moveObject` interpolation, including its optional rotation and easing tail;
+- collision-polygon point updates.
+
+Both packets now keep semantic position data until `Write`, where the server chooses the correct encoding for each recipient. Legacy clients keep their old bytes; Neon-capable clients receive the extended position form. Targeted tests cover ordinary coordinates, X=+9,500, water-side X=−9,990, mixed recipient versions, and exact final object positions.
+
 ## Water and seabed
 
 Commit [`52039a4df`](https://github.com/Dryxio/mtasa-neon/commit/52039a4df) relocates GTA's custom-water block index to 40 × 40. Custom polygons can cover the full Neon domain while the native infinite outside-world ocean remains independent.
@@ -70,5 +79,5 @@ Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are test cases
 
 - Extended coordinates do not automatically provide radar, paths, population, zones, audio, interiors, or environment data.
 - Project2DFX searchlights, distant cars, and static shadows are not implemented.
-- Multi-city native-world activation still needs aggregate model, TXD, collision, IPL, archive, streaming-memory, LOD, and optional-subsystem budgets.
+- One native pack can now activate at startup, but multi-pack or hot-switched native worlds still need aggregate model, TXD, collision, IPL, archive, streaming-memory, LOD, and optional-subsystem budgets.
 - Ordinary draw distances remain unchanged unless a server or resource changes them.
