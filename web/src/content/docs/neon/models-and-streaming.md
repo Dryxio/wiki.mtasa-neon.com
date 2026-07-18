@@ -1,11 +1,11 @@
 ---
-title: Models and streaming
-description: Stable server model identities, client runtime mappings, IMG residency, and teardown guarantees.
+title: Custom models
+description: Stable server model identities, client runtime mappings, native-parent fallback, and resource ownership.
 sidebar:
   order: 4
 ---
 
-A Neon custom model has two identities: a stable ID used by the server and network, and a physical GTA slot chosen locally by each client.
+A Neon custom model has two identities: a stable ID used by the server and network, and a physical GTA slot chosen locally by each client. This page covers that model registry only; city archives and native world packs have their own ownership and lifecycle.
 
 ## Server-authoritative model registry
 
@@ -49,21 +49,17 @@ end
 
 Do not save or synchronize a runtime ID as the model identity. That number only makes sense on one client for the lifetime of its current allocation.
 
-## Resident IMG streaming
+## Related world systems
 
-Large imported-city resources link IMG archives into GTA and manage bounded DFF/TXD pools on each client. Loading is only half the job; commit [`a53602ba7`](https://github.com/Dryxio/mtasa-neon/commit/a53602ba7) also fixes the shutdown path:
+These systems can use the same low-level GTA model and streaming primitives, but they do not share ownership:
 
-- pending streaming work is drained before teardown;
-- client entities are destroyed before the slots they reference;
-- dynamic TXD registry entries are released for reuse;
-- IPL building ranges are clamped after pool shrink;
-- preload barriers and generation tokens reject stale city-switch completions.
+| System | What it owns | Lifecycle |
+| --- | --- | --- |
+| Custom model registry | Stable server IDs, native parents, network definitions, and client runtime-slot mappings | Resource and connection |
+| [Resident IMG cities](/neon/extended-world#resident-img-city-workflow) | Runtime IMG archives, bounded DFF/TXD pools, preload barriers, and city switching | While GTA is running |
+| [Native world packs](/neon/native-world) | Audited IDE/IMG/COL/IPL payloads, immutable cache objects, and startup authorization | Startup and process lifetime |
 
-Resident cities switch between finite sets of slots while GTA is running. Native world packs use a different startup path.
-
-## Pickup and extended-coordinate handling
-
-GTA stores pickup positions in signed 16-bit eighth-unit fields. Neon keeps MTA's floating-point position separately, saturates the native placeholder safely, and relocates the associated object before linking it into the world. This prevents visual wrapping at X=4,096 without changing the native pickup ABI or ordinary in-range behavior.
+Allocating a server model does not register a city archive or authorize a native world pack. Resident IMG and Native World deliberately remain separate paths.
 
 ## Validation
 

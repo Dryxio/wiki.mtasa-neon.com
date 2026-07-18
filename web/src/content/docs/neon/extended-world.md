@@ -25,6 +25,10 @@ Commit [`52039a4df`](https://github.com/Dryxio/mtasa-neon/commit/52039a4df) relo
 
 The server APIs [`setWorldSeaBedOuterBoundary`](/neon/functions/setWorldSeaBedOuterBoundary), [`resetWorldSeaBedOuterBoundary`](/neon/functions/resetWorldSeaBedOuterBoundary), and [`getWorldSeaBedOuterBoundary`](/neon/functions/getWorldSeaBedOuterBoundary) control only the rendered procedural seabed. They do not remove ocean water or change buoyancy and water physics.
 
+## Pickups at extended coordinates
+
+GTA stores pickup positions in signed 16-bit eighth-unit fields. Neon keeps MTA's floating-point position separately, saturates the native placeholder safely, and relocates the associated object before linking it into the world. This prevents visual wrapping at X=4,096 without changing the native pickup ABI or ordinary in-range behavior.
+
 ## Extended radar and F11 map
 
 Commit [`766727162`](https://github.com/Dryxio/mtasa-neon/commit/766727162) replaces the fixed minimap lookup with a sparse 40 × 40 logical grid:
@@ -54,7 +58,9 @@ The switch works like this:
 6. deletes client entities before releasing model slots;
 7. releases dynamic TXD registry entries so later cities can reuse them.
 
-This is separate from [native world packs](/neon/native-world). Resident city resources manage runtime slots and city switches themselves. Native packs register IDE/IMG/IPL data in GTA's startup spatial-streaming path.
+Resident cities switch between finite sets of runtime slots while GTA is already running. Their model allocations may use the [custom model registry](/neon/models-and-streaming), but the resource still owns the archives, preload barrier, and teardown sequence.
+
+This is separate from [native world packs](/neon/native-world). Native packs register audited IDE/IMG/COL/IPL data through GTA's startup spatial-streaming path and have a process-lifetime trust boundary.
 
 ## Test maps are not bundled worlds
 

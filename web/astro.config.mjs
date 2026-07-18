@@ -49,7 +49,7 @@ export default defineConfig({
             { label: "Neon Lua API", link: "/neon/functions" },
             { label: "Extended world", link: "/neon/extended-world" },
             { label: "Native world packs", link: "/neon/native-world" },
-            { label: "Models & streaming", link: "/neon/models-and-streaming" },
+            { label: "Custom models", link: "/neon/models-and-streaming" },
             { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
             { label: "Story runtime", link: "/neon/story-runtime" },
             { label: "Compatibility", link: "/neon/compatibility" },
