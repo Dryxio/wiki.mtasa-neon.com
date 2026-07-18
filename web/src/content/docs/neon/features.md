@@ -53,6 +53,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
 | Native ped story tasks | No direct reusable surface | Go-to, shooting, chat, stand-still, seek-offset, combat, wander, drive-wander, mission-actor, and verified enter/exit lifecycles |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |
+| Native file cutscenes | Not exposed as a resource-owned API | Stock DAT/CUT/IFP playback with load/start barriers, synchronized skip, fades, completion, and cleanup |
 | Mission audio | No owned GTA mission slots | Four resource-owned native slots with load recovery and cleanup |
 | Mission GXT text | No resource-owned native lease | Exclusive block lease with small/help/big text queues |
 | Recorded-car playback | Not exposed | Resource-owned direct non-looped native playback |
@@ -65,13 +66,13 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Test resources for limits, CULL zones, models, radar, native tasks, gang tags, cameras, audio, recordings, world synchronization, native-world startup, and performance attribution.
+- Test resources for limits, CULL zones, models, radar, native tasks, gang tags, cameras, file cutscenes, audio, recordings, world synchronization, native-world startup, and performance attribution.
 
 ## API inventory
 
-The [Neon Lua API](/neon/functions) has **89 documented entries**:
+The [Neon Lua API](/neon/functions) has **100 documented entries**:
 
-- 85 registrations added in Neon;
+- 96 registrations added in Neon;
 - two existing vehicle-entry/exit APIs with Neon-native task and lifecycle behavior;
 - two existing glitch APIs extended with `fastweaponstrafe`;
 - server-side extensions of model functions that already existed on the client are labeled by their actual side.

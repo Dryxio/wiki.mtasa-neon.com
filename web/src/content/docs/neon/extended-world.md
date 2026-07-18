@@ -19,6 +19,10 @@ What that means:
 - Legacy connections retain MTA's original packet formats.
 - The Perry Island pipeline provides a deterministic generated test around X=9,000.
 
+### Shared animation constant fix
+
+The first native `SWEET1A` test caught an unrelated patch collision: address `0x858B34` is GTA's shared 60 Hz animation constant, not a world-sector limit. Replacing it with the sector half-width `200.0` slowed ANPK cutscene animation by exactly `200 / 60` and left the animated spray prop behind the camera. Commit [`4f2be00c1`](https://github.com/Dryxio/mtasa-neon/commit/4f2be00c1) removes that address from the generated sector manifest; the real sector operands already use Neon's dedicated 200-sector value.
+
 ## Recipient-aware world synchronization
 
 Extended coordinates only work when the server writes each packet in the recipient's negotiated format. Commit [`c223b6b3d`](https://github.com/Dryxio/mtasa-neon/commit/c223b6b3d) fixes two RPCs that previously serialized positions into a legacy temporary bitstream before copying them into versioned packets:

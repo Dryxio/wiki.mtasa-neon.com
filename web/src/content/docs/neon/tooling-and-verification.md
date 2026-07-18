@@ -42,7 +42,7 @@ Representative resources include:
 | Native pools | `corona-limit-test`, `marker-limit-test`, `renderer-limit-test` |
 | Rendering | `project2dfx-test`, `cull-zone-test`, `cull-mirror-floor-test`, `extended-radar-test` |
 | Models/streaming | `server-model-registry-test`, `city-residency-coordinator`, UG/Carcer/Bullworth resources |
-| Story primitives | native ped go-to/enter/exit/drive-wander, `native-gang-tag-test`, camera, braking, audio, recording, and `tagging-up-turf` |
+| Story primitives | native ped go-to/enter/exit/drive-wander, `native-gang-tag-test`, camera, file cutscenes, braking, audio, recording, and `tagging-up-turf` |
 | World RPCs | `world-sync-regression-test` for per-recipient `moveObject` and collision-polygon serialization |
 | Native world | `native-world-transport-test`, `native-world-static-transport-test`, `native-world-static-startup-test`, plus focused Python audit/cache/authorization/isolation tests |
 | Performance | `entity-performance-test` with recorded baseline, varied-model, native-cost, and collision-attribution results |
@@ -70,3 +70,5 @@ Each feature page labels its evidence clearly:
 A successful build proves that the code compiles; it does not prove the gameplay path. Native-world executable writes, downloaded data, authorization, cache leases, worker cancellation, native object lifetimes, and large pool allocations all need their own focused review before the docs claim runtime success.
 
 The current native-world suite reports 83 focused tests with two optional environment-dependent skips. Live gates separately covered format-1 and format-2 publication, restart, native activation, exact reconnect, resource lifecycle, cache-refusal paths, and active-process rejection of a different server target.
+
+The native `SWEET1A` path has passed a complete single-player run at GTA's original animation speed, including its moving spray prop, the following world intro, and final camera/audio restoration. The multi-participant load, skip, finish, and release barriers still need live validation before the co-op path is considered complete.

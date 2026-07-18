@@ -1,11 +1,11 @@
 ---
 title: Story runtime
-description: Native ped tasks, camera leases, mission audio and text, recorded cars, and synchronized mission primitives.
+description: Native ped tasks, file cutscenes, camera leases, mission audio and text, recorded cars, and synchronized mission primitives.
 sidebar:
   order: 6
 ---
 
-Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. The `Tagging Up Turf` resource tests them together: the server runs the mission, while the current syncer or client handles native tasks, camera work, audio, text, and recorded cars.
+Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. The `Tagging Up Turf` resource tests them together: the server runs the mission, while the current syncer or client handles native cutscenes, tasks, camera work, audio, text, and recorded cars.
 
 ## Model-native walking
 
@@ -74,6 +74,22 @@ GTA has one global camera, so Neon gives control to one resource at a time and r
 
 Control inhibition is independent from `toggleAllControls`. Neon raises GTA's native player-safe pad bit so driven vehicles receive the original zero-throttle, full-brake, handbrake, and 0.28 speed-clamp behavior without calling the broader `MakePlayerSafe` routine.
 
+## Native file cutscenes
+
+The [file-cutscene API group](/neon/functions#cutscene) exposes GTA's stock DAT/CUT/IFP playback through the same exclusive camera lease. `requestFileCutscene` accepts only names from GTA's stock cutscene-audio table, limited to seven characters, and returns a generation token before the asynchronous load begins.
+
+A normal synchronized flow is:
+
+1. Every participant requests the cutscene and waits for its native load.
+2. The server crosses a readiness barrier, then tells every client to start.
+3. Clients report native camera-spline completion. GTA's local skip action is suppressed while managed playback is active.
+4. If skipping is allowed, one authorized participant reports the original skip input and the server broadcasts the decision.
+5. Every client fades to black, releases the native cutscene, and acknowledges cleanup before synchronized mission entities are created.
+
+File cutscenes are global GTA state. Ordinary script-camera setters cannot use a file-cutscene token, and an authoritative camera takeover deletes the cutscene before gameplay state is restored. Explicit release, resource stop, disconnect, timeout, and replacement all follow that same cleanup path.
+
+`Tagging Up Turf` now starts with the native `SWEET1A` cutscene, then reproduces the following SCM world intro with native camera shots, mission audio, actor movement, walking groups, barriers, and checkpoint commands. Single-player validation completed the roughly 34-second cutscene at native speed, showed the animated spray prop, continued through `SWE1_AA` to `SWE1_AE`, and restored camera and audio. Multi-participant validation is still pending.
+
 ## Mission audio
 
 GTA exposes four physical mission-audio slots. Neon wraps them with generation-scoped resource handles:
@@ -105,6 +121,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 
 Validation includes:
 
+- the native `SWEET1A` load/start/finish/release lifecycle, stock-name rejection, leader-authorized skip flow, and cleanup barriers;
 - isolated go-to, enter, leave, drive-wander, gang-tag, camera, braking, mission-audio, and recorded-car harnesses;
 - exact native eight-alpha tag deltas, completion, synchronization, explicit release, and restart cleanup;
 - the Ballas partner-chat/seek/kill/wander encounter through the `Tagging Up Turf` mission;
@@ -118,4 +135,4 @@ Validation includes:
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-The mission resource remains a regression harness rather than the final SCM runtime. It proves the current primitives together, while server-owned task handles, completion events, and syncer-migration reconstruction remain future work.
+The mission resource remains a regression harness rather than the final SCM runtime. It proves the current primitives together, while server-owned task handles, completion events, syncer-migration reconstruction, and multi-participant cutscene validation remain future work.

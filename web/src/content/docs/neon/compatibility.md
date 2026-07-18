@@ -49,6 +49,8 @@ This keeps the client connected and the element usable, but it cannot reproduce 
 
 While a resource owns the Neon script-camera lease, legacy client camera setters are rejected. An authoritative server camera RPC revokes the lease before applying server control.
 
+Native file cutscenes use that same exclusive lease and exist only on the client that requested them. Multiplayer resources must coordinate loading, start, skip, completion, and release through their own server-authoritative barriers; the API does not synchronize a cutscene automatically.
+
 ## Client binary pairing
 
 Use client binaries from the same Neon build. Mixing `netc.dll` from an official or older MTA installation with a current Neon client is unsupported because the module ABI may differ.

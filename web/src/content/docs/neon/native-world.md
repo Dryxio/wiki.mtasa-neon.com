@@ -124,6 +124,12 @@ The endpoint is a locator, not authentication. Server continuity relies on the o
 - Radar, paths, population, zones, audio, interiors, and environment systems are separate resource or engine work.
 - The old environment-selector route remains a developer path and does not receive the record-driven server-isolation guarantee.
 
+## Multi-city capacity work in progress
+
+The current development checkpoint adds a read-only catalog for Bullworth, Vice City, Liberty City, and Carcer City before any larger global table is moved. It inventories static DFF, TXD, COL, IPL, and IMG inputs, fingerprints the source files, and separates Neon's current closed-policy rejections from actual GTA engine limits.
+
+The frozen inventory currently measures 10,918 added custom models and 33,849 placements. Combined with occupied San Andreas entries, the exact static model-store requirements are 24,339 atomic objects, 152 damageable objects, and 640 timed objects. The proposed foundation capacities are 32,000 / 512 / 1,024, but the stock 20,000 DFF FileID partition and global streaming table are unchanged at this stage. This is capacity planning and offline validation, not a claim that four native cities can already be activated together.
+
 ## Verification evidence
 
 The current series reached **83 focused extended-world tests**, with two optional environment-dependent skips. Live validation covered:
