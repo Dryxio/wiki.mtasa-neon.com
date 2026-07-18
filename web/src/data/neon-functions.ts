@@ -8,6 +8,13 @@ export interface NeonArgument {
   description: string;
 }
 
+export interface NeonNativeTask {
+  tasks?: string[];
+  opcode?: string;
+  command?: string;
+  note: string;
+}
+
 export interface NeonFunction {
   name: string;
   category: keyof typeof neonCategories;
@@ -23,6 +30,7 @@ export interface NeonFunction {
   test?: string | null;
   example?: string;
   extension?: boolean;
+  nativeTask?: NeonNativeTask;
 }
 
 export const neonCategories = {
@@ -388,6 +396,11 @@ export const neonFunctions: NeonFunction[] = [
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite destination."), arg("movement", "string", "walk, run, or sprint.", true, "walk"), arg("radius", "float", "Positive arrival radius.", true, "0.5"), arg("slowdownRadius", "float", "Slowdown radius not smaller than radius.", true, "2.0"), arg("timeout", "int", "-2 for untimed, -1 for SCM-compatible 20 seconds, or a non-negative millisecond timeout.", true, "-2")],
     returns: "true when the native task was installed; false when ownership, streaming, liveness, target, movement, radius, or timeout checks fail.",
     oop: ["ped:setGoTo(target, movement, radius, slowdownRadius, timeout)"],
+    nativeTask: {
+      tasks: ["CTaskComplexGoToPointAndStandStill", "CTaskComplexGoToPointAndStandStillTimed"],
+      opcode: "05D3", command: "TASK_GO_STRAIGHT_TO_COORD",
+      note: "Neon selects the untimed task for timeout -2. Every other value uses the timed variant, with -1 normalized to GTA's 20-second SCM default.",
+    },
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
   },
   {
@@ -397,6 +410,10 @@ export const neonFunctions: NeonFunction[] = [
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("partner", "ped", "Distinct living streamed conversation partner."), arg("leadSpeaker", "bool", "Whether the first ped leads the conversation."), arg("updateDirection", "bool", "Allow the task to turn the speakers toward each other.", true, "true"), arg("conversationEnabled", "bool", "Enable the native conversation exchange.", true, "true")],
     returns: "true when the native task was queued; false when either ped, streaming state, liveness, simulation ownership, or task construction is invalid.",
     oop: ["ped:setChatWith(partner, leadSpeaker, updateDirection, conversationEnabled)"],
+    nativeTask: {
+      tasks: ["CTaskComplexPartnerChat"], opcode: "0677", command: "TASK_CHAT_WITH_CHAR",
+      note: "The task is queued through GTA's script-command event path. With conversationEnabled=false, Neon preserves PartnerChat's native timed SimpleChat/StandStill fallback.",
+    },
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -405,6 +422,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Queues GTA's simple stand-still task on a simulated ped.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("duration", "int", "Non-negative native task duration in milliseconds; 0 preserves the SCM-style indefinite use.", true, "0")],
     returns: "true when the native task was queued; false for invalid ownership, streaming, liveness, duration, or task construction.",
+    nativeTask: {
+      tasks: ["CTaskSimpleStandStill"], opcode: "05BA", command: "TASK_STAND_STILL",
+      note: "This is GTA's simple stand-still task, dispatched through the same script-command event path used by SCM tasks.",
+    },
     oop: ["ped:setStandStill(duration)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -413,6 +434,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Makes a ped seek a radius-and-angle offset around another ped using GTA's native entity task.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped."), arg("timeout", "int", "-1 for GTA's SCM-compatible 50-second seek timeout, or a non-negative timeout in milliseconds.", true, "-1"), arg("radius", "float", "Finite positive distance from the target.", true, "0.5"), arg("angle", "float", "Finite native angular offset around the target.", true, "0.0"), arg("repeatTask", "bool", "Wrap the movement in GTA's native repeating mission sequence.", true, "false")],
     returns: "true when the native task or repeating sequence was queued; false when validation or construction fails.",
+    nativeTask: {
+      tasks: ["CTaskComplexSeekEntityRadiusAngleOffset", "CTaskComplexUseSequence"], opcode: "06A8", command: "TASK_GOTO_CHAR_OFFSET",
+      note: "The seek task is the direct mapping. repeatTask=true wraps it in GTA's real repeating mission sequence instead of replaying movement from Lua.",
+    },
     oop: ["ped:setGoToOffset(target, timeout, radius, angle, repeatTask)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -421,6 +446,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Queues GTA's native on-foot kill task against another ped.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped.")],
     returns: "true when the combat task was queued; false for invalid peds, liveness, streaming, ownership, or task construction.",
+    nativeTask: {
+      tasks: ["CTaskComplexKillPedOnFoot"], opcode: "05E2", command: "TASK_KILL_CHAR_ON_FOOT",
+      note: "GTA keeps control of pursuit, weapon choice, aiming, melee fallback, and vehicle handling for this indefinite combat task.",
+    },
     oop: ["ped:setKillOnFoot(target)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -429,6 +458,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Starts GTA's standard on-foot wander task.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("movement", "string", "walk or run.", true, "walk"), arg("direction", "int", "-1 for GTA's native random direction, or a direction from 0 through 7.", true, "-1"), arg("wanderSensibly", "bool", "Use the native sensible-wander behavior.", true, "true")],
     returns: "true when the task was queued; false for invalid movement, direction, ped state, ownership, or task construction.",
+    nativeTask: {
+      tasks: ["CTaskComplexWanderStandard"], opcode: "05DE", command: "TASK_WANDER_STANDARD",
+      note: "A direction of -1 is resolved by GTA's native random-direction helper before the standard wander task is created.",
+    },
     oop: ["ped:setWander(movement, direction, wanderSensibly)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -437,6 +470,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Enables or suppresses a ped's GTA scripted speech without muting unrelated game audio.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("muted", "bool", "Whether scripted speech should be suppressed.")],
     returns: "true when the native speech flag was applied; false for invalid ownership, streaming, or ped state.",
+    nativeTask: {
+      opcode: "0A09", command: "SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH",
+      note: "This does not create a CTask. It calls GTA's per-ped scripted-speech enable/disable methods, matching the adjacent SCM command.",
+    },
     oop: ["ped:setScriptedSpeechMuted(muted)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
   },
   {
@@ -445,6 +482,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Extends MTA's authoritative vehicle-entry lifecycle with a verified native passenger-entry task after server confirmation.",
     arguments: [arg("thePed", "ped", "Ped requesting entry."), arg("theVehicle", "vehicle", "Target vehicle; the established MTA inference remains available.", true), arg("passengerOrSeat", "bool|int", "Passenger flag or explicit MTA seat. Seat 0 is driver; seat 1 is the first passenger/SCM passenger index 0.", true)],
     returns: "true when the authoritative request was accepted; false otherwise.",
+    nativeTask: {
+      tasks: ["CTaskComplexEnterCarAsDriver", "CTaskComplexEnterCarAsPassenger"], opcode: "05CA / 05CB", command: "TASK_ENTER_CAR_AS_PASSENGER / TASK_ENTER_CAR_AS_DRIVER",
+      note: "The selected seat decides which direct GTA task the syncer creates after MTA's server confirmation. Unlike SCM 05CA/05CB, this API keeps MTA's authoritative request lifecycle and does not use the opcode-specific timed wrapper.",
+    },
     oop: ["ped:setEnterVehicle(vehicle, passengerOrSeat)"],
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
   },
@@ -453,6 +494,10 @@ export const neonFunctions: NeonFunction[] = [
     signature: "bool setPedExitVehicle(ped thePed)",
     summary: "Extends MTA's authoritative vehicle-exit lifecycle with a verified native leave-car task on the syncer.",
     arguments: [arg("thePed", "ped", "Ped requesting exit.")], returns: "true when the authoritative exit request was accepted; false otherwise.",
+    nativeTask: {
+      tasks: ["CTaskComplexLeaveCar"], opcode: "05CD", command: "TASK_LEAVE_CAR",
+      note: "The syncer constructs GTA's leave-car task only after the established MTA vehicle request is accepted; true does not mean the ped is already outside.",
+    },
     oop: ["ped:setExitVehicle()"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
   },
   {
@@ -461,6 +506,10 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Assigns GTA's indefinite road-cruising task to an owned ped already driving an owned vehicle.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("theVehicle", "vehicle", "Streamed, non-blown vehicle occupied by the ped as driver."), arg("speed", "float", "Finite speed from 0 through 255."), arg("drivingStyle", "string|int", "Integer 0..6 or one of the documented stop/avoid/plough-through names.", true, "0")],
     returns: "true when the native wander task was assigned; false when ownership, vehicle, seat, speed, or style checks fail.",
+    nativeTask: {
+      tasks: ["CTaskComplexCarDriveWander"], opcode: "05D2", command: "TASK_CAR_DRIVE_WANDER",
+      note: "Neon calls GTA's original constructor and preserves the verified speed, driving-style, and autopilot layout. The task runs until it is replaced or cancelled.",
+    },
     oop: ["ped:setDriveWander(vehicle, speed, drivingStyle)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
   },
   {
@@ -470,12 +519,18 @@ export const neonFunctions: NeonFunction[] = [
     arguments: [arg("thePed", "ped", "Script ped only; players are rejected."), arg("enabled", "bool", "Desired local policy.")],
     returns: "true when the client-local policy was stored; false for a player or invalid element.",
     notes: ["This policy may be set while the native ped is streamed out.", "It is client-local and last-writer-wins; synchronized resources must replicate and clear it deliberately."],
+    nativeTask: {
+      note: "This does not create a CTask. It applies GTA's PED_MISSION actor classification and preserves the native state needed by tasks such as CarDrive and GunControl.",
+    },
     oop: ["ped:setMissionActor(enabled)", "ped.missionActor = enabled"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
   },
   {
     name: "isPedMissionActor", category: "tasks", side: "client",
     signature: "bool isPedMissionActor(ped thePed)", summary: "Reports the locally persisted mission-actor policy, including while the native model is streamed out.",
     arguments: [arg("thePed", "ped", "Script ped only.")], returns: "true when enabled; false when disabled or when the target is not a script ped.",
+    nativeTask: {
+      note: "This is a policy query, not a task constructor. It reads Neon's persisted PED_MISSION state even when the GTA ped is currently streamed out.",
+    },
     oop: ["ped:isMissionActor()", "ped.missionActor"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c85759f0a",
   },
   {
@@ -484,18 +539,30 @@ export const neonFunctions: NeonFunction[] = [
     summary: "Replaces the owned ped's primary task with GTA's native coordinate GunControl firing task.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite target; an XY value of 0,0 is rejected because GTA treats it as no coordinate."), arg("duration", "int", "Milliseconds; every negative value is indefinite.", true, "1000"), arg("burstLength", "int", "Positive native burst size.", true, "5")],
     returns: "true when the native task was installed; false for failed ownership, liveness, target, or burst validation.",
+    nativeTask: {
+      tasks: ["CTaskSimpleGunControl"], opcode: "0668", command: "TASK_SHOOT_AT_COORD",
+      note: "GunControl receives the coordinate and FIREBURST command directly, then creates its own CTaskSimpleUseGun attack subtask. Negative durations remain indefinite.",
+    },
     oop: ["ped:setShootAt(target, duration, burstLength)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
   },
   {
     name: "setPedWeaponShootingRate", category: "tasks", side: "client",
     signature: "bool setPedWeaponShootingRate(ped thePed, int rate)", summary: "Sets GTA's persistent shooting-rate byte used by native gun tasks.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("rate", "int", "Value from 0 through 255.")], returns: "true when applied; false for ownership, streaming, liveness, or range failure.",
+    nativeTask: {
+      opcode: "07DD", command: "SET_CHAR_SHOOT_RATE",
+      note: "This does not create a CTask. It writes the native shooting-rate byte later consumed by GunControl and related weapon tasks.",
+    },
     oop: ["ped:setWeaponShootingRate(rate)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
   },
   {
     name: "setPedWeaponAccuracy", category: "tasks", side: "client",
     signature: "bool setPedWeaponAccuracy(ped thePed, int accuracy)", summary: "Sets GTA's persistent 0–255 weapon-accuracy byte used for shot spread.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("accuracy", "int", "Value from 0 through 255.")], returns: "true when applied; false for ownership, streaming, liveness, or range failure.",
+    nativeTask: {
+      opcode: "02E2", command: "SET_CHAR_ACCURACY",
+      note: "This does not create a CTask. It writes GTA's persistent accuracy byte, which native weapon tasks use when calculating spread.",
+    },
     oop: ["ped:setWeaponAccuracy(accuracy)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "a9745bb5b",
   },
   {

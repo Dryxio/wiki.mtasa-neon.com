@@ -26,6 +26,21 @@ const testPath = func.test === undefined ? category.test : func.test;
   <h2 id="syntax">Syntax</h2>
   <Code code={func.signature} lang="lua" />
 
+  {func.nativeTask && <>
+    <h2 id="gta-task-mapping">GTA task mapping</h2>
+    <div class="native-task">
+      <div class="native-task-header">
+        <span>{func.nativeTask.tasks?.length ? 'ORIGINAL GTA TASK' : 'NATIVE GTA BEHAVIOR'}</span>
+        {func.nativeTask.opcode && <code>{func.nativeTask.opcode}</code>}
+      </div>
+      {func.nativeTask.tasks?.length
+        ? <div class="native-task-names">{func.nativeTask.tasks.map((task) => <code>{task}</code>)}</div>
+        : <strong>No CTask is created</strong>}
+      {func.nativeTask.command && <p class="native-command">SCM equivalent: <code>{func.nativeTask.command}</code></p>}
+      <p>{func.nativeTask.note}</p>
+    </div>
+  </>}
+
   {func.arguments && func.arguments.length > 0 && <>
     <h2 id="arguments">Arguments</h2>
     <div class="argument-list">
@@ -77,6 +92,15 @@ const testPath = func.test === undefined ? category.test : func.test;
   .argument-list span { color: #ffad35; font-family: monospace; font-size: .78rem; }
   .argument-list em { color: var(--sl-color-gray-3); font-size: .74rem; }
   .argument-list p { margin: .4rem 0 0; }
+  .native-task { padding: 1rem 1.1rem; border: 1px solid rgba(242,140,24,.36); border-left: 3px solid #f28c18; border-radius: .35rem; background: linear-gradient(110deg, rgba(242,140,24,.08), rgba(10,8,6,.08)); }
+  .native-task-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+  .native-task-header span { color: #f28c18; font-size: .67rem; font-weight: 900; letter-spacing: .1em; }
+  .native-task-header > code { color: #ffbd5c; }
+  .native-task-names { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .native-task-names code { min-width: 0; max-width: 100%; padding: .35rem .55rem; overflow-wrap: anywhere; white-space: normal; border: 1px solid rgba(242,140,24,.25); background: rgba(242,140,24,.08); color: #ffd08b; }
+  .native-task > strong { color: var(--sl-color-gray-2); }
+  .native-task p { margin: .75rem 0 0; }
+  .native-task .native-command { color: var(--sl-color-gray-3); font-size: .88rem; }
   .notes { margin: 1.5rem 0; padding: 1rem 1.2rem; border: 1px solid rgba(245,194,107,.35); border-radius: .7rem; background: rgba(245,194,107,.06); }
   .notes ul { margin-bottom: 0; }
   .evidence-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .7rem; }

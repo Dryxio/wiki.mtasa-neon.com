@@ -26,6 +26,25 @@ The [native task API group](/neon/functions#tasks) includes:
 
 Mutating task/combat calls require a living streamed ped simulated by the caller: the local player, a client-local ped, or a server ped for which the client is current syncer.
 
+Each function page names the original GTA class it creates and the verified SCM command it corresponds to. The short version is:
+
+| Neon function | Original GTA task | SCM source |
+| --- | --- | --- |
+| [`setPedGoTo`](/neon/functions/setPedGoTo) | `CTaskComplexGoToPointAndStandStill` or its timed variant | `05D3 TASK_GO_STRAIGHT_TO_COORD` |
+| [`setPedChatWith`](/neon/functions/setPedChatWith) | `CTaskComplexPartnerChat` | `0677 TASK_CHAT_WITH_CHAR` |
+| [`setPedStandStill`](/neon/functions/setPedStandStill) | `CTaskSimpleStandStill` | `05BA TASK_STAND_STILL` |
+| [`setPedGoToOffset`](/neon/functions/setPedGoToOffset) | `CTaskComplexSeekEntityRadiusAngleOffset`, optionally wrapped by `CTaskComplexUseSequence` | `06A8 TASK_GOTO_CHAR_OFFSET` |
+| [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot) | `CTaskComplexKillPedOnFoot` | `05E2 TASK_KILL_CHAR_ON_FOOT` |
+| [`setPedWander`](/neon/functions/setPedWander) | `CTaskComplexWanderStandard` | `05DE TASK_WANDER_STANDARD` |
+| [`setPedEnterVehicle`](/neon/functions/setPedEnterVehicle) | `CTaskComplexEnterCarAsDriver` or `CTaskComplexEnterCarAsPassenger` | `05CA / 05CB` |
+| [`setPedExitVehicle`](/neon/functions/setPedExitVehicle) | `CTaskComplexLeaveCar` | `05CD TASK_LEAVE_CAR` |
+| [`setPedDriveWander`](/neon/functions/setPedDriveWander) | `CTaskComplexCarDriveWander` | `05D2 TASK_CAR_DRIVE_WANDER` |
+| [`setPedShootAt`](/neon/functions/setPedShootAt) | `CTaskSimpleGunControl` | `0668 TASK_SHOOT_AT_COORD` |
+| [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) | No task; changes the native scripted-speech state | `0A09 SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH` |
+| [`setPedWeaponShootingRate`](/neon/functions/setPedWeaponShootingRate) | No task; updates a value consumed by gun tasks | `07DD SET_CHAR_SHOOT_RATE` |
+| [`setPedWeaponAccuracy`](/neon/functions/setPedWeaponAccuracy) | No task; updates a value consumed by weapon tasks | `02E2 SET_CHAR_ACCURACY` |
+| [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | No task; persists or reads the `PED_MISSION` policy | — |
+
 [`setPedChatWith`](/neon/functions/setPedChatWith), [`setPedStandStill`](/neon/functions/setPedStandStill), [`setPedGoToOffset`](/neon/functions/setPedGoToOffset), [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot), [`setPedWander`](/neon/functions/setPedWander), and [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) came from restoring the Ballas encounter in `SWEET1`. They queue GTA's own script-command events instead of assigning a primary task directly, so `true` means GTA accepted the command—not that the task has already reached its active state.
 
 Repeat mode in `setPedGoToOffset` uses GTA's mission-sequence pool and `CTaskComplexUseSequence`. It is not a Lua timer that repeatedly moves a ped around its target.
