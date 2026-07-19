@@ -23,6 +23,12 @@ The complete path is now implemented for the closed Bullworth format and for the
 | [`0b8f07565`](https://github.com/Dryxio/mtasa-neon/commit/0b8f07565) | Separate format-2 `static-world-v1` transport and v2 cache identity. |
 | [`c87820afc`](https://github.com/Dryxio/mtasa-neon/commit/c87820afc) | Format-2 one-shot authorization and activation without changing the format-1 wire path. |
 | [`457a83d11`](https://github.com/Dryxio/mtasa-neon/commit/457a83d11) | Process-lifetime server isolation across console, browser, reconnect, Host Game, Editor, and credential paths. |
+| [`ac06da9c6`](https://github.com/Dryxio/mtasa-neon/commit/ac06da9c6) | Relocated aggregate atomic, damageable, and timed model stores sized from the frozen four-city inventory. |
+| [`c50f01407`](https://github.com/Dryxio/mtasa-neon/commit/c50f01407) | One captured runtime FileID layout shared by Game SA, Multiplayer SA, Client Core, and Client Deathmatch. |
+| [`6abc45820`](https://github.com/Dryxio/mtasa-neon/commit/6abc45820) | Relocation of the stock FileID namespace and its startup consumers. |
+| [`9c506c3a4`](https://github.com/Dryxio/mtasa-neon/commit/9c506c3a4) | Correct unsigned handling for GTA's named-model operands after FileID expansion. |
+| [`fd50b6e07`](https://github.com/Dryxio/mtasa-neon/commit/fd50b6e07) | Guarded relocation coverage for the active expanded-FileID code, including MTA-appended paths. |
+| [`5615ff7cb`](https://github.com/Dryxio/mtasa-neon/commit/5615ff7cb) | Compact FileID spans aligned with the relocated stores while the final global-pool expansion is developed. |
 
 ## Pack formats
 
@@ -119,20 +125,42 @@ The endpoint is a locator, not authentication. Server continuity relies on the o
 - The native runtime supports two exact audited GTA SA 1.0 US executable identities.
 - The public path is startup-only: no hot registration, hot unload, or pack switch.
 - One process has one active pack and one owner server; aggregate multi-pack allocation is not implemented.
+- The compact relocated FileID build passes its offline validator and affected client builds, but its fresh stock-SA live retry is still pending.
+- The final larger TXD, COL, and IPL spans remain blocked on the matching global-pool work; the current compact layout is an intermediate foundation.
 - `static-world-v1` is a constrained static-world grammar, not arbitrary IDE support.
 - The format-2 live fixture intentionally reused the known Bullworth bytes. It proves the generic transport/authorization machinery, not a second city.
 - Radar, paths, population, zones, audio, interiors, and environment systems are separate resource or engine work.
 - The old environment-selector route remains a developer path and does not receive the record-driven server-isolation guarantee.
 
-## Multi-city capacity work in progress
+## Multi-city capacity foundation
 
-The current development checkpoint adds a read-only catalog for Bullworth, Vice City, Liberty City, and Carcer City before any larger global table is moved. It inventories static DFF, TXD, COL, IPL, and IMG inputs, fingerprints the source files, and separates Neon's current closed-policy rejections from actual GTA engine limits.
+The frozen read-only catalog covers Bullworth, Vice City, Liberty City, and Carcer City. It inventories static DFF, TXD, COL, IPL, and IMG inputs, fingerprints the source files, and separates Neon's current closed-policy rejections from actual GTA engine limits.
 
-The frozen inventory currently measures 10,918 added custom models and 33,849 placements. Combined with occupied San Andreas entries, the exact static model-store requirements are 24,339 atomic objects, 152 damageable objects, and 640 timed objects. The proposed foundation capacities are 32,000 / 512 / 1,024, but the stock 20,000 DFF FileID partition and global streaming table are unchanged at this stage. This is capacity planning and offline validation, not a claim that four native cities can already be activated together.
+The inventory measures 10,918 added custom models and 33,849 placements. Combined with occupied San Andreas entries, it needs 24,339 atomic objects, 152 damageable objects, and 640 timed objects. The model stores are now relocated to capacities of 32,000 / 512 / 1,024, leaving headroom of 7,661 / 360 / 384 against that frozen inventory.
+
+FileIDs now come from one runtime layout captured during startup and consumed across the client modules:
+
+```text
+DFF         0 .. 31999   (32,000)
+TXD     32000 .. 36999   ( 5,000)
+COL     37000 .. 37254   (   255)
+IPL     37255 .. 37510   (   256)
+DAT     37511
+IFP     37575
+RRR     37755
+SCM     38230
+loaded  38312
+requested 38314
+total   38316
+```
+
+The generated relocation manifest covers 1,398 guarded executable writes, including high MTA-appended code, and the save compatibility path still preserves the stock 26,316-record namespace. The compact layout passes the offline relocation validator, 98 focused tests, and the affected `Game SA` and `Client Deathmatch` Release Win32 builds.
+
+This does **not** mean four cities can already be activated together. The earlier wider COL span exposed a stock `CColStore` loop that treated a FileID range as a pool size, so the larger TXD/COL/IPL target is intentionally deferred until the matching native pools move. Aggregate pack allocation, second-city activation, and a fresh stock-SA live retry of this compact checkpoint remain open gates.
 
 ## Verification evidence
 
-The current series reached **83 focused extended-world tests**, with two optional environment-dependent skips. Live validation covered:
+The current series has **98 focused extended-world tests**, with three fixture-dependent skips. The established native-world path has live coverage for:
 
 - fresh format-1 and format-2 publication plus exact cache hits;
 - passwordless restart with a new process ID;
@@ -143,5 +171,7 @@ The current series reached **83 focused extended-world tests**, with two optiona
 - pending-ticket revocation and missing-cache terminal refusal without recreation;
 - a wrong-port request blocked while the active owner session and lease stayed intact, followed by a successful exact reconnect;
 - matching affected client/server builds with zero errors.
+
+The newer aggregate-store and compact-FileID foundation has separate offline validator and build coverage. Its stock-SA runtime pass is still pending and is not included in the live claims above.
 
 The format-2 fixture registered archive 6, 952 models, 166 TXDs, collision slot 252, and seven IPL slots. Those numbers describe the validated Bullworth fixture, not universal `static-world-v1` capacities.
