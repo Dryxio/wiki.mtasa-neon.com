@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. The `Tagging Up Turf` resource tests them together: the server runs the mission, while the current syncer or client handles native cutscenes, tasks, camera work, audio, text, and recorded cars.
+Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. `Tagging Up Turf` tests the first complete slice, while `Drive-Thru` and the focused native-drive-route resource cover the next mission boundary. The server runs mission state; the current syncer or client handles native cutscenes, tasks, camera work, audio, text, and recorded cars.
 
 ## Model-native walking
 
@@ -17,13 +17,13 @@ The [native task API group](/neon/functions#tasks) includes:
 
 - go-to-and-stand-still with walk/run/sprint, radii, and SCM timeout semantics;
 - coordinate `GunControl` shooting plus explicit shooting-rate and accuracy bytes;
-- indefinite `DriveWander` road AI with GTA driving styles;
+- indefinite `DriveWander` and finite point-to-point road AI with GTA driving modes and styles;
 - partner chat, stand-still, seek-offset, on-foot kill, and standard wander tasks;
 - turn-to-face and short composed task sequences;
 - GTA's persistent facial-talk controller for scene dialogue;
 - per-ped scripted-speech suppression for scenes that provide their own dialogue;
 - verified MTA-authoritative enter/exit lifecycles using GTA passenger/leave tasks;
-- persistent client-local mission-actor and story-protection policies for script peds;
+- persistent client-local mission-actor, story-protection, and independent critical-hit policies for script peds;
 - resource-owned gang tags driven by GTA's real spray hits.
 
 Mutating task/combat calls require a living streamed ped simulated by the caller: the local player, a client-local ped, or a server ped for which the client is current syncer.
@@ -42,6 +42,7 @@ Each function page names the original GTA class it creates and the verified SCM 
 | [`setPedEnterVehicle`](/neon/functions/setPedEnterVehicle) | `CTaskComplexEnterCarAsDriver` or `CTaskComplexEnterCarAsPassenger` | `05CA / 05CB` |
 | [`setPedExitVehicle`](/neon/functions/setPedExitVehicle) | `CTaskComplexLeaveCar` | `05CD TASK_LEAVE_CAR` |
 | [`setPedDriveWander`](/neon/functions/setPedDriveWander) | `CTaskComplexCarDriveWander` | `05D2 TASK_CAR_DRIVE_WANDER` |
+| [`setPedDriveTo`](/neon/functions/setPedDriveTo) | `CTaskComplexCarDriveToPoint` | `05D1 TASK_CAR_DRIVE_TO_COORD` |
 | [`setPedShootAt`](/neon/functions/setPedShootAt) | `CTaskSimpleGunControl` | `0668 TASK_SHOOT_AT_COORD` |
 | [`setPedFacialTalk`](/neon/functions/setPedFacialTalk) / [`stopPedFacialTalk`](/neon/functions/stopPedFacialTalk) | Persistent `CTaskComplexFacial` controller | `0967 / 0968` |
 | [`setPedTaskSequence`](/neon/functions/setPedTaskSequence) | `CTaskComplexSequence` dispatched through `CTaskComplexUseSequence` | `0615 / 0616 / 0618 / 063F` |
@@ -51,12 +52,15 @@ Each function page names the original GTA class it creates and the verified SCM 
 | [`setPedWeaponAccuracy`](/neon/functions/setPedWeaponAccuracy) | No task; updates a value consumed by weapon tasks | `02E2 SET_CHAR_ACCURACY` |
 | [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | No task; persists or reads the `PED_MISSION` policy | — |
 | [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | No task; persists a group of native story-actor safety flags | — |
+| [`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) / [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) | No task; persists or reads GTA's inverse no-critical-hits bit | `0446 SET_CHAR_SUFFERS_CRITICAL_HITS` |
 
 [`setPedChatWith`](/neon/functions/setPedChatWith), [`setPedStandStill`](/neon/functions/setPedStandStill), [`setPedGoToOffset`](/neon/functions/setPedGoToOffset), [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot), [`setPedWander`](/neon/functions/setPedWander), and [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) came from restoring the Ballas encounter in `SWEET1`. They queue GTA's own script-command events instead of assigning a primary task directly, so `true` means GTA accepted the command—not that the task has already reached its active state.
 
 Repeat mode in `setPedGoToOffset` uses GTA's mission-sequence pool and `CTaskComplexUseSequence`. It is not a Lua timer that repeatedly moves a ped around its target.
 
-[`setPedTaskSequence`](/neon/functions/setPedTaskSequence) exposes a deliberately small part of that same native sequence system. One call composes between one and eight `leave_car`, `go_to`, or `shoot_at` descriptors and dispatches them as a single GTA task; `repeat=true` uses the original repeated-sequence path. [`getPedTaskSequenceProgress`](/neon/functions/getPedTaskSequenceProgress) returns the zero-based active child index, or `-1` when that sequence is no longer active. GTA still owns a global 64-slot sequence pool, and the returned boolean only confirms that the sequence was built and queued—it is not a durable Lua handle.
+[`setPedTaskSequence`](/neon/functions/setPedTaskSequence) exposes a deliberately small part of that same native sequence system. One call composes between one and eight `leave_car`, `go_to`, `shoot_at`, or `drive_to` descriptors and dispatches them as a single GTA task; `repeat=true` uses the original repeated-sequence path. A `drive_to` child needs finite `x`, `y`, `z`, a speed below `255`, mode `0..3`, driving style `0..6`, and an optional native `vehicleModel`. It carries no vehicle pointer, matching SCM's `-1, -1` placeholders so GTA binds the ped's current vehicle when the child starts.
+
+[`getPedTaskSequenceProgress`](/neon/functions/getPedTaskSequenceProgress) returns the zero-based active child index, or `-1` when that sequence is no longer active. GTA still owns a global 64-slot sequence pool, and the returned boolean only confirms that the sequence was built and queued—it is not a durable Lua handle. The eight-point `SWEET3` harness observed indices `0` through `7` in order and completed naturally after `77,584 ms`, with client and server agreeing on the final position `1.81 m` from the last target. That validates the sequence form. The standalone [`setPedDriveTo`](/neon/functions/setPedDriveTo) entry uses the same constructor but has not been exercised separately in game.
 
 [`setPedFacialTalk`](/neon/functions/setPedFacialTalk) updates GTA's persistent facial controller without replacing the ped's primary movement or combat task. It works for streamed script peds and the local player; remote players are intentionally rejected because their local presentation is owned elsewhere. [`stopPedFacialTalk`](/neon/functions/stopPedFacialTalk) stops that controller cleanly.
 
@@ -66,7 +70,7 @@ Current limitations:
 - no native completion events;
 - no automatic task reconstruction after syncer migration;
 - mission-actor policy is client-local and must be replicated/cleared by synchronized resources;
-- story-protection and vehicle policies are also client-local and must be applied by the resource on each participant;
+- story-protection, critical-hit, and vehicle policies are also client-local and must be applied by the resource on each participant;
 - the server must still own mission progress and validate any client observation before advancing it.
 
 ## Native gang tags
@@ -85,7 +89,11 @@ Progress lives on the MTA object, so it survives stream-out and native object re
 
 [`setPedMissionActor`](/neon/functions/setPedMissionActor) keeps a script ped in GTA's `PED_MISSION` population class. [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) handles a different concern: it applies the five native flags used to keep story actors from being casually targeted, critically hit, dragged from a car, forced out during a jacking attempt, or made to leave an upside-down vehicle. Both policies survive local native-ped recreation, and clearing either one restores the values that were present before Neon took ownership.
 
+[`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) controls just one of those flags. It maps to `0446 SET_CHAR_SUFFERS_CRITICAL_HITS`, whose boolean is stored by GTA as the inverse no-critical-hits bit. This lets an enemy mission actor resist critical hits without inheriting the protagonist's targeting and carjacking protections. [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) reads the persisted local policy even while the ped is streamed out. Before any override it returns `true`; like the other boolean query, `false` can also mean an invalid or non-script ped.
+
 Vehicles now expose GTA's raw policy instead of forcing it through MTA's broader damage or lock abstractions. [`setVehicleDoorLockMode`](/neon/functions/setVehicleDoorLockMode) and [`getVehicleDoorLockMode`](/neon/functions/getVehicleDoorLockMode) preserve all seven native lock modes, including mode 3's player-only lockout. [`setVehicleTyresCanBurst`](/neon/functions/setVehicleTyresCanBurst) and [`getVehicleTyresCanBurst`](/neon/functions/getVehicleTyresCanBurst) control tyre bursting without making the vehicle body invulnerable. The setters map to SCM commands `020A` and `053F`, and their values are reapplied after stream-out or native vehicle recreation.
+
+[`setVehiclePhysicalProofs`](/neon/functions/setVehiclePhysicalProofs) maps to `02AC SET_CAR_PROOFS` and stores the bullet, fire, explosion, collision, and melee flags independently. This is how Drive-Thru can ask for a fire-only Greenwood instead of using MTA's broader all-or-nothing damage-proof switch. The complete tuple survives native vehicle recreation, but there is no getter or automatic restore on resource stop. A resource should pass five `false` values when it wants to clear the policy.
 
 These are client-local presentation and native-behaviour policies. In a synchronized mission, the server should decide the intended state and have every participant apply or clear it as part of the scene lifecycle.
 
@@ -127,6 +135,10 @@ A normal synchronized flow is:
 
 File cutscenes are global GTA state. Ordinary script-camera setters cannot use a file-cutscene token, and an authoritative camera takeover deletes the cutscene before gameplay state is restored. Explicit release, resource stop, disconnect, timeout, and replacement all follow that same cleanup path.
 
+MTA normally reuses GTA's `CUTOBJ01` through `CUTOBJ13` slots as playable special characters. That happened to work for `SWEET1A`, whose first extra model is a skinned ped, but `SWEET2A` loads an unskinned cigarette prop first and crashed when GTA treated it as a ped model. Managed cutscenes now restore all 13 stock generic mappings for the native load and rebuild MTA's `RYDER2` through `PSYCHO` mappings during teardown. The Drive-Thru run completed `SWEET2A` in `31,453 ms` without the former crash or model `304` load dialog.
+
+The loader also reproduces vanilla's temporary `SWITCH_STREAMING OFF` window immediately before `LOAD_CUTSCENE`; GTA restores the flag during normal postload or deletion, and Neon clears it on load failure. `SWEET2B` loaded and played with this path, but its first run hit the resource's old 60-second watchdog before native completion. The timeout is now 120 seconds for that cutscene, and the full transition still needs a clean rerun.
+
 `Tagging Up Turf` now starts with the native `SWEET1A` cutscene, then reproduces the following SCM world intro with native camera shots, mission audio, actor movement, walking groups, barriers, and checkpoint commands. The managed cutscene model slot keeps `CSPLAY`'s 61-bone clump separate from gameplay CJ's 37-bone cache, while preserving and restoring the original model and streaming state. That separation fixed the invisible, frozen, and deformed CJ failures caused by sharing the two incompatible clumps.
 
 Single-player validation completed the roughly 34-second cutscene at native speed, showed the animated spray prop, continued through `SWE1_AA` to `SWE1_AE`, and restored camera and audio. Multi-participant validation is still pending.
@@ -139,6 +151,16 @@ The completed Grove Street finale uses GTA's native building blocks rather than 
 
 The complete single-player path has reached the reward in about 17.6 seconds for the finale itself with visible, stable CJ. Multi-participant appearance and restoration still need a live co-op pass.
 
+The seven finale dialogue lines now pair their native mission audio with GTA's two-second facial-talk request on Sweet or CJ. Ambient scripted speech is muted only on the owning client, then both states are restored after natural finish, failure, skip, or cleanup. `/tagupfinal` was validated in game with the expected audio and facial movement.
+
+## Drive-Thru checkpoint
+
+The `drive-thru` resource ports `SWEET3` from native `SWEET2A` to the boundary immediately before the Ballas pursuit. The opening checkpoint is validated: the cutscene completed, the crew entered the Greenwood through authoritative seats, dialogue finished, the exact `09D0` arrival gate passed, and abort cleanup restored the mission state.
+
+The next slice enters native `SWEET2B`, tears down the first world, and describes the exact Greenwood, Voodoo, protagonist, and Ballas-driver reconstruction expected under the black screen. It also consumes the new fire-only proof and critical-hit APIs. The code builds, Lua parses, and the cutscene loaded and played, but the first runtime attempt stopped at the outdated watchdog before reconstruction. The new 120-second timeout and the reconstructed policy checks have not yet passed a clean gameplay run, so this checkpoint is implemented but not gameplay-validated.
+
+The mission still stops before the first pursuit assignment. The Ballas passenger, drive-by and combat tasks, Grove support actors, return scenes, reward, multiplayer support-vehicle policy, `DM_PED_MISSION_EMPTY`, and the low-health exit/flee tasks remain outside the current slice.
+
 ## Mission audio
 
 GTA exposes four physical mission-audio slots. Neon wraps them with generation-scoped resource handles:
@@ -149,6 +171,8 @@ GTA exposes four physical mission-audio slots. Neon wraps them with generation-s
 - owned pending loads are periodically re-armed when GTA silently drops the hardware request;
 - playback is one-shot per handle;
 - shutdown releases every owned event.
+
+GTA's event-to-bank calculation depends on the original 24-bit x87 precision. Neon now scopes the native resolver call to that precision and restores the caller's control word afterward. This fixes exact 200-event boundaries such as `SWE1_AA` event `37400`, which previously selected the preceding bank under extended precision. Tagging Up Turf replayed `37400` in game and heard the expected line before continuing normally.
 
 Co-op resources should preload on every participant, cross a server readiness barrier, broadcast play, and wait for completion acknowledgements from every client.
 
@@ -177,6 +201,8 @@ Validation includes:
 - exact native eight-alpha tag deltas, completion, synchronization, explicit release, and restart cleanup;
 - the Ballas partner-chat/seek/kill/wander encounter through the `Tagging Up Turf` mission;
 - native facial talk start/stop, turn-to-face, composed leave/go-to/shoot sequences, and zero-based sequence progress;
+- the seven-line Grove finale facial-talk lifecycle on natural dialogue completion and cleanup;
+- the eight-point `SWEET3` native drive sequence, indices `0..7`, natural completion, and matching client/server endpoint evidence;
 - `SWE1_AV` request-before-camera ordering, synchronized natural completion, authoritative exits, then `DriveWander`;
 - exact `09D0` all-wheel arrival gates, including rolled-vehicle cases where `isVehicleOnGround` stayed true but the native predicate stayed false;
 - a 15.011-second native drive covering 71.95 synchronized metres;
@@ -184,8 +210,9 @@ Validation includes:
 - full mission playback completion at 8,040 ms with 0.00 m endpoint error;
 - the post-rooftop directional load, two vehicle audio events, `SWE1_BH`, camera restoration, and Sweet's passenger restoration;
 - the Grove Street finale, fresh-game CJ clothing snapshot/restore, story and vehicle policies, mission-passed tune, reward, and skip cleanup;
+- the complete `SWEET2A` opening, managed cutscene slot restoration, authoritative passengers, dialogue, exact `09D0` gate, and abort cleanup;
 - script-camera fixed/move/track/fade/restoration completion in 8,620 ms;
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-The mission resource remains a regression harness rather than the final SCM runtime. It proves the current primitives together, while server-owned task handles, completion events, syncer-migration reconstruction, and multi-participant cutscene validation remain future work.
+The mission resources remain regression harnesses rather than the final SCM runtime. They prove the current primitives together, while server-owned task handles, completion events, syncer-migration reconstruction, and multi-participant cutscene validation remain future work. `SWEET2B` and the following pre-pursuit reconstruction are implemented but still await a clean gameplay rerun with the corrected timeout.

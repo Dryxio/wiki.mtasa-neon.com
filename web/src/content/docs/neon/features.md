@@ -52,8 +52,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Custom model identity | Client-local runtime allocation | Server-stable logical IDs mapped to per-client GTA slots |
 | Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Native ped story tasks | No direct reusable surface | Go-to, shooting, chat, turn-to-face, facial talk, short task sequences, combat, wander, drive-wander, mission policies, and verified enter/exit lifecycles |
-| Story actor and vehicle policy | General MTA abstractions | Persistent native story protection, seven raw door-lock modes, and independent tyre-burst control |
+| Native ped story tasks | No direct reusable surface | Go-to, shooting, chat, turn-to-face, facial talk, short task sequences, combat, wander, finite and indefinite road driving, mission policies, and verified enter/exit lifecycles |
+| Story actor and vehicle policy | General MTA abstractions | Persistent native story protection, an independent critical-hit flag, seven raw door-lock modes, tyre-burst control, and five separate vehicle proofs |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |
 | Native file cutscenes | Not exposed as a resource-owned API | Stock DAT/CUT/IFP playback with load/start barriers, synchronized skip, fades, completion, and cleanup |
 | Mission audio | No owned GTA mission slots | Four resource-owned native slots with load recovery and cleanup, plus the original mission-passed tunes |
@@ -68,13 +68,13 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Test resources for limits, CULL zones, models, radar, native tasks, gang tags, cameras, file cutscenes, audio, recordings, world synchronization, native-world startup, and performance attribution.
+- Test resources for limits, CULL zones, models, radar, native tasks and drive routes, gang tags, cameras, file cutscenes, audio, recordings, story checkpoints, world synchronization, native-world startup, and performance attribution.
 
 ## API inventory
 
-The [Neon Lua API](/neon/functions) has **112 documented entries**:
+The [Neon Lua API](/neon/functions) has **116 documented entries**:
 
-- 108 registrations added in Neon;
+- 112 registrations added in Neon;
 - two existing vehicle-entry/exit APIs with Neon-native task and lifecycle behavior;
 - two existing glitch APIs extended with `fastweaponstrafe`;
 - server-side extensions of model functions that already existed on the client are labeled by their actual side.

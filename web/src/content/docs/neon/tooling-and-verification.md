@@ -42,7 +42,7 @@ Representative resources include:
 | Native pools | `corona-limit-test`, `marker-limit-test`, `renderer-limit-test` |
 | Rendering | `project2dfx-test`, `cull-zone-test`, `cull-mirror-floor-test`, `extended-radar-test` |
 | Models/streaming | `server-model-registry-test`, `city-residency-coordinator`, UG/Carcer/Bullworth resources |
-| Story primitives | native ped go-to/enter/exit/drive-wander, `native-gang-tag-test`, camera, file cutscenes, braking, audio, recording, and `tagging-up-turf` |
+| Story primitives | native ped go-to/enter/exit/drive-wander, `native-drive-route-test`, `native-gang-tag-test`, camera, file cutscenes, braking, audio, recording, `tagging-up-turf`, and `drive-thru` |
 | World RPCs | `world-sync-regression-test` for per-recipient `moveObject` and collision-polygon serialization |
 | Native world | `native-world-transport-test`, `native-world-static-transport-test`, `native-world-static-startup-test`, plus focused Python audit/cache/authorization/isolation tests |
 | Performance | `entity-performance-test` with recorded baseline, varied-model, native-cost, and collision-attribution results |
@@ -72,3 +72,5 @@ A successful build proves that the code compiles; it does not prove the gameplay
 The current native-world suite reports 98 focused tests with three fixture-dependent skips. Live gates separately covered format-1 and format-2 publication, restart, native activation, exact reconnect, resource lifecycle, cache-refusal paths, and active-process rejection of a different server target. The newer compact FileID relocation passes its offline validator and affected client builds; its fresh stock-SA runtime retry is still pending.
 
 The native `SWEET1A` path has passed a complete single-player run at GTA's original animation speed, including its moving spray prop, the following world intro, and final camera/audio restoration. The multi-participant load, skip, finish, and release barriers still need live validation before the co-op path is considered complete.
+
+The Drive-Thru opening has passed a complete `SWEET2A` run through its authoritative passenger setup and exact Cluckin' Bell all-wheel gate. The managed cutscene slot fix survived teardown without the former cigarette-prop crash or model `304` dialog. Separately, the eight native `SWEET3` drive-sequence children reached indices `0..7` and completed with matching client/server endpoint evidence. The later `SWEET2B` transition loaded and played, but its first run hit the old 60-second watchdog before world reconstruction; that reconstruction and the new critical-hit/vehicle-proof consumers still need a clean run with the corrected 120-second limit.
