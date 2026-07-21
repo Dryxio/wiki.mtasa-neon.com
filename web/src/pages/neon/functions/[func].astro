@@ -13,6 +13,24 @@ Astro.locals.side = func.side;
 const sourceUrl = `https://github.com/Dryxio/mtasa-neon/blob/master/${func.source}`;
 const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
 const testPath = func.test === undefined ? category.test : func.test;
+const categoryFunctions = neonFunctions.filter((entry) => entry.category === func.category);
+const categoryIndex = categoryFunctions.findIndex((entry) => entry.name === func.name);
+const previousFunction = categoryIndex > 0 ? categoryFunctions[categoryIndex - 1] : undefined;
+const nextFunction = categoryIndex < categoryFunctions.length - 1 ? categoryFunctions[categoryIndex + 1] : undefined;
+const groupedRelated = func.group
+  ? categoryFunctions.filter((entry) => entry.name !== func.name && entry.group === func.group)
+  : [];
+const guideRoot = category.guide.split('#')[0];
+const sameGuideRelated = neonFunctions.filter((entry) => neonCategories[entry.category].guide.split('#')[0] === guideRoot);
+const relatedCandidates = [
+  ...groupedRelated,
+  ...categoryFunctions,
+  ...sameGuideRelated,
+  ...neonFunctions.filter((entry) => Boolean(entry.extension) === Boolean(func.extension)),
+].filter((entry) => entry.name !== func.name);
+const relatedFunctions = relatedCandidates
+  .filter((entry, index) => relatedCandidates.findIndex((candidate) => candidate.name === entry.name) === index)
+  .slice(0, 3);
 ---
 
 <StarlightPage frontmatter={{ template: 'doc', title: func.name, description: func.summary, tableOfContents: true }}>
@@ -23,7 +41,11 @@ const testPath = func.test === undefined ? category.test : func.test;
 
   <p class="summary">{func.summary}</p>
 
-  <h2 id="syntax">Syntax</h2>
+  <div class="syntax-heading">
+    <h2 id="syntax">Syntax</h2>
+    <button type="button" data-copy-signature data-signature={func.signature} aria-describedby="copy-status">Copy signature</button>
+    <span id="copy-status" class="visually-hidden" aria-live="polite"></span>
+  </div>
   <Code code={func.signature} lang="lua" />
 
   {func.nativeTask && <>
@@ -76,8 +98,56 @@ const testPath = func.test === undefined ? category.test : func.test;
     {testPath && <a href={`https://github.com/Dryxio/mtasa-neon/tree/master/${testPath}`}><span>TEST RESOURCE</span><strong>{testPath.split('/').pop()}</strong><small>{testPath}</small></a>}
   </div>
 
+  <section class="continue-exploring" aria-labelledby="continue-title" data-pagefind-ignore>
+    <div class="continue-heading">
+      <div><span>RELATED NEON APIS</span><h2 id="continue-title">Continue exploring</h2></div>
+      <a href={category.guide}>Read the system guide →</a>
+    </div>
+    {relatedFunctions.length > 0 && <div class="related-grid">
+      {relatedFunctions.map((entry) => <a href={`/neon/functions/${entry.name}`}>
+        <code>{entry.name}</code>
+        <span>{entry.summary}</span>
+      </a>)}
+    </div>}
+    <nav class="function-sequence" aria-label={`Functions in ${category.title}`}>
+      {previousFunction
+        ? <a class="previous" href={`/neon/functions/${previousFunction.name}`}><span>← Previous in category</span><code>{previousFunction.name}</code></a>
+        : <span></span>}
+      {nextFunction && <a class="next" href={`/neon/functions/${nextFunction.name}`}><span>Next in category →</span><code>{nextFunction.name}</code></a>}
+    </nav>
+  </section>
+
   <p class="back-link"><a href="/neon/functions">← Back to the Neon Lua API</a> · <a href={category.guide}>How {category.title} works →</a></p>
 </StarlightPage>
+
+<script>
+  document.querySelectorAll('[data-copy-signature]').forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    button.addEventListener('click', async () => {
+      const signature = button.dataset.signature || '';
+      const status = document.getElementById('copy-status');
+      let copied = false;
+
+      try {
+        await navigator.clipboard.writeText(signature);
+        copied = true;
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = signature;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.append(textarea);
+        textarea.select();
+        copied = document.execCommand('copy');
+        textarea.remove();
+      }
+
+      button.textContent = copied ? 'Copied' : 'Copy failed';
+      if (status) status.textContent = copied ? 'Signature copied to clipboard.' : 'The signature could not be copied.';
+      window.setTimeout(() => { button.textContent = 'Copy signature'; }, 1600);
+    });
+  });
+</script>
 
 <style>
   .neon-function-banner { display: flex; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: rgba(242,140,24,.065); }
@@ -86,6 +156,10 @@ const testPath = func.test === undefined ? category.test : func.test;
   .neon-function-banner a { color: #ffad35; font-weight: 700; }
   .neon-function-banner p { margin: 0; color: var(--sl-color-gray-3); font-size: .8rem; }
   .summary { margin: 2rem 0; font-size: 1.2rem; color: var(--sl-color-gray-2); }
+  .syntax-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .syntax-heading h2 { margin-bottom: .6rem; }
+  .syntax-heading button { padding: .4rem .6rem; color: #ffbd5c; background: rgba(242,140,24,.06); border: 1px solid rgba(242,140,24,.4); border-radius: .35rem; font-size: .72rem; font-weight: 800; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .argument-list { display: grid; gap: .65rem; }
   .argument-list > div { padding: .9rem 1rem; border-left: 2px solid rgba(242,140,24,.62); background: var(--sl-color-bg-nav); }
   .argument-list > div > div { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
@@ -109,7 +183,24 @@ const testPath = func.test === undefined ? category.test : func.test;
   .evidence-grid span { color: #f28c18; font-size: .62rem; font-weight: 900; letter-spacing: .1em; }
   .evidence-grid strong { margin: .35rem 0; }
   .evidence-grid small { overflow-wrap: anywhere; color: var(--sl-color-gray-3); }
+  .continue-exploring { margin-top: 3.5rem; padding: 1.2rem; border: 1px solid rgba(242,140,24,.35); border-radius: .7rem; background: linear-gradient(135deg, rgba(242,140,24,.07), transparent); }
+  .continue-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+  .continue-heading span { color: #f28c18; font-size: .64rem; font-weight: 900; letter-spacing: .1em; }
+  .continue-heading h2 { margin: .2rem 0 0; }
+  .continue-heading > a { color: #ffad35; font-size: .8rem; }
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
+  .related-grid > a { display: flex; flex-direction: column; min-width: 0; padding: .8rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .55rem; background: rgba(10,8,6,.22); }
+  .related-grid > a:hover { border-color: #f28c18; transform: translateY(-2px); }
+  .related-grid code { overflow-wrap: anywhere; }
+  .related-grid span { margin-top: .45rem; color: var(--sl-color-gray-3); font-size: .76rem; }
+  .function-sequence { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--sl-color-gray-5); }
+  .function-sequence a { display: flex; flex-direction: column; min-width: 0; color: inherit; text-decoration: none; }
+  .function-sequence .next { align-items: end; text-align: right; }
+  .function-sequence span { color: var(--sl-color-gray-3); font-size: .68rem; }
+  .function-sequence code { margin-top: .25rem; overflow-wrap: anywhere; }
   .back-link { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--sl-color-gray-5); }
-  @media (max-width: 760px) { .neon-function-banner { flex-direction: column; } .evidence-grid { grid-template-columns: 1fr; } }
+  :is(.syntax-heading button, .related-grid a, .function-sequence a):focus-visible { outline: 2px solid #ffad35; outline-offset: 3px; }
+  @media (max-width: 760px) { .neon-function-banner, .continue-heading { align-items: start; flex-direction: column; } .evidence-grid, .related-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .function-sequence { grid-template-columns: 1fr; } .function-sequence > span:empty { display: none; } .function-sequence .next { align-items: start; text-align: left; } }
   @media (max-width: 480px) { :global(h1.page-title) { font-size: 1.625rem !important; line-height: 1.15 !important; } }
 </style>

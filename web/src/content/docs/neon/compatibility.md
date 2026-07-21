@@ -47,6 +47,8 @@ This keeps the client connected and the element usable, but it cannot reproduce 
 
 [`setGlitchEnabled`](/neon/functions/setGlitchEnabled) and [`isGlitchEnabled`](/neon/functions/isGlitchEnabled) accept the additional `fastweaponstrafe` name. The option is synchronized and disabled by default.
 
+The `fastweaponstrafe-toggle` resource now provides a focused enable/disable and native-walking check. Its commit records the harness and Lua parse result, not an in-game pass, so the feature remains documented as experimental rather than runtime-validated.
+
 While a resource owns the Neon script-camera lease, legacy client camera setters are rejected. An authoritative server camera RPC revokes the lease before applying server control.
 
 Native file cutscenes use that same exclusive lease and exist only on the client that requested them. Multiplayer resources must coordinate loading, start, skip, completion, and release through their own server-authoritative barriers; the API does not synchronize a cutscene automatically.

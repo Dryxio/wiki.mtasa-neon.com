@@ -29,6 +29,7 @@ The complete path is now implemented for the closed Bullworth format and for the
 | [`9c506c3a4`](https://github.com/Dryxio/mtasa-neon/commit/9c506c3a4) | Correct unsigned handling for GTA's named-model operands after FileID expansion. |
 | [`fd50b6e07`](https://github.com/Dryxio/mtasa-neon/commit/fd50b6e07) | Guarded relocation coverage for the active expanded-FileID code, including MTA-appended paths. |
 | [`5615ff7cb`](https://github.com/Dryxio/mtasa-neon/commit/5615ff7cb) | Compact FileID spans aligned with the relocated stores while the final global-pool expansion is developed. |
+| [`ada5b6fb2`](https://github.com/Dryxio/mtasa-neon/commit/ada5b6fb2) | Completed stock-SA, Bullworth, reconnect, server-restart, and Perry replacement-lifecycle gate for the compact 38,316-entry layout. |
 
 ## Pack formats
 
@@ -125,7 +126,6 @@ The endpoint is a locator, not authentication. Server continuity relies on the o
 - The native runtime supports two exact audited GTA SA 1.0 US executable identities.
 - The public path is startup-only: no hot registration, hot unload, or pack switch.
 - One process has one active pack and one owner server; aggregate multi-pack allocation is not implemented.
-- The compact relocated FileID build passes its offline validator and affected client builds, but its fresh stock-SA live retry is still pending.
 - The final larger TXD, COL, and IPL spans remain blocked on the matching global-pool work; the current compact layout is an intermediate foundation.
 - `static-world-v1` is a constrained static-world grammar, not arbitrary IDE support.
 - The format-2 live fixture intentionally reused the known Bullworth bytes. It proves the generic transport/authorization machinery, not a second city.
@@ -154,9 +154,9 @@ requested 38314
 total   38316
 ```
 
-The generated relocation manifest covers 1,398 guarded executable writes, including high MTA-appended code, and the save compatibility path still preserves the stock 26,316-record namespace. The compact layout passes the offline relocation validator, 98 focused tests, and the affected `Game SA` and `Client Deathmatch` Release Win32 builds.
+The generated relocation manifest covers 1,398 guarded executable writes, including high MTA-appended code, and the save compatibility path still preserves the stock 26,316-record namespace. The compact layout passes the offline relocation validator, the focused suite, the affected `Game SA` and `Client Deathmatch` Release Win32 builds, and the live gate described below.
 
-This does **not** mean four cities can already be activated together. The earlier wider COL span exposed a stock `CColStore` loop that treated a FileID range as a pool size, so the larger TXD/COL/IPL target is intentionally deferred until the matching native pools move. Aggregate pack allocation, second-city activation, and a fresh stock-SA live retry of this compact checkpoint remain open gates.
+This does **not** mean four cities can already be activated together. The earlier wider COL span exposed a stock `CColStore` loop that treated a FileID range as a pool size, so the larger TXD/COL/IPL target is intentionally deferred until the matching native pools move. Aggregate pack allocation and second-city activation remain open gates. The next capacity checkpoint must move the 8,000 / 512 / 1,024 TXD, COL, and IPL stores, FileID spans, allocations, loop bounds, sentinels, and validators together; its provisional final layout contains 42,341 entries while DAT and paths stay at their current scope.
 
 ## Verification evidence
 
@@ -172,6 +172,8 @@ The current series has **98 focused extended-world tests**, with three fixture-d
 - a wrong-port request blocked while the active owner session and lease stayed intact, followed by a successful exact reconnect;
 - matching affected client/server builds with zero errors.
 
-The newer aggregate-store and compact-FileID foundation has separate offline validator and build coverage. Its stock-SA runtime pass is still pending and is not included in the live claims above.
+The compact-FileID gate completed on 20 July 2026 with ticket `7f93d606`. The client moved from the captured stock layout (`total=26316`, `nativeWrites=no`) to `total=38316` with all 1,398 writes installed, `nativeWrites=yes`, `datExpansion=no`, and `pathsExpansion=no`. Bullworth registered archive 6, 952 models, 166 TXDs, collision slot 252, and IPL slots 191 through 197. `/nativebw`, `/nativeback`, exact reconnect, and a post-server-restart `/nativebw` passed with the same process lease, stable model-store occupancy, and the 4,008-block streaming floor.
+
+The same gate loaded Perry's 285-model TXD/COL/DFF slice, then exercised `releaseSlice()` and `engineFreeModel()` before a restart/reconnect confirmed that Perry stayed absent and Bullworth still worked. No FileID, preflight, capacity, exception, fatal, or new-dump diagnostic appeared. This is observable lifecycle evidence, not a per-slot high-water proof, because the resource does not log every released slot.
 
 The format-2 fixture registered archive 6, 952 models, 166 TXDs, collision slot 252, and seven IPL slots. Those numbers describe the validated Bullworth fixture, not universal `static-world-v1` capacities.
