@@ -252,7 +252,7 @@ const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: st
   .journeys, .category-directory { margin: 3rem 0; }
   .section-heading h2 { margin: .3rem 0 1rem; }
   .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
-  .journey-grid article { min-width: 0; padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; background: rgba(242,140,24,.035); }
+  .journey-grid article { min-width: 0; margin-top: 0; padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; background: rgba(242,140,24,.035); }
   .journey-grid h3 { margin: 0; font-size: 1.05rem; }
   .journey-grid h3 a { color: #ffad35; text-decoration: none; }
   .journey-grid p { margin: .6rem 0 .8rem; color: var(--sl-color-gray-3); font-size: .85rem; }
@@ -278,6 +278,7 @@ const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: st
   .filter-row button, .reset-button, .no-results button { padding: .38rem .55rem; color: var(--sl-color-gray-2); background: transparent; border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; font-size: .7rem; font-weight: 750; }
   .filter-row button[aria-pressed="true"] { color: #0a0806; background: #f28c18; border-color: #f28c18; }
   .toggle-filters { display: flex; gap: .3rem; }
+  .toggle-filters button { margin-top: 0; }
   .reset-button, .no-results button { color: #ffad35; }
   .no-results { margin: 2rem 0; padding: 1.2rem; border: 1px dashed var(--sl-color-gray-4); border-radius: .7rem; text-align: center; }
   .no-results span { display: block; margin: .25rem 0 .8rem; color: var(--sl-color-gray-3); }
