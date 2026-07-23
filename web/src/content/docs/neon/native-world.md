@@ -30,6 +30,7 @@ The complete path is now implemented for the closed Bullworth format and for the
 | [`fd50b6e07`](https://github.com/Dryxio/mtasa-neon/commit/fd50b6e07) | Guarded relocation coverage for the active expanded-FileID code, including MTA-appended paths. |
 | [`5615ff7cb`](https://github.com/Dryxio/mtasa-neon/commit/5615ff7cb) | Compact FileID spans aligned with the relocated stores while the final global-pool expansion is developed. |
 | [`ada5b6fb2`](https://github.com/Dryxio/mtasa-neon/commit/ada5b6fb2) | Completed stock-SA, Bullworth, reconnect, server-restart, and Perry replacement-lifecycle gate for the compact 38,316-entry layout. |
+| [`3a23fd26f`](https://github.com/Dryxio/mtasa-neon/commit/3a23fd26f) | Atomic 42,341-entry FileID layout, 8,000 TXDs, 512 COLs, 1,024 IPLs, expanded native pools, full-width COL/IPL ownership, high-water telemetry, and live boundary validation. |
 
 ## Pack formats
 
@@ -126,7 +127,8 @@ The endpoint is a locator, not authentication. Server continuity relies on the o
 - The native runtime supports two exact audited GTA SA 1.0 US executable identities.
 - The public path is startup-only: no hot registration, hot unload, or pack switch.
 - One process has one active pack and one owner server; aggregate multi-pack allocation is not implemented.
-- The final larger TXD, COL, and IPL spans remain blocked on the matching global-pool work; the current compact layout is an intermediate foundation.
+- The larger TXD, COL, IPL, building, ColModel, and QuadTreeNode capacities are installed, but no committed public pack format allocates several IMG archives or proves a second city.
+- High static IPL slots cannot own car generators. The admitted static-world grammar rejects those sections so high-slot removal cannot alias a stock IPL.
 - `static-world-v1` is a constrained static-world grammar, not arbitrary IDE support.
 - The format-2 live fixture intentionally reused the known Bullworth bytes. It proves the generic transport/authorization machinery, not a second city.
 - Radar, paths, population, zones, audio, interiors, and environment systems are separate resource or engine work.
@@ -142,25 +144,27 @@ FileIDs now come from one runtime layout captured during startup and consumed ac
 
 ```text
 DFF         0 .. 31999   (32,000)
-TXD     32000 .. 36999   ( 5,000)
-COL     37000 .. 37254   (   255)
-IPL     37255 .. 37510   (   256)
-DAT     37511
-IFP     37575
-RRR     37755
-SCM     38230
-loaded  38312
-requested 38314
-total   38316
+TXD     32000 .. 39999   ( 8,000)
+COL     40000 .. 40511   (   512)
+IPL     40512 .. 41535   ( 1,024)
+DAT     41536 .. 41599   (    64)
+IFP     41600
+RRR     41780
+SCM     42255
+loaded  42337
+requested 42339
+total   42341
 ```
 
-The generated relocation manifest covers 1,398 guarded executable writes, including high MTA-appended code, and the save compatibility path still preserves the stock 26,316-record namespace. The compact layout passes the offline relocation validator, the focused suite, the affected `Game SA` and `Client Deathmatch` Release Win32 builds, and the live gate described below.
+The generated relocation manifest covers 1,427 guarded FileID writes. The same startup transaction validates 37 additional native sites for store and pool capacities, full-width COL/IPL side storage, MTA consumers, cache bypass, the 32,000-entry live MINFO buffer, and high-IPL cleanup. Save compatibility still preserves the stock 26,316-record namespace.
 
-This does **not** mean four cities can already be activated together. The earlier wider COL span exposed a stock `CColStore` loop that treated a FileID range as a pool size, so the larger TXD/COL/IPL target is intentionally deferred until the matching native pools move. Aggregate pack allocation and second-city activation remain open gates. The next capacity checkpoint must move the 8,000 / 512 / 1,024 TXD, COL, and IPL stores, FileID spans, allocations, loop bounds, sentinels, and validators together; its provisional final layout contains 42,341 entries while DAT and paths stay at their current scope.
+The coupled native pools now contain 32,000 buildings, 30,000 ColModels, and 2,048 QuadTreeNodes. GTA's byte-sized `CColModel::m_nColSlot` and `CEntity::m_nIplIndex` fields keep compatibility bytes while process-lifetime side storage preserves their real values. Isolated runtime limit setters can no longer rewrite one allocation behind the transaction; they accept only the installed capacities.
+
+This still does **not** mean four cities can already be activated together. The current committed transport accepts one IMG, the Bullworth plan stays below COL/IPL slot 255, and aggregate allocation plus a second-city activation remain open gates. DAT remains at 64 entries; paths, population, zones, audio, interiors, and high-slot car generators have not moved with this checkpoint.
 
 ## Verification evidence
 
-The current series has **98 focused extended-world tests**, with three fixture-dependent skips. The established native-world path has live coverage for:
+The current series has **103 focused extended-world tests**, with two fixture-dependent skips. The established native-world path has live coverage for:
 
 - fresh format-1 and format-2 publication plus exact cache hits;
 - passwordless restart with a new process ID;
@@ -177,3 +181,7 @@ The compact-FileID gate completed on 20 July 2026 with ticket `7f93d606`. The cl
 The same gate loaded Perry's 285-model TXD/COL/DFF slice, then exercised `releaseSlice()` and `engineFreeModel()` before a restart/reconnect confirmed that Perry stayed absent and Bullworth still worked. No FileID, preflight, capacity, exception, fatal, or new-dump diagnostic appeared. This is observable lifecycle evidence, not a per-slot high-water proof, because the resource does not log every released slot.
 
 The format-2 fixture registered archive 6, 952 models, 166 TXDs, collision slot 252, and seven IPL slots. Those numbers describe the validated Bullworth fixture, not universal `static-world-v1` capacities.
+
+The stores/pools gate completed on 23 July 2026 with ticket `d831fafb`. The opt-in startup harness used GTA's real load and remove paths for COL `255/256/511` and IPL `255/256/1023`, then restored the affected streaming records, native pools, MTA pointer-node allocator, and full-width side table. All three pairs emitted `pair-ok`, followed by `boundaryHarness=passed` and native registration.
+
+Repeated San Andreas/Bullworth travel, minimize/restore, and death/respawn remained stable. The highest observed pool use was TXD `3774/8000`, COL `253/512`, IPL `198/1024`, buildings `12128/32000`, ColModels `10932/30000`, and QuadTreeNodes `225/2048`, with no overflow, fatal diagnostic, or crash. This proves the boundary harness and the exercised Bullworth lifecycle, not multi-IMG transport or a second-city activation.

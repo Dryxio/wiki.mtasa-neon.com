@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. `Tagging Up Turf` tests the first complete slice, while `Drive-Thru` now covers its main mission path through the chase, return scenes, and reward. The server runs mission state; the current syncer or client handles native cutscenes, tasks, camera work, audio, text, and recorded cars.
+Neon exposes reusable GTA story primitives instead of hard-coding a mission in C++. `Tagging Up Turf` tests the first complete slice, `Drive-Thru` covers its main chase and return path, and `Nines and AK's` now maps the multiplayer-visible `sweet2` graph through the Binco return. The server runs mission state; the current syncer or client handles native cutscenes, tasks, camera work, audio, text, recorded cars, and local presentation.
 
 ## Model-native walking
 
@@ -146,7 +146,15 @@ Control inhibition is independent from `toggleAllControls`. Neon raises GTA's na
 
 ## Native file cutscenes
 
-The [file-cutscene API group](/neon/functions#cutscene) exposes GTA's stock DAT/CUT/IFP playback through the same exclusive camera lease. `requestFileCutscene` accepts only names from GTA's stock cutscene-audio table, limited to seven characters, and returns a generation token before the asynchronous load begins.
+The [file-cutscene API group](/neon/functions#cutscene) exposes GTA's stock DAT/CUT/IFP playback through the same exclusive camera lease. [`requestFileCutscene`](/neon/functions/requestFileCutscene) accepts only names from GTA's stock cutscene-audio table, limited to seven characters, and returns a generation token before the asynchronous load begins.
+
+The current signature is:
+
+```lua
+requestFileCutscene(name [, visibleArea])
+```
+
+`visibleArea` is an optional integer from `0` through `255`. It reproduces the SCM world-area selection without changing the player's interior. When supplied, the lease captures the previous GTA visible area before loading and restores it on release, camera takeover, failure, or resource shutdown.
 
 A normal synchronized flow is:
 
@@ -160,7 +168,9 @@ File cutscenes are global GTA state. Ordinary script-camera setters cannot use a
 
 MTA normally reuses GTA's `CUTOBJ01` through `CUTOBJ13` slots as playable special characters. That happened to work for `SWEET1A`, whose first extra model is a skinned ped, but `SWEET2A` loads an unskinned cigarette prop first and crashed when GTA treated it as a ped model. Managed cutscenes now restore all 13 stock generic mappings for the native load and rebuild MTA's `RYDER2` through `PSYCHO` mappings during teardown. The Drive-Thru run completed `SWEET2A` in `31,453 ms` without the former crash or model `304` load dialog.
 
-The loader also reproduces vanilla's temporary `SWITCH_STREAMING OFF` window immediately before `LOAD_CUTSCENE`; GTA restores the flag during normal postload or deletion, and Neon clears it on load failure. After raising the resource watchdog to 120 seconds, `SWEET2B` completed naturally in `83,313 ms` and continued into the validated world reconstruction. Native file-cutscene subtitle behavior has not yet been proved.
+`SWEET3A` exposed two more generic problems. Teardown now clears stale unlinked `CUTS.IMG` streaming records before restoring MTA's special-character models. After native load completes, Neon sets universal area `13` only on the current cutscene-manager actors and props, so they remain visible across world-area changes without changing ordinary MTA objects. These changes and the optional visible-area argument were introduced in [`e6e485ba2`](https://github.com/Dryxio/mtasa-neon/commit/e6e485ba2) and are exercised by `test-resources/nines-and-aks`.
+
+The loader also reproduces vanilla's temporary `SWITCH_STREAMING OFF` window immediately before `LOAD_CUTSCENE`; GTA restores the flag during normal postload or deletion, and Neon clears it on load failure. After raising the resource watchdog to 120 seconds, `SWEET2B` completed naturally in `83,313 ms` and continued into the validated world reconstruction. Nines and AK's testing reached the Emmet range and exposed the original cutscene crash and visibility failures; the corrected C++ path built successfully, but a fresh full run of both `SWEET3A` and `SWEET3B` is still required. Native file-cutscene subtitle behavior has not yet been proved.
 
 `Tagging Up Turf` now starts with the native `SWEET1A` cutscene, then reproduces the following SCM world intro with native camera shots, mission audio, actor movement, walking groups, barriers, and checkpoint commands. The managed cutscene model slot keeps `CSPLAY`'s 61-bone clump separate from gameplay CJ's 37-bone cache, while preserving and restoring the original model and streaming state. That separation fixed the invisible, frozen, and deformed CJ failures caused by sharing the two incompatible clumps.
 
@@ -187,6 +197,52 @@ The main return path is also validated: Grove support and Smoke drove their nati
 This is not every branch. Dedicated runtime passes are still needed for the Greenwood low-health exits during the outward trip, chase, Grove return, and Smoke return; `DM_PED_MISSION_EMPTY` is not implemented; native file-cutscene subtitles remain unverified; and not every return-to-car reminder variant has been exercised. Campaign bookkeeping is outside the harness, which restores its own snapshot. Multi-client cutscene and migration barriers also remain open.
 
 The later `Tagging Up Turf` parity patch now preserves CJ's health, armour, and loadout, adds spray ammo in 30,000-round chunks, corrects the Greenwood creation height and colours, scopes spray-can failure to the right stage, restores the two jump prompts, and separates the two Ballas failure formulas. Lua parsing and resource checks passed, but no in-game validation is recorded for this patch yet.
+
+## Safe stock entry-exit transitions
+
+Commit [`f71089e96`](https://github.com/Dryxio/mtasa-neon/commit/f71089e96) adds the optional `story-entry-exit-runtime` Lua resource. It provides server-authoritative, resource-owned transitions for audited GTA entry-exit sites without re-enabling `CEntryExitManager::Update`, which MTA disables because its legacy entry path crashes.
+
+The public server exports are:
+
+```lua
+element|false, string|nil acquireStoryEntryExit(
+    player thePlayer,
+    string site,
+    int dimension
+    [, table options]
+)
+
+bool releaseStoryEntryExit(element handle)
+table|false getStoryEntryExitState(element handle)
+```
+
+`options` may set `fadeOut`, `blackHold`, and `fadeIn`; each duration is clamped to `0..3` seconds. The returned handle belongs to the calling resource. Only one transition may run for a player at a time, acquisition must receive its client acknowledgement within five seconds, and only the owner can inspect or release the handle.
+
+The handle emits `onStoryEntryExitStateChange(state, data)`. Important states are `active`, `fading_out`, `committed`, `entered`, `exited`, `failed`, and `released`. `committed` is the black-screen area/position change; `entered` or `exited` is the terminal state after the destination and fade-in are verified.
+
+The initial `cschp_ls` definition comes from the linked `CSCHP` IPL pair used by `sweet2`. The client detects the exact on-foot trigger, then the server rechecks the player, dimension, interior, vehicle state, and position before freezing or moving anything. GTA's `+1.0` entry-exit Z conversion, half-width trigger rectangles, destination headings, area `15` interior, and return to area `0` are preserved.
+
+An explicit release, caller shutdown, player departure, timeout, or runtime shutdown rolls an unfinished transaction back to its source transform and restores the previous frozen and camera state. The service does not run GTA's native door task, populate the shop, or open the clothing menu. Its source is `test-resources/story-entry-exit-runtime`, with isolated lifecycle coverage in `test-resources/story-entry-exit-test`.
+
+The user reached Binco through the automatic transition. The follow-up `entered`/`exited` terminal-barrier correction is committed, but still needs a fresh confirmation through the tutorial, automatic exit, and pass delay. The standalone harness also still prescribes vehicle rejection, repeated entry/exit, and resource-stop checks during every fade phase.
+
+These three exports are part of an optional Lua resource, not C++ registrations, so the engine API catalog remains at 127 entries.
+
+## Nines and AK's checkpoint
+
+Commit [`e6e485ba2`](https://github.com/Dryxio/mtasa-neon/commit/e6e485ba2) adds `test-resources/nines-and-aks`, a server-owned port of the multiplayer-visible `sweet2` graph from native `SWEET3A` through the return from Binco.
+
+The resource covers:
+
+- both stock file cutscenes and the `SWEET2` mission-text block;
+- the Glendale journey, exact all-wheel gates, Smoke and Emmet actor lifecycles, navigation and dialogue;
+- the one-, three-, and five-bottle rounds with SCM/raw-bytecode heights, native shooting tasks, and progress-timed camera cuts;
+- the Tampa petrol-cap weakpoint, delayed proof removal, destruction gate, departure cameras and authoritative seats;
+- the return drive, Smoke goodbye, phone sequence, Binco objective, entry/exit transaction, pass/fail presentation, and deterministic cleanup.
+
+Several parts are intentional multiplayer adaptations. Bottle damage events replace SCM object-damage polling; native point routes, phone tasks, nested duck/idle graphs, target lock-on, `DM_PED_MISSION_EMPTY`, the full set of Smoke's ped flags, and temporary ped explosion proofs are not all exposed. Campaign counters, respect, contacts, shop blips, purchases, and save statistics remain outside the harness.
+
+Static checks passed for the C++ changes, Lua files, resource XML, and affected `Game SA` and `Client Deathmatch` Release Win32 builds. User testing reached the Emmet range and later the automatic Binco transition, but the corrected bottle heights, full camera timing, Tampa weakpoint, departure, terminal Binco barriers, alternate failures, cleanup, and multi-player path have not completed the prescribed end-to-end matrix. This checkpoint is mapped and partially exercised; it is not documented as full mission parity.
 
 ## Mission audio
 
@@ -239,10 +295,11 @@ Validation includes:
 - the Grove Street finale, fresh-game CJ clothing snapshot/restore, story and vehicle policies, mission-passed tune, reward, and skip cleanup;
 - the complete `SWEET2A` opening, managed cutscene slot restoration, authoritative passengers, dialogue, exact `09D0` gate, and abort cleanup;
 - natural `SWEET2B` completion in `83,313 ms`, correct world reconstruction and seats, three active native drive-bys, real bidirectional damage, vehicle-to-foot combat, both return scenes, and the $200 reward;
+- Nines and AK's progress through the Emmet range and automatic Binco entry, with the complete `sweet2` graph, raw bottle data, cameras, audio, Tampa, departure, ENEX pair, and cleanup statically mapped;
 - resource-owned streaming-lease lifecycle and a 3.3 km route handoff with stable waypoint progress, zero measured handoff discontinuity, and cleanup;
 - the `/drivethrusimfar` off-stream alternate failure, including coordinate drive-by, immediate exit, smart flee, scripted deaths, escape, and camera restoration;
 - script-camera fixed/move/track/fade/restoration completion in 8,620 ms;
 - resource restart cleanup without a new crash artifact;
 - server-authoritative co-op barriers and lifecycle acknowledgements in the mission resource.
 
-The mission resources remain regression harnesses rather than the final SCM runtime. The `native-task-runtime` now provides server-owned `drive_to` handles and syncer reconstruction at resource level, but low-level engine tasks still have no general completion event or universal migration reconstruction. Multi-participant cutscene validation, frozen-owner heartbeat reassignment, combat-group reconstruction, the Drive-Thru low-health branches, and the latest Tagging Up Turf parity changes remain future runtime work.
+The mission resources remain regression harnesses rather than the final SCM runtime. The `native-task-runtime` provides server-owned `drive_to` handles and syncer reconstruction, while `story-entry-exit-runtime` provides audited server-owned ENEX transitions. Both are resource layers rather than core engine APIs. Low-level engine tasks still have no general completion event or universal migration reconstruction. Multi-participant cutscene validation, frozen-owner heartbeat reassignment, combat-group reconstruction, the Drive-Thru low-health branches, the latest Tagging Up Turf parity changes, and the remaining Nines and AK's matrix are future runtime work.

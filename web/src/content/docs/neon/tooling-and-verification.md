@@ -42,7 +42,7 @@ Representative resources include:
 | Native pools | `corona-limit-test`, `marker-limit-test`, `renderer-limit-test` |
 | Rendering | `project2dfx-test`, `cull-zone-test`, `cull-mirror-floor-test`, `extended-radar-test` |
 | Models/streaming | `server-model-registry-test`, `city-residency-coordinator`, `native-simulation-lease-test`, UG/Carcer/Bullworth resources |
-| Story primitives | native ped go-to/enter/exit/drive-wander, `native-drive-route-test`, `native-drive-by-test`, `native-mission-ped-test`, `native-gang-tag-test`, camera, file cutscenes, braking, audio, recording, `tagging-up-turf`, and `drive-thru` |
+| Story primitives | native ped go-to/enter/exit/drive-wander, `native-drive-route-test`, `native-drive-by-test`, `native-mission-ped-test`, `native-gang-tag-test`, camera, file cutscenes, braking, audio, recording, `tagging-up-turf`, `drive-thru`, `nines-and-aks`, `story-entry-exit-runtime`, and `story-entry-exit-test` |
 | Compatibility | `fastweaponstrafe-toggle` for the synchronized glitch and native-walking combination; no in-game verdict is recorded yet |
 | World RPCs | `world-sync-regression-test` for per-recipient `moveObject` and collision-polygon serialization |
 | Native world | `native-world-transport-test`, `native-world-static-transport-test`, `native-world-static-startup-test`, plus focused Python audit/cache/authorization/isolation tests |
@@ -70,8 +70,12 @@ Each feature page labels its evidence clearly:
 
 A successful build proves that the code compiles; it does not prove the gameplay path. Native-world executable writes, downloaded data, authorization, cache leases, worker cancellation, native object lifetimes, and large pool allocations all need their own focused review before the docs claim runtime success.
 
-The current native-world suite reports 98 focused tests with three fixture-dependent skips. Live gates separately covered format-1 and format-2 publication, restart, native activation, exact reconnect, resource lifecycle, cache-refusal paths, and active-process rejection of a different server target. The compact 38,316-entry FileID relocation has also passed its stock-SA, Bullworth, reconnect, server-restart, and Perry replacement-lifecycle gate. That proves the compact checkpoint, not the future 8,000 / 512 / 1,024 TXD, COL, and IPL expansion.
+The current native-world suite reports 103 focused tests with two fixture-dependent skips. Live gates separately covered format-1 and format-2 publication, restart, native activation, exact reconnect, resource lifecycle, cache-refusal paths, and active-process rejection of a different server target.
+
+The completed stores/pools checkpoint installs 42,341 FileIDs, 8,000 TXDs, 512 COLs, 1,024 IPLs, 32,000 buildings, 30,000 ColModels, and 2,048 QuadTreeNodes. Its opt-in native harness passed the COL `255/256/511` and IPL `255/256/1023` boundary pairs, and a user-run Bullworth/SA gate covered repeated travel, minimize/restore, and death/respawn without an overflow or crash. This proves the exercised capacities and boundary rollback, not multi-IMG transport or a second-city activation.
 
 The native `SWEET1A` path has passed a complete single-player run at GTA's original animation speed, including its moving spray prop, the following world intro, and final camera/audio restoration. The multi-participant load, skip, finish, and release barriers still need live validation before the co-op path is considered complete.
 
 Drive-Thru has now completed its main single-client route: `SWEET2A`, authoritative seating, the Cluckin' Bell all-wheel gate, `SWEET2B` in `83,313 ms`, world reconstruction, the Ballas chase with real bidirectional damage, the vehicle-to-foot transition, the Grove and Smoke returns, and the $200 reward. A separate `/drivethrusimfar` run covered the off-stream route, coordinate drive-by, scripted failure, and camera cleanup. The low-health Greenwood branches, `DM_PED_MISSION_EMPTY`, every reminder variant, and multi-client cutscene barriers still need dedicated runtime passes.
+
+Nines and AK's passes Lua/XML checks and the affected `Game SA` and `Client Deathmatch` Release Win32 builds. User testing reached the Emmet range and then the automatic Binco transition, exposing file-cutscene, visibility, camera, and terminal-barrier problems that were corrected. The full bottle/Tampa/departure/Binco/cleanup matrix and multiplayer path still need a fresh complete run; the wiki does not present the mission as fully validated.

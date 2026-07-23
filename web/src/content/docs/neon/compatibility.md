@@ -55,7 +55,22 @@ Native file cutscenes use that same exclusive lease and exist only on the client
 
 ## Client binary pairing
 
-Use client binaries from the same Neon build. Mixing `netc.dll` from an official or older MTA installation with a current Neon client is unsupported because the module ABI may differ.
+Use the complete client payload from one Neon build. The current public installer keeps the MTA-provided `netc.dll` whose ABI matches this source revision, but copying an arbitrary module from another official, older, or custom installation remains unsupported.
+
+## Windows packages and local builds
+
+Commit [`7f96f186f`](https://github.com/Dryxio/mtasa-neon/commit/7f96f186f) makes the Windows CI build produce `MTA-Neon-Setup.exe` as a separate Win32 artifact. The workflow refuses to publish it when the client executable, bootstrap files, `core.dll`, `netc.dll`, deathmatch runtime DLLs, data, fonts, or default skin files are missing.
+
+The installer keeps Neon branding, shortcuts, install state, `mtasa://` protocol registration, and uninstall behavior separate from an existing official MTA installation. It seeds the shared runtime registry locations in both Windows registry views, creates writable ProgramData directories, and restores the official installation locations when Neon is removed.
+
+The checkpoint passed a full Nightly Win32 build, NSIS compilation, archive inspection, silent install, standard-user registry/ProgramData checks, and a localhost CONNECT/JOIN. That validates the packaging path; it does not make every experimental Neon feature stable.
+
+Commit [`11ed444dc`](https://github.com/Dryxio/mtasa-neon/commit/11ed444dc) separates the two build modes:
+
+- a clean local clone defaults to `VERSION_TYPE_CUSTOM`, so developers can launch without installer-created HKLM state;
+- the public Windows workflow writes a build override for `VERSION_TYPE_UNSTABLE`, preserving MTA's anti-cheat and service checks for player-facing packages.
+
+Do not redistribute a local `CUSTOM` build as if it were the public package.
 
 ## Native world requirements
 

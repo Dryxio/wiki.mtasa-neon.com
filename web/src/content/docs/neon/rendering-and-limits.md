@@ -19,6 +19,14 @@ Commit [`bc3f9d9e6`](https://github.com/Dryxio/mtasa-neon/commit/bc3f9d9e6) expa
 
 Runtime evidence exceeded the old ceilings with 1,033 visible entities and 4,677 streaming RenderWare links, followed by cleanup of 1,400 test buildings.
 
+## Vehicle headlights and custom shaders
+
+Commit [`c85423a08`](https://github.com/Dryxio/mtasa-neon/commit/c85423a08) moves GTA's vehicle environment-map specular light from Direct3D slot 1 to reserved slot 7. GTA otherwise overwrites slot 1 with the first temporary directional light immediately before specular vehicle materials are drawn, which hides incoming headlight response and exposes the W+S brake-light flicker.
+
+Neon's common `LIGHT*` shader parameter path now considers slots 0 through 3 plus slot 7. It does not broaden the historical selection to every temporary light, so custom vehicle shaders can receive the relocated specular light and the restored world headlight without changing the rest of the light scan.
+
+The three GTA SA 1.0 US operands were checked against the executable, and `Client Core` plus `Multiplayer SA` built successfully in Release Win32. The problem was reproduced before the fix. Post-fix native-material and custom `LIGHT*` shader behavior still needs a runtime pass, so this is a compiled rendering correction rather than a completed visual validation claim.
+
 ## Coronas and Project2DFX
 
 Commit [`4b7a1f523`](https://github.com/Dryxio/mtasa-neon/commit/4b7a1f523) relocates GTA's 64-entry corona array to 4,096 process-lifetime entries and patches the verified initialization, rendering, reflection, registration, and coordinate-update references. The first native slots remain available to GTA; up to 4,094 scripted coronas were validated in game.

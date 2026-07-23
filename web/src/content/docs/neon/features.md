@@ -26,7 +26,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | F11 map | Packaged San Andreas image | Runtime atlas composed from native and registered extended tiles |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
 | Native world packs | Not available | Closed format-1/format-2 audit, immutable cache, one-shot restart authorization, native startup activation, and owner-server isolation |
-| Multi-city model foundation | Stock model stores and FileID layout | Relocated 32,000 / 512 / 1,024 model stores and a live-tested compact runtime FileID layout; aggregate activation is still in development |
+| Multi-city capacity foundation | Stock model stores and FileID layout | 42,341 FileIDs; 32,000 DFFs, 8,000 TXDs, 512 COLs, 1,024 IPLs, 32,000 buildings, 30,000 ColModels, and 2,048 QuadTreeNodes; second-city activation is still open |
 
 ## Rendering and native pools
 
@@ -44,6 +44,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Streaming RenderWare instances | 2,500 | 30,000 |
 | Native CULL editing | Internal only | Resource-owned Lua CRUD, stable IDs, and cleanup |
 | Project2DFX distant lights | Not integrated | Opt-in static coronas and timed traffic lights from SALodLights.dat |
+| Vehicle headlight/specular light | GTA overwrites the first temporary directional slot before specular vehicle draws | Vehicle specular light moved to reserved slot 7 and kept visible to `LIGHT*` shaders; post-fix runtime validation is still pending |
 
 ## Models and gameplay
 
@@ -57,6 +58,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Story actor and vehicle policy | General MTA abstractions | Persistent native story protection, independent critical-hit, stay-put and targeting flags, mission event-profile leases, raw door locks, tyre policy, five vehicle proofs, and mission collision loading |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |
 | Native file cutscenes | Not exposed as a resource-owned API | Stock DAT/CUT/IFP playback with load/start barriers, synchronized skip, fades, completion, and cleanup |
+| Stock entry-exit transitions | Native manager disabled by MTA because its entry path crashes | Optional server-owned Lua runtime using audited IPL pairs, exact on-foot triggers, fades, authoritative interior moves, and rollback |
 | Mission audio | No owned GTA mission slots | Four resource-owned native slots with load recovery and cleanup, plus the original mission-passed tunes |
 | Mission GXT text | No resource-owned native lease | Exclusive block lease with small/help/big text queues |
 | Recorded-car playback | Not exposed | Resource-owned direct non-looped native playback |
@@ -69,7 +71,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Test resources for limits, CULL zones, models, radar, native tasks, streaming leases and drive-route handoff, native drive-by and mission events, gang tags, cameras, file cutscenes, audio, recordings, story checkpoints, world synchronization, native-world startup, and performance attribution.
+- Test resources for limits, CULL zones, models, radar, native tasks, streaming leases and drive-route handoff, native drive-by and mission events, gang tags, cameras, file cutscenes, audio, recordings, story checkpoints including Nines and AK's, stock entry-exit transitions, world synchronization, native-world startup, and performance attribution.
+- A CI-built Windows Neon installer with its own branding, registry state, protocol registration, shortcuts, and uninstall path, isolated from an existing official MTA installation.
 
 ## API inventory
 

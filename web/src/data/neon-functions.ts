@@ -1042,13 +1042,13 @@ export const neonFunctions: NeonFunction[] = [
 
   {
     name: "requestFileCutscene", category: "cutscene", side: "client",
-    signature: "int|false requestFileCutscene(string name)",
-    summary: "Acquires the exclusive camera lease and starts loading one of GTA's stock file cutscenes.",
-    arguments: [arg("name", "string", "Stock cutscene name from GTA's audio-track table, from one through seven characters.")],
-    returns: "A non-zero generation token, or false when the name is invalid, another camera lease is active, or GTA already has a file cutscene active.",
-    notes: ["Loading is asynchronous. Wait for isFileCutsceneLoaded before starting playback."],
-    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "4f2be00c1", test: "test-resources/tagging-up-turf",
-    example: "local token = assert(requestFileCutscene(\"SWEET1A\"))\n-- Poll isFileCutsceneLoaded(token), then start after the server readiness barrier.",
+    signature: "int|false requestFileCutscene(string name [, int visibleArea])",
+    summary: "Acquires the exclusive camera lease, optionally owns GTA's visible world area, and starts loading a stock file cutscene.",
+    arguments: [arg("name", "string", "Stock cutscene name from GTA's audio-track table, from one through seven characters."), arg("visibleArea", "int", "Optional SCM-style visible world area from 0 through 255. It does not change the player's interior.", true)],
+    returns: "A non-zero generation token, or false when the name or visible area is invalid, another camera lease is active, or GTA already has a file cutscene active.",
+    notes: ["Loading is asynchronous. Wait for isFileCutsceneLoaded before starting playback.", "When visibleArea is supplied, the lease captures GTA's current visible area before loading and restores it on explicit release, camera takeover, resource stop, or failed cleanup.", "Managed loading repairs area 13 only on the current native cutscene-manager objects. Ordinary MTA objects keep their existing area behavior."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "e6e485ba2", test: "test-resources/nines-and-aks",
+    example: "local token = assert(requestFileCutscene(\"SWEET3A\", 1))\n-- Poll isFileCutsceneLoaded(token), then start after the server readiness barrier.",
   },
   {
     name: "isFileCutsceneLeaseActive", category: "cutscene", side: "client",
