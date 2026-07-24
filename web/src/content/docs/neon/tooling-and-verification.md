@@ -61,7 +61,7 @@ Representative resources include:
 | Models and streaming | `server-model-registry-test`, `city-residency-coordinator`, `native-simulation-lease-test`, and generated city resources |
 | Story primitives | focused go-to, enter, exit, drive-wander, route, drive-by, mission-ped, gang-tag, camera, cutscene, braking, audio, and recording resources |
 | Mission checkpoints | `tagging-up-turf`, `drive-thru`, `nines-and-aks`, `story-entry-exit-runtime`, and `story-entry-exit-test` |
-| Compatibility | `fastweaponstrafe-toggle`, packet capability tests, and mixed-recipient serialization cases |
+| Compatibility | `fastweaponstrafe-toggle`, `world-sync-regression-test`, packet capability tests, and mixed-recipient serialization cases |
 | Native world | `native-world-transport-test`, `native-world-static-transport-test`, `native-world-static-startup-test`, plus audit/cache/authorization/isolation tests |
 | Performance | `entity-performance-test` with repeatable model, collision, native-cost, and traversal profiles |
 
@@ -87,7 +87,7 @@ This matrix is intentionally scoped. Exact timings, temporary ticket IDs, build-
 Neon includes developer-only drop workflows:
 
 - one DFF and optional TXD can preview a replacement of the local player's current base skin;
-- one IFP loads an animation list, with searchable playback controls when several animations are present.
+- one IFP loads an animation list; a single animation starts immediately, while several animations open searchable controls for looping, freeze-last-frame, root motion, speed, and blend.
 
 Inputs are size-bounded and use existing validation and replacement paths, but there is no server authorization. These are local development tools, not secure multiplayer features.
 

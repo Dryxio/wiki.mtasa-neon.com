@@ -21,17 +21,51 @@ The [native task API group](/neon/functions#tasks) covers movement, social actio
 
 Mutating task or combat calls require a living, streamed ped simulated by the caller. That can be the local player, a client-local ped, or a server ped for which this client is the current syncer. Vehicle tasks also require local control of the streamed vehicle.
 
-Representative mappings include:
+### Complete GTA task and SCM mapping
 
-| Neon API | GTA behavior | SCM source |
+Every mapped function page names the original `CTask`, opcode, command, source commit, and focused evidence. The public C++ bindings below live in [`CLuaPedDefs.cpp`](https://github.com/Dryxio/mtasa-neon/blob/master/Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp).
+
+<details>
+<summary>Show all native ped task and SCM mappings</summary>
+
+| Neon API | Original GTA C++ task or state | SCM opcode / command |
 | --- | --- | --- |
-| [`setPedGoTo`](/neon/functions/setPedGoTo) | Go to a point and stand still | `05D3 TASK_GO_STRAIGHT_TO_COORD` |
-| [`setPedEnterVehicle`](/neon/functions/setPedEnterVehicle) | Driver or passenger entry task after server confirmation | `05CA` / `05CB` |
-| [`setPedDriveTo`](/neon/functions/setPedDriveTo) | Finite road route to a point | `05D1 TASK_CAR_DRIVE_TO_COORD` |
-| [`setPedDriveBy`](/neon/functions/setPedDriveBy) | Native gang drive-by | `0713 TASK_DRIVE_BY` |
-| [`setPedTaskSequence`](/neon/functions/setPedTaskSequence) | Native mission sequence | `0615` / `0616` / `0618` / `063F` |
+| [`setPedGoTo`](/neon/functions/setPedGoTo) | `CTaskComplexGoToPointAndStandStill` or timed variant | `05D3 TASK_GO_STRAIGHT_TO_COORD` |
+| [`setPedChatWith`](/neon/functions/setPedChatWith) | `CTaskComplexPartnerChat` | `0677 TASK_CHAT_WITH_CHAR` |
+| [`setPedStandStill`](/neon/functions/setPedStandStill) | `CTaskSimpleStandStill` | `05BA TASK_STAND_STILL` |
+| [`setPedGoToOffset`](/neon/functions/setPedGoToOffset) | `CTaskComplexSeekEntityRadiusAngleOffset`, optionally through `CTaskComplexUseSequence` | `06A8 TASK_GOTO_CHAR_OFFSET` |
+| [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot) | `CTaskComplexKillPedOnFoot` | `05E2 TASK_KILL_CHAR_ON_FOOT` |
+| [`setPedWander`](/neon/functions/setPedWander) | `CTaskComplexWanderStandard` | `05DE TASK_WANDER_STANDARD` |
+| [`setPedTurnToFace`](/neon/functions/setPedTurnToFace) | `CTaskComplexTurnToFaceEntityOrCoord` | `0639 TASK_TURN_CHAR_TO_FACE_CHAR` |
+| [`setPedEnterVehicle`](/neon/functions/setPedEnterVehicle) | `CTaskComplexEnterCarAsDriver` or `CTaskComplexEnterCarAsPassenger` | `05CA / 05CB` |
+| [`setPedExitVehicle`](/neon/functions/setPedExitVehicle) | `CTaskComplexLeaveCar` | `05CD TASK_LEAVE_CAR` |
+| [`setPedDriveWander`](/neon/functions/setPedDriveWander) | `CTaskComplexCarDriveWander` | `05D2 TASK_CAR_DRIVE_WANDER` |
+| [`setPedDriveTo`](/neon/functions/setPedDriveTo) | `CTaskComplexCarDriveToPoint` | `05D1 TASK_CAR_DRIVE_TO_COORD` |
+| [`setPedShootAt`](/neon/functions/setPedShootAt) | `CTaskSimpleGunControl`, which creates its own `CTaskSimpleUseGun` subtask | `0668 TASK_SHOOT_AT_COORD` |
+| [`setPedDriveBy`](/neon/functions/setPedDriveBy) | `CTaskSimpleGangDriveBy` | `0713 TASK_DRIVE_BY` |
+| [`setPedFacialTalk`](/neon/functions/setPedFacialTalk) / [`stopPedFacialTalk`](/neon/functions/stopPedFacialTalk) | Persistent `CTaskComplexFacial` controller | `0967 / 0968` |
+| [`setPedTaskSequence`](/neon/functions/setPedTaskSequence) | `CTaskComplexSequence` dispatched through `CTaskComplexUseSequence` | `0615 / 0616 / 0618 / 063F` |
+| [`getPedTaskSequenceProgress`](/neon/functions/getPedTaskSequenceProgress) | Reads the active child from `CTaskComplexUseSequence` | `0646 GET_SEQUENCE_PROGRESS` |
+| [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) | Native scripted-speech state; no `CTask` | `0A09 SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH` |
+| [`setPedWeaponShootingRate`](/neon/functions/setPedWeaponShootingRate) | Persistent byte consumed by native gun tasks | `07DD SET_CHAR_SHOOT_RATE` |
+| [`setPedWeaponAccuracy`](/neon/functions/setPedWeaponAccuracy) | Persistent byte consumed by native weapon tasks | `02E2 SET_CHAR_ACCURACY` |
+| [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | Persistent `PED_MISSION` policy; no `CTask` | — |
+| [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | Grouped native story-actor flags; no `CTask` | — |
+| [`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) / [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) | Persistent inverse no-critical-hits bit | `0446 SET_CHAR_SUFFERS_CRITICAL_HITS` |
+| [`setPedStayInSamePlace`](/neon/functions/setPedStayInSamePlace) / [`getPedStayInSamePlace`](/neon/functions/getPedStayInSamePlace) | Persistent stay-put flag; no movement task | `0350 SET_CHAR_STAY_IN_SAME_PLACE` |
+| [`setPedNeverTargeted`](/neon/functions/setPedNeverTargeted) / [`isPedNeverTargeted`](/neon/functions/isPedNeverTargeted) | Persistent targeting flag; no `CTask` | `0568 SET_CHAR_NEVER_TARGETTED` |
 
-Every mapped function page names the original `CTask`, opcode, and command. Use the [GTA mapping and SCM opcode filters](/neon/functions?gta=1&scm=1) to browse the full set.
+`setPedTaskSequence` also exposes three child-only mappings that do not have separate public functions:
+
+| Sequence descriptor | Original GTA C++ task | SCM opcode |
+| --- | --- | --- |
+| `leave_car_immediately` | `CTaskComplexLeaveCar` with the immediate-leave parameters | `0622` |
+| `smart_flee` | `CTaskComplexSmartFleeEntity` | `05DD` |
+| `die` | Unarmed `CTaskComplexDie` | `05BE TASK_DIE` |
+
+</details>
+
+Use the [GTA mapping and SCM opcode filters](/neon/functions?gta=1&scm=1) when you want the same information grouped with signatures, lifecycle, source commits, and test resources.
 
 ### Task dispatch and completion
 
@@ -81,7 +115,7 @@ Those runtime exports are resource code, not core Neon Lua registrations, so the
 onClientObjectGangTagProgress(previousProgress, currentProgress, creator)
 ```
 
-The event source is the tag object. A synchronized resource should treat the event as a client report, validate it on the server, then mirror the accepted progress with [`setObjectGangTagProgress`](/neon/functions/setObjectGangTagProgress).
+The event source is the tag object. `creator` is the client element GTA associated with the spray hit, or `nil` when it cannot be mapped. A synchronized resource should treat the event as a client report, validate it on the server, then mirror the accepted progress with [`setObjectGangTagProgress`](/neon/functions/setObjectGangTagProgress).
 
 Progress lives on the MTA object and survives native object recreation. Release or resource shutdown unregisters the tag and clears the material override. [`setObjectGangTagAlpha`](/neon/functions/setObjectGangTagAlpha) remains a visual-only helper and does not provide ownership or gameplay progress.
 
@@ -183,13 +217,13 @@ bool releaseStoryEntryExit(element handle)
 table|false getStoryEntryExitState(element handle)
 ```
 
-The handle belongs to the calling resource. Only one transition may run for a player at a time, and only the owner can inspect or release it. Optional fade durations are clamped to `0..3` seconds.
+The handle belongs to the calling resource. Only one transition may run for a player at a time, and only the owner can inspect or release it. Acquisition becomes active only after a client acknowledgement and fails after five seconds otherwise. Optional fade durations are clamped to `0..3` seconds.
 
-`onStoryEntryExitStateChange(state, data)` reports the lifecycle. `committed` is the black-screen position/interior change; `entered` or `exited` is the terminal state after destination and fade-in checks. Failure, timeout, player departure, owner shutdown, or explicit release rolls an unfinished transition back to its source transform and restores the previous frozen and camera state.
+`onStoryEntryExitStateChange(state, data)` reports `active`, `fading_out`, `committed`, `entered`, `exited`, `failed`, or `released`. `committed` is the black-screen position/interior change; `entered` or `exited` is the terminal state after destination and fade-in checks. Failure, timeout, player departure, owner shutdown, or explicit release rolls an unfinished transition back to its source transform and restores the previous frozen and camera state.
 
 The first supplied site reproduces the audited `cschp_ls` IPL pair used by the original story. The service preserves its trigger bounds, heading, area, and Z conversion, but it does not run a native door task, populate the shop, or open a clothing menu.
 
-These three exports belong to an optional Lua resource, not to the C++ registration table. They therefore do not change the 127 documented engine API entries.
+These three exports belong to the optional [`story-entry-exit-runtime`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-runtime) Lua resource, not to the C++ registration table. They therefore do not change the 127 documented engine API entries. The focused [`story-entry-exit-test`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-test) covers its lifecycle separately.
 
 ## Mission audio
 

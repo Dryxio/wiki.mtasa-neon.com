@@ -126,6 +126,40 @@ The installed foundation contains 42,341 FileIDs, including 32,000 DFF, 8,000 TX
 
 These numbers are capacity, not a promise that four cities can run together. The current public path accepts one IMG, the reference Bullworth plan remains within its audited grammar, and aggregate multi-pack allocation has not been implemented.
 
+<details>
+<summary>Show the installed FileID layout and observed Bullworth usage</summary>
+
+The runtime layout is captured once during startup and shared by the affected client modules:
+
+```text
+DFF          0 .. 31999   (32,000)
+TXD      32000 .. 39999   ( 8,000)
+COL      40000 .. 40511   (   512)
+IPL      40512 .. 41535   ( 1,024)
+DAT      41536 .. 41599   (    64)
+IFP base 41600
+RRR base 41780
+SCM base 42255
+loaded   42337
+requested 42339
+total    42341
+```
+
+The highest observed use during the exercised Bullworth/SA lifecycle was:
+
+| Store or pool | Observed / installed |
+| --- | ---: |
+| TXD | 3,774 / 8,000 |
+| COL | 253 / 512 |
+| IPL | 198 / 1,024 |
+| Buildings | 12,128 / 32,000 |
+| Collision models | 10,932 / 30,000 |
+| Quadtree nodes | 225 / 2,048 |
+
+The layout comes from [`CFileIDRuntimeSA.cpp`](https://github.com/Dryxio/mtasa-neon/blob/master/Client/game_sa/CFileIDRuntimeSA.cpp). These high-water values describe the exercised Bullworth fixture, not a universal safe workload or proof of second-city activation.
+
+</details>
+
 Additional boundaries:
 
 - two exact audited GTA SA 1.0 US executable identities are supported;

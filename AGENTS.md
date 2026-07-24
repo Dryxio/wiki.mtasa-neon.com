@@ -39,6 +39,10 @@ Commit chronology is not an information architecture.
 - Avoid repeating the same test history across the overview, system guide, API
   entry, and tooling page. Keep the strongest explanation in one place and link
   to it elsewhere.
+- Do not delete a useful exhaustive inventory merely to shorten a guide. Keep
+  the user-facing explanation concise, then preserve task/opcode maps, exact
+  layouts, state lists, and similar reference material in a clearly labeled
+  `<details>` block or a dedicated reference page.
 
 Before giving a change its own section, ask:
 
