@@ -9,7 +9,7 @@ A Neon custom model has two identities: a stable ID used by the server and netwo
 
 ## Server-authoritative model registry
 
-The first registry checkpoint ([`a7a20d32b`](https://github.com/Dryxio/mtasa-neon/commit/a7a20d32b)) introduced stable object and vehicle identities. The completion checkpoint ([`dc25a615c`](https://github.com/Dryxio/mtasa-neon/commit/dc25a615c)) extended the registry across objects, vehicles, peds, players, buildings, pickups, spawn packets, RPCs, names, enumeration, type queries, capacity queries, and lifecycle fallback.
+The registry covers objects, vehicles, peds, players, buildings, pickups, spawn packets, RPCs, names, enumeration, type queries, capacity queries, and lifecycle fallback. The initial object and vehicle work is tracked by [`a7a20d32b`](https://github.com/Dryxio/mtasa-neon/commit/a7a20d32b), and the completed cross-element registry by [`dc25a615c`](https://github.com/Dryxio/mtasa-neon/commit/dc25a615c).
 
 ```text
 server logical ID (30000+) ──network identity──> client definition
@@ -73,3 +73,5 @@ Allocating a server model does not register a city archive or authorize a native
 - resource cleanup and parent fallback.
 
 Runtime checks cover spawn and respawn, model replacement, safe freeing, and the post-free crash regression.
+
+This evidence applies to the registry and its cleanup paths. It does not validate a resident IMG city or authorize a native world pack; those systems have separate lifecycles and tests.

@@ -9,6 +9,17 @@ This page covers **only what MTA:SA Neon changes**. For standard MTA behavior, u
 
 Neon is still experimental. Its capacity patches keep the normal San Andreas defaults unless a server or resource opts into the larger limits.
 
+## Start with what you want to build
+
+| Goal | Start here | Current scope |
+| --- | --- | --- |
+| Use more of the world | [Extended world](/neon/extended-world) | A 20 km XY domain with matching sectors, water, radar, map, pickup, and network work. |
+| Load a static world through GTA | [Native world packs](/neon/native-world) | One audited pack can activate at startup after a controlled two-launch flow. Hot switching is not supported. |
+| Give resources stable custom model IDs | [Custom models](/neon/models-and-streaming) | Server identities map to local GTA slots with native-parent fallback and cleanup. |
+| Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native tasks, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
+| See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Tagging Up Turf and Drive-Thru have substantial in-game coverage; Nines and AK's remains partially exercised. |
+| Call a specific function | [Neon Lua API](/neon/functions) | Searchable reference with side, lifecycle, source, commit, native mapping, and test evidence. |
+
 ## World and streaming
 
 | Area | Standard MTA:SA | Neon |
@@ -25,8 +36,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Native minimap | Fixed 12 × 12 stock grid | Sparse 40 × 40 logical grid with protected stock cells |
 | F11 map | Packaged San Andreas image | Runtime atlas composed from native and registered extended tiles |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
-| Native world packs | Not available | Closed format-1/format-2 audit, immutable cache, one-shot restart authorization, native startup activation, and owner-server isolation |
-| Multi-city capacity foundation | Stock model stores and FileID layout | 42,341 FileIDs; 32,000 DFFs, 8,000 TXDs, 512 COLs, 1,024 IPLs, 32,000 buildings, 30,000 ColModels, and 2,048 QuadTreeNodes; second-city activation is still open |
+| Native world packs | Not available | Audited format-1/format-2 packs, immutable cache, controlled startup activation, and owner-server isolation |
+| Multi-city capacity foundation | Stock model stores and FileID layout | Larger FileID, model, TXD, COL, IPL, building, collision-model, and quadtree capacities; second-city activation remains open |
 
 ## Rendering and native pools
 
@@ -44,7 +55,6 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Streaming RenderWare instances | 2,500 | 30,000 |
 | Native CULL editing | Internal only | Resource-owned Lua CRUD, stable IDs, and cleanup |
 | Project2DFX distant lights | Not integrated | Opt-in static coronas and timed traffic lights from SALodLights.dat |
-| Vehicle headlight/specular light | GTA overwrites the first temporary directional slot before specular vehicle draws | Vehicle specular light moved to reserved slot 7 and kept visible to `LIGHT*` shaders; post-fix runtime validation is still pending |
 
 ## Models and gameplay
 
@@ -53,9 +63,9 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Custom model identity | Client-local runtime allocation | Server-stable logical IDs mapped to per-client GTA slots |
 | Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Native ped story tasks | No direct reusable surface | Go-to, shooting, native vehicle drive-by, chat, turn-to-face, facial talk, short task sequences, combat, wander, finite and indefinite road driving, mission policies, and verified enter/exit lifecycles |
+| Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native route continuity | Stream range normally ends native simulation | Resource-owned streaming leases plus a server-owned route harness with owner epochs and syncer reconstruction |
-| Story actor and vehicle policy | General MTA abstractions | Persistent native story protection, independent critical-hit, stay-put and targeting flags, mission event-profile leases, raw door locks, tyre policy, five vehicle proofs, and mission collision loading |
+| Story actor and vehicle policy | General MTA abstractions | Persistent native actor flags, event-profile leases, raw door locks, tyre policy, vehicle proofs, and mission collision loading |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |
 | Native file cutscenes | Not exposed as a resource-owned API | Stock DAT/CUT/IFP playback with load/start barriers, synchronized skip, fades, completion, and cleanup |
 | Stock entry-exit transitions | Native manager disabled by MTA because its entry path crashes | Optional server-owned Lua runtime using audited IPL pairs, exact on-foot triggers, fades, authoritative interior moves, and rollback |
@@ -67,12 +77,16 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Vehicle story gates | Approximate public checks | Exact `09D0` all-wheel predicate and verified vehicle-attached script-audio events |
 | Fast weapon strafe | Not available | Synchronized `fastweaponstrafe` glitch, disabled by default |
 
+The tables describe available code paths, not one shared stability level. Follow the linked system guide for ownership, limitations, and the evidence behind a particular feature.
+
 ## Tools and tests
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Test resources for limits, CULL zones, models, radar, native tasks, streaming leases and drive-route handoff, native drive-by and mission events, gang tags, cameras, file cutscenes, audio, recordings, story checkpoints including Nines and AK's, stock entry-exit transitions, world synchronization, native-world startup, and performance attribution.
+- Focused test resources for engine limits, world systems, native tasks, scene primitives, mission checkpoints, compatibility, and cleanup.
 - A CI-built Windows Neon installer with its own branding, registry state, protocol registration, shortcuts, and uninstall path, isolated from an existing official MTA installation.
+
+See [Tooling and verification](/neon/tooling-and-verification) for the test levels and harness index. A successful build or static check is not described as an in-game pass.
 
 ## API inventory
 
@@ -83,4 +97,4 @@ The [Neon Lua API](/neon/functions) has **127 documented entries**:
 - two existing glitch APIs extended with `fastweaponstrafe`;
 - server-side extensions of model functions that already existed on the client are labeled by their actual side.
 
-The list comes from the C++ registrations and the commits that implemented them. It also includes five server-side model inspection functions that are missing from the engine README table.
+The list comes from the final C++ registrations and the commits that implemented or extended them.

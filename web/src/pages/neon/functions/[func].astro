@@ -13,6 +13,7 @@ Astro.locals.side = func.side;
 const sourceUrl = `https://github.com/Dryxio/mtasa-neon/blob/master/${func.source}`;
 const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
 const testPath = func.test === undefined ? category.test : func.test;
+const testRelation = func.test === undefined ? 'related' : func.test ? 'direct' : 'none';
 const categoryFunctions = neonFunctions.filter((entry) => entry.category === func.category);
 const categoryIndex = categoryFunctions.findIndex((entry) => entry.name === func.name);
 const previousFunction = categoryIndex > 0 ? categoryFunctions[categoryIndex - 1] : undefined;
@@ -95,7 +96,11 @@ const relatedFunctions = relatedCandidates
   <div class="evidence-grid">
     <a href={sourceUrl}><span>SOURCE</span><strong>{func.source.split('/').pop()}</strong><small>{func.source}</small></a>
     <a href={commitUrl}><span>INTRODUCED / EXTENDED</span><strong>{func.commit}</strong><small>Read the commit and why the change was made</small></a>
-    {testPath && <a href={`https://github.com/Dryxio/mtasa-neon/tree/master/${testPath}`}><span>TEST RESOURCE</span><strong>{testPath.split('/').pop()}</strong><small>{testPath}</small></a>}
+    {testPath && <a href={`https://github.com/Dryxio/mtasa-neon/tree/master/${testPath}`}>
+      <span>{testRelation === 'direct' ? 'TEST RESOURCE' : 'RELATED CATEGORY HARNESS'}</span>
+      <strong>{testPath.split('/').pop()}</strong>
+      <small>{testRelation === 'direct' ? testPath : `Category-level coverage · ${testPath}`}</small>
+    </a>}
   </div>
 
   <section class="continue-exploring" aria-labelledby="continue-title" data-pagefind-ignore>

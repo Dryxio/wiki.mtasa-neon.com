@@ -42,17 +42,33 @@ export default defineConfig({
       disable404Route: true,
       sidebar: [
         {
-          label: "MTA:SA Neon",
+          label: "MTA:SA Neon · Start here",
           items: [
             { label: "Overview", link: "/neon" },
             { label: "What's different", link: "/neon/features" },
             { label: "Neon Lua API", link: "/neon/functions" },
-            { label: "Extended world", link: "/neon/extended-world" },
-            { label: "Native world packs", link: "/neon/native-world" },
-            { label: "Custom models", link: "/neon/models-and-streaming" },
-            { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
-            { label: "Story runtime", link: "/neon/story-runtime" },
             { label: "Compatibility", link: "/neon/compatibility" },
+          ],
+        },
+        {
+          label: "Build GTA-style stories",
+          items: [
+            { label: "Story runtime", link: "/neon/story-runtime" },
+            { label: "Mission checkpoints", link: "/neon/mission-checkpoints" },
+          ],
+        },
+        {
+          label: "World & engine systems",
+          items: [
+            { label: "Extended world", link: "/neon/extended-world" },
+            { label: "Custom models", link: "/neon/models-and-streaming" },
+            { label: "Native world packs", link: "/neon/native-world" },
+            { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
+          ],
+        },
+        {
+          label: "Reference & evidence",
+          items: [
             { label: "Tooling & verification", link: "/neon/tooling-and-verification" },
           ],
         },

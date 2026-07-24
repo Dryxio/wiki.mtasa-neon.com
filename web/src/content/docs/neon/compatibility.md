@@ -7,6 +7,12 @@ sidebar:
 
 Neon keeps MTA's resource model and normal gameplay defaults. Its extra engine features are opt-in, and compatibility varies from one feature to another. A client being able to connect does not mean it understands every Neon API or packet field.
 
+Before depending on Neon behavior:
+
+1. detect optional Lua functions when a resource can fall back to standard MTA;
+2. require matching Neon builds when the resource depends on native-world startup or another engine-specific protocol;
+3. keep stable server identities separate from client-local GTA slots.
+
 ## Detect Neon APIs
 
 Resources intended to run on both distributions should feature-detect before calling Neon-only functions:
@@ -59,16 +65,14 @@ Use the complete client payload from one Neon build. The current public installe
 
 ## Windows packages and local builds
 
-Commit [`7f96f186f`](https://github.com/Dryxio/mtasa-neon/commit/7f96f186f) makes the Windows CI build produce `MTA-Neon-Setup.exe` as a separate Win32 artifact. The workflow refuses to publish it when the client executable, bootstrap files, `core.dll`, `netc.dll`, deathmatch runtime DLLs, data, fonts, or default skin files are missing.
+| Build | Version type | Intended use |
+| --- | --- | --- |
+| Public CI installer | `VERSION_TYPE_UNSTABLE` | Player-facing package with the normal anti-cheat and service checks. |
+| Clean local clone | `VERSION_TYPE_CUSTOM` | Developer build that can launch without installer-created HKLM state. |
 
-The installer keeps Neon branding, shortcuts, install state, `mtasa://` protocol registration, and uninstall behavior separate from an existing official MTA installation. It seeds the shared runtime registry locations in both Windows registry views, creates writable ProgramData directories, and restores the official installation locations when Neon is removed.
+The public workflow produces `MTA-Neon-Setup.exe` only when the required client executable, bootstrap files, runtime DLLs, data, fonts, and default skin files are present. Its branding, shortcuts, protocol registration, install state, and uninstall path remain separate from an official MTA installation.
 
-The checkpoint passed a full Nightly Win32 build, NSIS compilation, archive inspection, silent install, standard-user registry/ProgramData checks, and a localhost CONNECT/JOIN. That validates the packaging path; it does not make every experimental Neon feature stable.
-
-Commit [`11ed444dc`](https://github.com/Dryxio/mtasa-neon/commit/11ed444dc) separates the two build modes:
-
-- a clean local clone defaults to `VERSION_TYPE_CUSTOM`, so developers can launch without installer-created HKLM state;
-- the public Windows workflow writes a build override for `VERSION_TYPE_UNSTABLE`, preserving MTA's anti-cheat and service checks for player-facing packages.
+The packaging path passed the Nightly Win32 build, NSIS compilation, archive inspection, silent install, standard-user registry and ProgramData checks, and a localhost CONNECT/JOIN. This validates packaging and connection, not every experimental Neon feature. The installer work is tracked by commit [`7f96f186f`](https://github.com/Dryxio/mtasa-neon/commit/7f96f186f), and the build-mode split by [`11ed444dc`](https://github.com/Dryxio/mtasa-neon/commit/11ed444dc).
 
 Do not redistribute a local `CUSTOM` build as if it were the public package.
 

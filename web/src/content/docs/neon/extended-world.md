@@ -9,7 +9,7 @@ Neon makes more of the San Andreas world usable without moving the original map.
 
 ## Sector relocation
 
-Commit [`842983c91`](https://github.com/Dryxio/mtasa-neon/commit/842983c91) moves the main grid from 120 × 120 to 400 × 400 and the LOD grid from 30 × 30 to 100 × 100. It patches the real GTA 1.0 US initialization, lookup, rendering, and scanning code; this is not a Lua wrapper pretending the old grids are larger.
+The active GTA grids grow from 120 × 120 to 400 × 400 for the main world and from 30 × 30 to 100 × 100 for LODs. Neon patches GTA 1.0 US initialization, lookup, rendering, and scanning code rather than presenting a larger Lua-only coordinate range. The implementation is tracked by commit [`842983c91`](https://github.com/Dryxio/mtasa-neon/commit/842983c91).
 
 What that means:
 
@@ -19,18 +19,14 @@ What that means:
 - Legacy connections retain MTA's original packet formats.
 - The Perry Island pipeline provides a deterministic generated test around X=9,000.
 
-### Shared animation constant fix
-
-The first native `SWEET1A` test caught an unrelated patch collision: address `0x858B34` is GTA's shared 60 Hz animation constant, not a world-sector limit. Replacing it with the sector half-width `200.0` slowed ANPK cutscene animation by exactly `200 / 60` and left the animated spray prop behind the camera. Commit [`4f2be00c1`](https://github.com/Dryxio/mtasa-neon/commit/4f2be00c1) removes that address from the generated sector manifest; the real sector operands already use Neon's dedicated 200-sector value.
-
 ## Recipient-aware world synchronization
 
-Extended coordinates only work when the server writes each packet in the recipient's negotiated format. Commit [`c223b6b3d`](https://github.com/Dryxio/mtasa-neon/commit/c223b6b3d) fixes two RPCs that previously serialized positions into a legacy temporary bitstream before copying them into versioned packets:
+The server writes extended coordinates in each recipient's negotiated format. This includes two RPCs that previously serialized positions into a legacy temporary bitstream before copying them into versioned packets:
 
 - `moveObject` interpolation, including its optional rotation and easing tail;
 - collision-polygon point updates.
 
-Both packets now keep semantic position data until `Write`, where the server chooses the correct encoding for each recipient. Legacy clients keep their old bytes; Neon-capable clients receive the extended position form. Targeted tests cover ordinary coordinates, X=+9,500, water-side X=−9,990, mixed recipient versions, and exact final object positions.
+Both packets now keep semantic position data until `Write`, where the server chooses the correct encoding for each recipient. Legacy clients keep their old bytes; Neon-capable clients receive the extended position form. Targeted tests cover ordinary coordinates, X=+9,500, water-side X=−9,990, mixed recipient versions, and exact final object positions. See commit [`c223b6b3d`](https://github.com/Dryxio/mtasa-neon/commit/c223b6b3d).
 
 ## Water and seabed
 
@@ -85,3 +81,7 @@ Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are test cases
 - Project2DFX searchlights, distant cars, and static shadows are not implemented.
 - One native pack can now activate at startup, but multi-pack or hot-switched native worlds still need aggregate model, TXD, collision, IPL, archive, streaming-memory, LOD, and optional-subsystem budgets.
 - Ordinary draw distances remain unchanged unless a server or resource changes them.
+
+## Implementation note
+
+The early native `SWEET1A` gate caught a generated-manifest collision with GTA's shared animation timing constant. Commit [`4f2be00c1`](https://github.com/Dryxio/mtasa-neon/commit/4f2be00c1) removes that non-sector operand while leaving Neon's dedicated sector value in place.
