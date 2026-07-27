@@ -97,6 +97,10 @@ Sequence construction validates each descriptor before handing its child task to
 - Native task acceptance is not proof of arrival, damage, dialogue completion, or mission success.
 - The server remains responsible for ownership epochs, timeouts, failure handling, and progression.
 
+Only the current syncer executes the real GTA AI task. Other clients receive ordinary synchronized world state, but the current compact presentation relay covers only locomotion produced by active go-to leaves. It does not yet reproduce arbitrary live combat, vehicle-transition, look/aim, physical-response, or task-generated animation state for non-syncers.
+
+The intended general model keeps one native simulator and gives observers generation-scoped visual baselines and snapshots. Observers may render locomotion, pose and animation through GTA, but must not run competing AI, create damage, change seats, or report task completion. Verifying that path requires at least two connected clients, although the observer may be automated and controlled by the same tester.
+
 ## Streaming leases and native route handoffs
 
 [`acquireElementStreamingLease`](/neon/functions/acquireElementStreamingLease) adds one resource-owned streaming reference to a compatible element. The returned token is private to that resource generation. Explicit release removes the reference, element destruction invalidates the target, and resource shutdown releases every remaining token.
@@ -257,6 +261,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 
 - Low-level native tasks have no general completion event or durable migration-safe handle.
 - Streaming leases preserve instances; they do not choose a syncer or reconstruct arbitrary work.
+- Remote native-task presentation currently covers only active go-to locomotion, not the full live action and animation state.
 - Client-local actor and vehicle policies must be replicated and cleared by the resource.
 - File cutscenes, camera state, audio, and text are local presentation systems coordinated by server barriers.
 - Complete multi-participant cutscene and mission checkpoint validation remains open.
