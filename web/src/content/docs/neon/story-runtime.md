@@ -1,6 +1,6 @@
 ---
 title: Story runtime
-description: Native ped tasks, file cutscenes, camera leases, mission audio and text, recorded cars, and multiplayer-oriented mission primitives.
+description: Synchronized ambient pedestrians, native ped tasks, file cutscenes, camera leases, mission audio and text, recorded cars, and multiplayer-oriented mission primitives.
 sidebar:
   order: 6
 ---
@@ -14,6 +14,16 @@ Most low-level calls run on the client that currently simulates the ped or vehic
 [`setPedUseNativeWalkingStyle`](/neon/functions/setPedUseNativeWalkingStyle) and [`isPedUsingNativeWalkingStyle`](/neon/functions/isPedUsingNativeWalkingStyle) make a ped follow the current skin model's native motion group.
 
 The setting is synchronized, follows model changes and native recreation, and retains jetpack priority. Numeric `setPedWalkingStyle` calls still work; whichever walking-style API writes last determines the active policy.
+
+## Synchronized ambient pedestrians
+
+Neon keeps GTA's unmanaged `CPopulation::AddToPopulation` loop disabled. Instead, three [client-side population primitives](/neon/functions#population) expose GTA's civilian-model residency and pedestrian path-placement rules without creating a local-only ped. A multiplayer resource can validate the proposal on the server, create one real MTA ped, and choose exactly one client to run `CTaskComplexWanderStandard`.
+
+The [`native-ped-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/native-ped-traffic) reference resource demonstrates that full layer: conservative global, per-player, cell, separation, and ped-pool limits; one streaming lease and native Wander task on the current syncer; monotonically increasing owner epochs; acknowledged or timed-out handoffs; corpse cleanup; and destruction of every owned ped on shutdown.
+
+The engine calls are deliberately lower-level than a complete population manager. [`updateAmbientPedPopulationModels`](/neon/functions/updateAmbientPedPopulationModels) retains GTA's eight zone-model slots until [`resetAmbientPedPopulationModels`](/neon/functions/resetAmbientPedPopulationModels) is called. [`getAmbientPedSpawnCandidate`](/neon/functions/getAmbientPedSpawnCandidate) proposes one model and position but does not establish network ownership, validate it against other players, create an element, or clean anything up.
+
+The V1 reference resource is limited to civilians outdoors in dimension and interior zero. Vehicles, police, gangs, dealers, couples, attractors, conversations, and simulation without an eligible client remain open work. Two-client runs in Los Santos and Las Venturas checked 23 owner-epoch changes with zero task failures; the observing client showed no freeze, teleport, disappearance, or walk-to-run transition during the final handoff run.
 
 ## Native ped tasks
 
@@ -97,7 +107,7 @@ Sequence construction validates each descriptor before handing its child task to
 - Native task acceptance is not proof of arrival, damage, dialogue completion, or mission success.
 - The server remains responsible for ownership epochs, timeouts, failure handling, and progression.
 
-Only the current syncer executes the real GTA AI task. Other clients receive ordinary synchronized world state, but the current compact presentation relay covers only locomotion produced by active go-to leaves. It does not yet reproduce arbitrary live combat, vehicle-transition, look/aim, physical-response, or task-generated animation state for non-syncers.
+Only the current syncer executes the real GTA AI task. Other clients receive ordinary synchronized world state, while the current compact presentation relay covers locomotion produced by active go-to and Wander leaves. It does not yet reproduce arbitrary live combat, vehicle-transition, look/aim, physical-response, or task-generated animation state for non-syncers.
 
 The intended general model keeps one native simulator and gives observers generation-scoped visual baselines and snapshots. Observers may render locomotion, pose and animation through GTA, but must not run competing AI, create damage, change seats, or report task completion. Verifying that path requires at least two connected clients, although the observer may be automated and controlled by the same tester.
 
@@ -109,7 +119,7 @@ A lease can keep an existing native instance and task alive outside ordinary str
 
 The optional `native-task-runtime` test resource demonstrates the missing server layer for `drive_to` routes. It owns stable route handles, immutable waypoints, accepted progress, cancellation, and monotonically increasing owner epochs. A new syncer rebuilds the route from the last accepted waypoint instead of starting from zero.
 
-Those runtime exports are resource code, not core Neon Lua registrations, so they are not part of the 127-entry engine API catalog. The current route layer also has no frozen-client heartbeat reassignment and does not reconstruct combat groups.
+Those runtime exports are resource code, not core Neon Lua registrations, so they are not part of the engine API catalog. The current route layer also has no frozen-client heartbeat reassignment and does not reconstruct combat groups.
 
 ## Native gang tags
 
@@ -227,7 +237,7 @@ The handle belongs to the calling resource. Only one transition may run for a pl
 
 The first supplied site reproduces the audited `cschp_ls` IPL pair used by the original story. The service preserves its trigger bounds, heading, area, and Z conversion, but it does not run a native door task, populate the shop, or open a clothing menu.
 
-These three exports belong to the optional [`story-entry-exit-runtime`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-runtime) Lua resource, not to the C++ registration table. They therefore do not change the 127 documented engine API entries. The focused [`story-entry-exit-test`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-test) covers its lifecycle separately.
+These three exports belong to the optional [`story-entry-exit-runtime`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-runtime) Lua resource, not to the C++ registration table. They therefore do not change the engine API catalog. The focused [`story-entry-exit-test`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/story-entry-exit-test) covers its lifecycle separately.
 
 ## Mission audio
 

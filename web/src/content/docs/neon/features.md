@@ -90,11 +90,4 @@ See [Tooling and verification](/neon/tooling-and-verification) for the test leve
 
 ## API inventory
 
-The [Neon Lua API](/neon/functions) has **127 documented entries**:
-
-- 123 registrations added in Neon;
-- two existing vehicle-entry/exit APIs with Neon-native task and lifecycle behavior;
-- two existing glitch APIs extended with `fastweaponstrafe`;
-- server-side extensions of model functions that already existed on the client are labeled by their actual side.
-
-The list comes from the final C++ registrations and the commits that implemented or extended them.
+The [Neon Lua API](/neon/functions) is generated from the final C++ registrations and documents both Neon additions and existing MTA functions whose side, task, or lifecycle contract Neon extends. Each entry identifies its actual side, implementation commit, ownership rules, failure conditions, and focused test resource when one exists.

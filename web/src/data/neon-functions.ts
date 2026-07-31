@@ -88,6 +88,12 @@ export const neonCategories = {
     test: null,
     lifecycle: "The policy survives model changes, stream cycles, joins, and native ped recreation. Numeric setPedWalkingStyle calls are still last-writer-wins.",
   },
+  population: {
+    title: "Synchronized ambient pedestrians",
+    guide: "/neon/story-runtime#synchronized-ambient-pedestrians",
+    test: "test-resources/native-ped-traffic",
+    lifecycle: "The model-residency pass retains GTA's eight stock zone-ped slots until reset or game teardown. Candidate queries create no element; a multiplayer resource must validate proposals, create and own peds, assign one syncer, advance owner epochs, and clean up every element.",
+  },
   streaming: {
     title: "Resource-owned streaming leases",
     guide: "/neon/story-runtime#streaming-leases-and-native-route-handoffs",
@@ -411,6 +417,34 @@ export const neonFunctions: NeonFunction[] = [
     arguments: [arg("thePed", "ped", "Target ped or player.")], returns: "The current policy, or false for an invalid element.",
     oop: ["ped:isUsingNativeWalkingStyle()", "ped.usingNativeWalkingStyle"],
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "012f05529",
+  },
+
+  {
+    name: "updateAmbientPedPopulationModels", category: "population", side: "client",
+    signature: "bool updateAmbientPedPopulationModels(Vector3 origin)",
+    summary: "Runs GTA's ped-only zone-model residency pass around an origin without enabling unmanaged population creation.",
+    arguments: [arg("origin", "Vector3", "Finite world position whose native population zone should be kept current.")],
+    returns: "true after the native residency pass runs; argument validation reports an error for an invalid vector.",
+    notes: ["Call this while candidate generation is active, normally from onClientPreRender as the reference resource does.", "The pass can retain up to eight stock population models and creates no ped. Call resetAmbientPedPopulationModels when generation stops."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp", commit: "b159bcd0c", test: "test-resources/native-ped-traffic",
+  },
+  {
+    name: "getAmbientPedSpawnCandidate", category: "population", side: "client",
+    signature: "table|false, string? getAmbientPedSpawnCandidate(Vector3 origin)",
+    summary: "Asks GTA's native civilian and path rules for one read-only ambient-ped proposal.",
+    arguments: [arg("origin", "Vector3", "Finite player or population-manager origin used for native distance and visibility rules.")],
+    returns: "A table containing model, pedType, x, y, z, direction, and pathLerp; or false plus invalid-origin, no-model, unsupported-model, no-path, path-density, visible-too-close, or blocked.",
+    notes: ["The candidate uses GTA's loaded civilian models, path-node density, path width, collision query, camera visibility, and population distance multipliers.", "This function creates no native or MTA ped and grants no authority. The server must validate the proposal against other players and its own caps before creating a synchronized element."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp", commit: "b159bcd0c", test: "test-resources/native-ped-traffic",
+    example: "local candidate, reason = getAmbientPedSpawnCandidate(localPlayer.position)\nif candidate then\n    triggerServerEvent(\"traffic:candidate\", resourceRoot, candidate)\nend",
+  },
+  {
+    name: "resetAmbientPedPopulationModels", category: "population", side: "client",
+    signature: "bool resetAmbientPedPopulationModels()",
+    summary: "Releases the stock population-model residency established by the ambient-ped update pass.",
+    returns: "true after the reset request, including when no ambient population slots were active.",
+    notes: ["The native clear routine removes only its KEEP_IN_MEMORY pins; live MTA peds and resource model references continue to protect their models.", "The reference resource calls this when traffic is disabled and during client resource shutdown. Game reset and teardown also clear the state."],
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp", commit: "b159bcd0c", test: "test-resources/native-ped-traffic",
   },
 
   {
