@@ -44,10 +44,14 @@ The required depth depends on the change. Lua/resource-data work may need parsin
 - radar extraction and catalog generation;
 - model-store and executable patch validators;
 - native-world manifest and closed-payload parsing;
+- format-3 multi-IMG packaging, aggregate no-mutation planning, selected-set envelopes, and registrar-generation checks;
+- reviewed Bullworth, Vice City, Liberty City, and Carcer City radar-resource generation;
 - immutable cache identity and publication tests;
 - transport, startup authorization, and server-isolation policy tests.
 
 Generated city game assets remain outside Git.
+
+The native-world generator pins its RenderWare conversion step to `Southland-FR/librw` commit `e91821e09ca9957e22c99ecf32438d8098c0ea75`. That keeps regenerated payloads reproducible instead of silently following a moving converter branch.
 
 ## Focused test resources
 
@@ -57,13 +61,15 @@ Representative resources include:
 | --- | --- |
 | World boundaries | `extended-world-test`, `extended-water-test`, `pickup-position-test`, `seabed-boundary-test` |
 | Native pools | `corona-limit-test`, `marker-limit-test`, `renderer-limit-test` |
-| Rendering | `project2dfx-test`, `cull-zone-test`, `cull-mirror-floor-test`, `extended-radar-test` |
+| Rendering | `project2dfx-test`, `fog-distance-test`, `cull-zone-test`, `cull-mirror-floor-test`, `extended-radar-test`, and generated native-world radar resources |
 | Models and streaming | `server-model-registry-test`, `city-residency-coordinator`, `native-simulation-lease-test`, and generated city resources |
+| Synchronized traffic | `native-ped-traffic` for civilian proposal, owner epochs, native Wander, avoidance, threat, damage response, observer presentation, and deterministic cleanup |
 | Story primitives | focused go-to, enter, exit, drive-wander, route, drive-by, mission-ped, gang-tag, camera, cutscene, braking, audio, and recording resources |
 | Mission checkpoints | `tagging-up-turf`, `drive-thru`, `nines-and-aks`, `story-entry-exit-runtime`, and `story-entry-exit-test` |
 | Compatibility | `fastweaponstrafe-toggle`, `world-sync-regression-test`, packet capability tests, and mixed-recipient serialization cases |
-| Native world | `native-world-transport-test`, `native-world-static-transport-test`, `native-world-static-startup-test`, plus audit/cache/authorization/isolation tests |
-| Performance | `entity-performance-test` with repeatable model, collision, native-cost, and traversal profiles |
+| Native world | legacy transport/startup resources plus format-3 child-pack, selected-set, aggregate planner, cache, registrar, and generation-fence harnesses |
+| Multi-client development | isolated `-cl2` client state and the `MTA Neon Duo` launcher described in [`MULTI_CLIENT.md`](https://github.com/Dryxio/mtasa-neon/blob/master/MULTI_CLIENT.md) |
+| Performance | `entity-performance-test` with repeatable model, collision, native-cost, and traversal profiles; `fps-counter` for a simple local `/fps` display |
 
 An API page labels an explicitly assigned resource as **Test resource**. When it only inherits a category-wide pointer, the page says **Related category harness**; that is discovery help, not a direct per-function validation claim.
 
@@ -73,12 +79,13 @@ An API page labels an explicitly assigned resource as **Test resource**. When it
 | --- | --- | --- |
 | Extended coordinates and world RPCs | Boundary resources, mixed-recipient serialization tests, and in-game extended positions | Every upstream API at the full boundary and every third-party resource assumption |
 | Radar, water, pickups, and seabed | Focused lifecycle resources and in-game extended-world checks | A complete world package with all optional GTA subsystems |
-| Renderer and native pools | Focused stress resources exceeded historical renderer/pool ceilings with cleanup | Every capacity under one simultaneous production workload; post-fix headlight/shader visual pass |
+| Renderer and native pools | Focused stress resources exceeded historical ceilings; the 20,363-light startup catalogue and private 25,000-entry Project2DFX queue were checked in game | Every capacity under one production workload, broad distant-light performance, and the post-fix headlight/shader visual pass |
 | Custom model registry | Server/client registry harnesses plus spawn, replacement, free, and parent-fallback runtime checks | Universal behavior for arbitrary resource combinations and legacy fallback expectations |
-| Native world packs | Publication, immutable cache, two-launch activation, exact reconnect, server isolation, boundary harnesses, and Bullworth travel | Multi-IMG transport, arbitrary static worlds, aggregate packs, and second-city activation |
-| Story primitives | Focused task, lease, camera, cutscene, audio, text, recording, gang-tag, and route checks | General task completion events, arbitrary syncer reconstruction, and frozen-owner heartbeat recovery |
-| Mission checkpoints | Main single-client paths are strongest for Tagging and Drive-Thru; Nines has partial runtime coverage | Complete co-op cutscene/mission matrix and the remaining per-resource branches; see [Mission checkpoints](/neon/mission-checkpoints) |
-| Compatibility and packaging | Capability-gated layouts, mixed-client fallbacks, installer/package checks, and localhost connection | Runtime validation of `fastweaponstrafe` and every experimental feature in the public package |
+| Native world packs | Format-3 multi-IMG transport, exact selected-set audit, four-city generations 2–29, direct switching, bank reuse, reconnect, resource/server restart, and non-contiguous selection | Arbitrary worlds, all possible pack combinations, optional GTA subsystems, and a true D3D device reset |
+| Synchronized pedestrian traffic | Two-client Los Santos and Las Venturas runs covered civilian spawning, 23 owner changes, native Wander, avoidance, aimed-at and damage reactions, physical recovery, flee, and zero-owned-ped shutdown | Ambient vehicles, other population families, headless simulation, and perfect collision-frame agreement |
+| Story primitives | Focused task, lease, camera, cutscene, audio, text, recording, gang-tag, and route checks; reusable two-client channels cover locomotion, ordered animation, fight/chat, weapon audiovisuals, and selected physical responses | General task completion events, arbitrary syncer reconstruction, universal task presentation, and frozen-owner heartbeat recovery |
+| Mission checkpoints | Tagging Up Turf has a complete two-client success path; Drive-Thru has two-client pursuit and weapon-presentation coverage plus a complete single-client return path; Nines has partial runtime coverage | The remaining per-resource branches and a complete two-client matrix for Drive-Thru and Nines; see [Mission checkpoints](/neon/mission-checkpoints) |
+| Compatibility and packaging | Capability-gated ordinary layouts, exact Neon native-world protocol rejection, installer/package checks, localhost connection, packaged Windows and Linux x64 server startup smoke tests, and Linux ARM64 package inspection | Linux ARM64 startup, runtime validation of `fastweaponstrafe`, and every experimental feature in the public package |
 
 This matrix is intentionally scoped. Exact timings, temporary ticket IDs, build-log excerpts, and one-off debugging observations belong in commits or test records rather than the evergreen guide.
 

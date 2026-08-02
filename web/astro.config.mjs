@@ -45,7 +45,9 @@ export default defineConfig({
           label: "MTA:SA Neon · Start here",
           items: [
             { label: "Overview", link: "/neon" },
+            { label: "Download & install", link: "/neon/download" },
             { label: "What's different", link: "/neon/features" },
+            { label: "Synchronized NPCs & traffic", link: "/neon/synchronized-ai" },
             { label: "Neon Lua API", link: "/neon/functions" },
             { label: "Compatibility", link: "/neon/compatibility" },
           ],

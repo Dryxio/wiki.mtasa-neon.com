@@ -1,100 +1,96 @@
 ---
 title: Native world packs
-description: Audited static-world packs, immutable caches, one-shot startup authorization, and process-lifetime activation.
+description: Audited static-world sets, immutable caches, startup authorization, spatial residency, and generation-fenced session teardown.
 sidebar:
   order: 4
 ---
 
-Native world packs let GTA register additional IDE, IMG, COL, and binary IPL data through its startup streaming path. Unlike a Lua city streamer, an activated pack becomes native GTA state and remains loaded for the lifetime of that MTA process.
+Native world packs let GTA register additional IDE, IMG, COL, and binary IPL data through its native streaming path. The current format-3 runtime can prepare a server-selected set from four reviewed city packs: **Bullworth, Vice City, Liberty City, and Carcer City**.
 
-Neon currently implements a reference single-pack startup path for the closed Bullworth format and the constrained `static-world-v1` format. The Bullworth fixture has been exercised through publication, restart, activation, travel, and reconnect. This does not mean arbitrary worlds, several packs, or a second city are already supported.
+The active native-world session owns that selected catalogue, but it does not keep every imported city resident at once. Neon automatically retires the previous city and materializes the selected pack whose reviewed bounds contain the new streaming position. San Andreas remains available between those regions.
 
-## User contract
+This is a reviewed multi-city path, not a general-purpose arbitrary-world loader.
 
-Before enabling startup activation, a server operator and player should understand these rules:
+## What a player or server operator should expect
 
-- the client downloads, audits, and caches one exact pack before GTA can load it;
-- activation requires a clean second launch connected to the same passwordless numeric endpoint;
-- authorization is short-lived, one-shot, and bound to the exact content and server identity;
-- one MTA process can own one active pack and one server;
-- connecting to another server requires closing MTA and starting a clean process;
-- supplied or saved passwords are not used during record-driven startup or active reconnect;
-- there is no hot registration, hot unload, or pack switch;
-- radar, paths, population, zones, audio, interiors, and environment data are separate work.
+- The client downloads, audits, and caches the exact set before GTA may load it.
+- Activation still uses a controlled two-launch flow and the same passwordless numeric endpoint.
+- The server chooses an ordered set of one to eight unique, compatible child packs. Order is part of the set identity.
+- One imported city is spatially resident at a time. Travel can switch cities inside the selected set without restarting MTA.
+- Session shutdown can now drain and detach the committed format-3 content. The supported path to a different selected set or server still requires a new startup ticket and clean restart because same-process readmission is not complete.
+- Current Neon client and server builds must match the native-world protocol. There is no silent downgrade to an ordinary resource download.
+- Radar, paths, population, zones, audio, interiors, and environment data are separate work.
 
-Native-world transport and activation require matching Neon client and server capabilities. An older or incapable client does not receive engine-only native-world descriptors.
+## Format 3: selected static-world sets
 
-## Pack formats
-
-Both formats use three engine-owned automatic downloads:
+A child pack is publish-only. It contains one manifest, one IDE, a mandatory LOD relationship file, and between one and 32 IMG archives:
 
 ```xml
-<file src="native/native-world.json" download="true" native_world="true" />
-<file src="native/world.ide" download="true" native_world="true" />
-<file src="native/world.img" download="true" native_world="true" />
+<native_world format="3" policy="static-world-v3"
+              manifest="native/native-world.json" />
 ```
 
-### Format 1: Bullworth
+```text
+native/native-world.json
+native/world.ide
+native/world.lod
+native/w000.img ... native/w031.img
+```
 
-Format 1 is bound to Neon's compiled Bullworth policy:
+Each IMG is limited to 256 MiB and the complete child payload to 8 GiB. A child cannot set `startup="true"`; only the coordinator may authorize a set.
+
+The coordinator publishes the canonical ordered selection:
 
 ```xml
-<native_world format="1" manifest="native/native-world.json"
-              startup="true" policy="bullworth" />
+<native_world format="3" policy="static-world-v3-set"
+              manifest="native/static-world-v3-set.json"
+              startup="true" />
 ```
 
-Removing `startup="true"` and `policy="bullworth"` makes the resource publish-only. The payload is still audited and stored in the immutable cache, but it cannot authorize GTA startup.
+Before any native mutation, the server and client lock and re-audit the set envelope and every selected child, then rerun the aggregate planner. Pack IDs, content IDs, logical model ranges, files, coordinates, LOD relationships, and combined capacities must still match the accepted plan.
 
-### Format 2: static-world-v1
+## Runtime residency
 
-Format 2 separates pack identity from the audit policy:
+Selected packs keep their stable logical model identities, while the active city uses one of two 4,096-slot physical banks:
 
-```xml
-<native_world format="2" policy="static-world-v1"
-              manifest="native/native-world.json" startup="true" />
+```text
+bank A   20000 .. 24095
+bank B   24096 .. 28191
 ```
 
-Its manifest root contains only `format`, `policy`, a bounded `pack_id`, and file metadata. `pack_id` must match `[a-z0-9_-]{1,15}`. It participates in content identity but cannot choose parser budgets, executable patches, native paths, pools, or cache directories.
+Each child may define at most 4,096 models. The selected set may describe at most 12,000 models across its non-overlapping logical ranges. When travel crosses reviewed city bounds, Neon prepares the target scene, retires the old generation, and reuses the other physical bank.
 
-Format 2 has separate publish and startup capabilities. A client that only supports publishing receives an inert descriptor; the server cannot silently upgrade it to activation. The two formats also use separate content-ID domains and cache trees.
+The generation fence removes cover data, IPL and LOD anchors, archive channels, collision, models, and stale bindings before a bank is reused. This switching is automatic engine behavior; there is no public Lua function that selects a city.
 
-`static-world-v1` is a closed static-world grammar, not arbitrary IDE support. Its current format-2 fixture intentionally reuses the known Bullworth content, so that run proves the generic transport and authorization path rather than a second city.
+Commit [`ac3a54f57`](https://github.com/Dryxio/mtasa-neon/commit/ac3a54f57) also moved resource-managed server model IDs to 42,341–65,534, above Neon's complete native FileID layout. Those server IDs are separate from the two physical residency banks.
 
 ## Download, audit, and cache
 
-The client accepts one manifest, one IDE, and one IMG. Current size ceilings are 4 KiB, 1 MiB, and 256 MiB.
-
 After normal resource download checks, a cancellable worker:
 
-1. copies the payload into same-volume quarantine;
-2. parses the manifest, IDE, IMG directory, DFF/TXD data, COL, and binary IPLs;
+1. copies each payload into same-volume quarantine;
+2. parses its manifest, IDE, LOD relationships, IMG directories, DFF/TXD data, COL, and binary IPLs;
 3. derives model, texture, collision, placement, archive, coordinate, and streaming budgets;
 4. rejects unknown grammar, unsafe names, non-finite values, collisions, overflows, and unsupported content;
-5. publishes one immutable cache object with an atomic directory rename;
-6. reopens and validates the final object under no-write/no-delete handles.
+5. publishes immutable cache objects with atomic directory renames;
+6. reopens and validates the final objects under no-write/no-delete handles.
 
-The cache holds at most four objects and 1 GiB of counted data per policy, with a 64 MiB free-space margin. Reparse points, unsafe siblings, corrupt objects, ambiguous crash residue, and quota exhaustion fail closed.
-
-A content hash proves that bytes are identical. It does not identify who sent them and does not authorize GTA to load them.
+A content hash proves that bytes are identical. It does not identify who sent them and does not authorize GTA to load them. Reparse points, unsafe siblings, corrupt objects, ambiguous crash residue, quota exhaustion, and a changed set fail closed.
 
 <span id="the-two-launch-activation"></span>
 
 ## Two-launch activation
 
-Activation is deliberately split across two launches:
-
 ```text
-launch 1: download -> audit -> immutable cache -> pending authorization
+launch 1: download -> audit -> immutable cache -> pending set authorization
                                       |
                                       v
                            nativeworldauth restart
                                       |
                                       v
-launch 2: exact cache re-audit -> one-shot claim -> same-server validation
-          -> native registration -> process lease
+launch 2: exact set and child re-audit -> one-shot claim -> server validation
+          -> registrar generation 1 -> process lease
 ```
-
-On launch 1, the pending record is bound to the content ID, format, policy, opaque server-ID digest, canonical numeric IPv4 endpoint, resource generation, and negotiated bitstream version. It expires after 15 minutes and contains no password, raw server key, hostname, payload path, or server-chosen executable path.
 
 The player controls the pending transaction from F8:
 
@@ -104,89 +100,70 @@ nativeworldauth restart
 nativeworldauth clear
 ```
 
-`restart` requires a fresh record with at least 60 seconds remaining and schedules one passwordless `mtasa://<numeric-ip>:<port>` reconnect. `clear` applies only while the record is still pending.
+The record expires after 15 minutes. It is bound to the exact ordered content set, opaque server identity, numeric IPv4 endpoint, resource generation, and negotiated protocol version. It contains no password, raw server key, hostname, payload path, or server-selected executable path.
 
-On launch 2, Neon opens the exact cache object named by the record. It does not choose the newest object or recreate a missing one. The client fully re-audits the object, validates the supported GTA executable and patch sites, then spends the one-shot ticket before native mutation. The new connection must reproduce the endpoint, opaque server identity, and bitstream version before the pack becomes process-lifetime state.
+On launch 2, Neon opens the exact cache objects named by the record, fully re-audits them, validates the supported GTA executable and patch sites, then spends the one-shot ticket before native mutation. The new connection must reproduce the endpoint, server identity, and protocol version.
 
-## Process-lifetime server isolation
+## Session teardown and server isolation
 
-An active pack has no safe hot-unload path. Neon therefore pins every connection route to the owner endpoint before unloading the current mod, resetting the network, changing reconnect state, or reading credentials.
+While a selected set is active, Neon pins connection routes to the owner endpoint before network reset, reconnect, mod unload, or credential lookup.
 
-- Exact reconnect to the owner endpoint remains available and repeats the opaque server-ID check.
-- A request for another target is blocked without destroying the valid owner session.
-- Changing servers requires a clean MTA process.
-- Supplied and saved credentials stay suppressed through pending, preparing, and active phases.
+- An active-session mismatch is blocked without destroying the valid owner session.
+- Saved and supplied credentials remain suppressed while native-world startup or residency is active.
 - Passworded native-world startup is not supported.
 
-The endpoint is only a locator. Continuity also uses the opaque identity exposed by MTA's external network module; this visible source does not establish PKI, authenticated DNS ownership, or a server operator's legal identity.
+Format-3 teardown now has explicit `Active → Draining → Detached → Neutral` fences. It stops new city work, flushes outstanding streaming I/O, removes generation-owned entities, IPL and LOD anchors, collisions, model bindings and archive channels, releases immutable-cache handles, restores the native stores and pools, and then releases the endpoint-owned session. The recorded live gate reached content-neutral, session-neutral, admission-baseline-matching, I/O-quiescent state with zero cache handles.
 
-## Capacity and current boundaries
+That is a real cleanup boundary, not a supported hot server switch yet. The later readmission checkpoint is still marked WIP: after reconnect, a changed structural baseline makes Neon publish `restart-required=yes`. Use the clean two-launch flow for a different set or server until that invariant is resolved.
 
-The installed foundation contains 42,341 FileIDs, including 32,000 DFF, 8,000 TXD, 512 COL, and 1,024 IPL slots. Related native pools contain 32,000 buildings, 30,000 collision models, and 2,048 quadtree nodes.
+The endpoint is only a locator. The opaque network identity provides continuity inside this workflow; it is not PKI or proof of the operator's legal identity.
 
-These numbers are capacity, not a promise that four cities can run together. The current public path accepts one IMG, the reference Bullworth plan remains within its audited grammar, and aggregate multi-pack allocation has not been implemented.
+## Capacity and boundaries
 
-<details>
-<summary>Show the installed FileID layout and observed Bullworth usage</summary>
+The installed foundation contains 42,341 native FileIDs: 32,000 DFF, 8,000 TXD, 512 COL, 1,024 IPL, and the smaller DAT/IFP/RRR/SCM stores. Related native pools contain 32,000 buildings, 30,000 collision models, and 2,048 quadtree nodes.
 
-The runtime layout is captured once during startup and shared by the affected client modules:
-
-```text
-DFF          0 .. 31999   (32,000)
-TXD      32000 .. 39999   ( 8,000)
-COL      40000 .. 40511   (   512)
-IPL      40512 .. 41535   ( 1,024)
-DAT      41536 .. 41599   (    64)
-IFP base 41600
-RRR base 41780
-SCM base 42255
-loaded   42337
-requested 42339
-total    42341
-```
-
-The highest observed use during the exercised Bullworth/SA lifecycle was:
+The four-city tour observed these peak values:
 
 | Store or pool | Observed / installed |
 | --- | ---: |
-| TXD | 3,774 / 8,000 |
-| COL | 253 / 512 |
-| IPL | 198 / 1,024 |
-| Buildings | 12,128 / 32,000 |
-| Collision models | 10,932 / 30,000 |
-| Quadtree nodes | 225 / 2,048 |
+| TXD | 4,933 / 8,000 |
+| COL | 373 / 512 |
+| IPL | 314 / 1,024 |
+| Buildings | 21,500 / 32,000 |
+| Collision models | 21,819 / 30,000 |
+| Quadtree nodes | 280 / 2,048 |
 
-The layout comes from [`CFileIDRuntimeSA.cpp`](https://github.com/Dryxio/mtasa-neon/blob/master/Client/game_sa/CFileIDRuntimeSA.cpp). These high-water values describe the exercised Bullworth fixture, not a universal safe workload or proof of second-city activation.
+These are observed high-water marks, not universal safe budgets. Other current boundaries are:
 
-</details>
-
-Additional boundaries:
-
+- only the four reviewed pack pipelines are accepted; arbitrary static worlds are not proved;
+- at most one imported city is materialized at a time;
+- the selected catalogue cannot be replaced while its generation is active, and supported readmission still uses a clean restart;
 - two exact audited GTA SA 1.0 US executable identities are supported;
 - high static IPL slots cannot own car generators;
-- DAT remains at 64 entries;
-- save compatibility retains the stock FileID namespace;
-- the old environment-selector route lacks record-driven server isolation;
-- multi-IMG transport and second-city activation remain unproved.
+- paths, nodes, population, zones, audio, interiors, radar, and environment remain separate;
+- a true Direct3D device-reset pass is still missing; borderless minimize/restore did not trigger one.
+
+## Legacy single-pack formats
+
+Formats 1 and 2 remain for the original Bullworth path. Format 1 uses the compiled `bullworth` policy; format 2 uses the closed `static-world-v1` grammar. Both accept one manifest, one IDE, and one IMG, and use the same two-launch authorization model. They do not gain v3 multi-IMG or selected-set behavior.
 
 ## Verification summary
 
-The strongest in-game evidence covers format-1 and format-2 publication, exact cache hits, passwordless restart into a new process, cache re-audit, one-shot claim, native activation, exact reconnect, owner-server rejection, and repeated San Andreas/Bullworth travel.
+The strongest runtime pass exercised San Andreas plus all four reviewed cities through generations 2–29, including adjacent and direct city switches, physical-bank reuse, death/respawn, reconnect, resource restart, and server restart. A separate non-contiguous Bullworth + Liberty City + Carcer City set kept omitted Vice City inactive. The generic network contract was then checked with a three-pack ordered set and rejection of an exact old client before join.
 
-Boundary harnesses have exercised native load and removal around expanded COL and IPL byte boundaries, followed by restoration of streaming and pool state. Observed Bullworth use remained below installed capacities through repeated travel, minimize/restore, and death/respawn.
+All 3,038 reviewed Vice City and Liberty City LOD relationships were preserved. The format-3 transport and set parser, aggregate planner, cache recovery, registrar, generic network contract, neutral-state baseline, generation ownership, runtime drain, teardown, and session release also have focused automated coverage. The teardown sequence grew through a recorded 196-test suite, while the later 57-test readmission checkpoint remains explicitly WIP. Relevant client projects, including Game SA, Core, Client Deathmatch, and Multiplayer SA where affected, built for the corresponding checkpoints.
 
-This proves the exercised fixture and lifecycle. It does not prove multi-IMG transport, arbitrary static-world content, a second-city activation, or aggregate multi-pack budgets.
+This evidence covers the reviewed assets and named lifecycle. It does not prove arbitrary content, every possible one-to-eight-pack combination, every optional GTA subsystem, or a real D3D device reset.
 
 <details>
 <summary>Implementation provenance</summary>
 
-The work was developed in four connected series:
+- format-3 multi-IMG transport and aggregate planning: [`42597bd84`](https://github.com/Dryxio/mtasa-neon/commit/42597bd84), [`11dc68396`](https://github.com/Dryxio/mtasa-neon/commit/11dc68396), [`c6723544c`](https://github.com/Dryxio/mtasa-neon/commit/c6723544c), and [`96230e389`](https://github.com/Dryxio/mtasa-neon/commit/96230e389);
+- transactional registrar, LOD bootstrap, and generation-fenced residency: [`3b4ee3d8b`](https://github.com/Dryxio/mtasa-neon/commit/3b4ee3d8b), [`f9ff61552`](https://github.com/Dryxio/mtasa-neon/commit/f9ff61552), and [`7cee41f57`](https://github.com/Dryxio/mtasa-neon/commit/7cee41f57);
+- reviewed selection and generic network contract: [`22f863ea2`](https://github.com/Dryxio/mtasa-neon/commit/22f863ea2) and [`ac3a54f57`](https://github.com/Dryxio/mtasa-neon/commit/ac3a54f57);
+- live registrar baselines, neutral contract, generation journal, drain, detach, and session release: [`52453ba39`](https://github.com/Dryxio/mtasa-neon/commit/52453ba39), [`f386b71e9`](https://github.com/Dryxio/mtasa-neon/commit/f386b71e9), [`5e208efcb`](https://github.com/Dryxio/mtasa-neon/commit/5e208efcb), [`555386e57`](https://github.com/Dryxio/mtasa-neon/commit/555386e57), [`759b35e19`](https://github.com/Dryxio/mtasa-neon/commit/759b35e19), and [`8fdf082cf`](https://github.com/Dryxio/mtasa-neon/commit/8fdf082cf);
+- incomplete same-process readmission checkpoint: [`b00858f6b`](https://github.com/Dryxio/mtasa-neon/commit/b00858f6b).
 
-- native registration and immutable audit/cache foundations: [`5edd8e7f9`](https://github.com/Dryxio/mtasa-neon/commit/5edd8e7f9), [`5d43f18e5`](https://github.com/Dryxio/mtasa-neon/commit/5d43f18e5), and [`7c38a9278`](https://github.com/Dryxio/mtasa-neon/commit/7c38a9278);
-- one-shot authorization, startup claim, activation, and restart: [`b9ce96d3c`](https://github.com/Dryxio/mtasa-neon/commit/b9ce96d3c) through [`453ca427b`](https://github.com/Dryxio/mtasa-neon/commit/453ca427b);
-- format-2 transport/activation and server isolation: [`0b8f07565`](https://github.com/Dryxio/mtasa-neon/commit/0b8f07565), [`c87820afc`](https://github.com/Dryxio/mtasa-neon/commit/c87820afc), and [`457a83d11`](https://github.com/Dryxio/mtasa-neon/commit/457a83d11);
-- FileID, model-store, and native-pool expansion: [`ac06da9c6`](https://github.com/Dryxio/mtasa-neon/commit/ac06da9c6) through [`3a23fd26f`](https://github.com/Dryxio/mtasa-neon/commit/3a23fd26f).
-
-Focused transport, cache, authorization, isolation, startup, and capacity harnesses are indexed on [Tooling and verification](/neon/tooling-and-verification).
+Focused harnesses and evidence labels are indexed on [Tooling and verification](/neon/tooling-and-verification).
 
 </details>

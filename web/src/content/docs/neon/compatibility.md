@@ -5,7 +5,7 @@ sidebar:
   order: 7
 ---
 
-Neon keeps MTA's resource model and normal gameplay defaults. Its extra engine features are opt-in, and compatibility varies from one feature to another. A client being able to connect does not mean it understands every Neon API or packet field.
+Neon keeps MTA's resource model and normal gameplay defaults. Its extra engine features are opt-in, and compatibility varies by feature. The current Neon server requires its matching deathmatch network epoch; an older client is rejected before join instead of being allowed to reinterpret a changed contract.
 
 Before depending on Neon behavior:
 
@@ -35,15 +35,15 @@ Neon advertises bitstream capabilities before it changes a packet layout. This a
 - extended low-precision world coordinates;
 - extended absolute camera coordinates;
 - server model registry definitions and logical IDs;
-- native-world format-1 transport and startup authorization;
-- the separate format-2 `static-world-v1` publish and startup capabilities;
+- native-world legacy transport and startup authorization;
+- format-3 child packs, ordered selected sets, and registrar generations;
 - synchronized `fastweaponstrafe` state.
 
-Older clients keep the packet layout they already understand. If a client does not support native-world transport, the server leaves those engine-only files and descriptors out completely.
+Versioned serializers still preserve their defined ordinary packet layouts. Native World v3 is stricter: the server requires the exact current capability contract and does not silently downgrade a selected set into ordinary resource files.
 
 ## Model fallback
 
-Server-managed elements retain a native parent. A capable client maps the stable logical ID to one of its own runtime slots; a legacy client or a client without an active slot renders and simulates the parent model instead.
+Server-managed elements retain a native parent. A connected client maps the stable logical ID to one of its own runtime slots; if that client has no active slot, it renders and simulates the parent model instead.
 
 This keeps the client connected and the element usable, but it cannot reproduce the custom model's appearance. The resource still has to decide whether that fallback is good enough for its gameplay.
 
@@ -78,9 +78,15 @@ Do not redistribute a local `CUSTOM` build as if it were the public package.
 
 ## Native world requirements
 
-Native-world transport and activation need matching Neon client and server builds. A capable client can publish an inert pack without accepting startup authorization; each descriptor is gated independently so older layouts are not reinterpreted.
+Native-world transport and activation need matching Neon client and server builds. A format-3 child can be published inertly, but only the selected-set coordinator may request startup. An incompatible client is rejected rather than receiving a partial set.
 
-Activation requires a clean two-launch transaction to the same passwordless numeric endpoint. Once the pack is active, the process is pinned to that endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated; connecting elsewhere requires closing MTA and starting a clean process. Neon does not hot-load or hot-unload a native pack.
+Activation requires a clean two-launch transaction to the same passwordless numeric endpoint. Once the selected catalogue is active, the process is pinned to that endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated; connecting elsewhere or changing the selected set requires closing MTA. Spatial residency may still switch between cities already admitted to that set.
+
+## Narrow compatibility fixes
+
+Recent engine work also preserves native mission-ped fight and choking reactions, avoids two audited shadow/IK streaming crash paths, and prevents extended-world relocation operands from being overwritten by later vehicle/melee patches. Those paths have different evidence: the mission reactions and helicopter entry were checked in game, while the original shadow/IK crash timing was not reproduced after the guards were added.
+
+The SilentPatch-compatible DFT-30 wheel-name fallback accepts `wheel_lm` where the model normally expects `wheel_lm_dummy`. The implementation is present, but that commit did not record a dedicated runtime validation.
 
 ## Local preview security
 

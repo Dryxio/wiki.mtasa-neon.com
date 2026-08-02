@@ -16,10 +16,11 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
   <div class="neon-hero">
     <div class="neon-orbit" aria-hidden="true"></div>
     <p class="eyebrow">SAN ANDREAS · CUSTOM ENGINE</p>
-    <h2>Neon engine features. <span>Lua APIs and internals.</span></h2>
-    <p class="hero-copy">Build beyond standard MTA with larger world systems, server-authoritative models, native GTA story primitives, focused Lua APIs, and evidence that separates compiled work from in-game validation.</p>
+    <h2>GTA:SA's native world. <span>Synchronized for multiplayer.</span></h2>
+    <p class="hero-copy">Neon turns GTA's original NPC and mission systems into server-owned multiplayer building blocks. Shared civilian pedestrians, syncer handoff, native locomotion and several combat and animation channels are already checked with two clients; full ambient vehicle traffic and the remaining solo-AI families are still in progress.</p>
     <div class="hero-actions">
-      <a class="primary" href="/neon/features">Choose where to start</a>
+      <a class="primary" href="https://github.com/Dryxio/mtasa-neon/releases/latest/download/MTA-Neon-Setup.exe">Download for Windows</a>
+      <a href="/neon/synchronized-ai">Explore synchronized AI</a>
       <a href="/neon/functions">Browse the Neon Lua API</a>
     </div>
   </div>
@@ -35,12 +36,12 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     <p class="eyebrow">SYSTEM MAP</p>
     <h2>What Neon changes under the hood</h2>
     <div class="system-grid">
-      <a href="/neon/extended-world"><span>01</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
-      <a href="/neon/native-world"><span>02</span><h3>Native world packs</h3><p>Server-delivered static worlds, strict auditing, one-shot restart authorization, native activation, and server isolation.</p></a>
-      <a href="/neon/models-and-streaming"><span>03</span><h3>Custom models</h3><p>Stable server model IDs mapped to local GTA slots, with native-parent fallback and resource cleanup.</p></a>
-      <a href="/neon/rendering-and-limits"><span>04</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
-      <a href="/neon/story-runtime"><span>05</span><h3>Story runtime</h3><p>Native file cutscenes, ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
-      <a href="/neon/tooling-and-verification"><span>06</span><h3>Testing & tooling</h3><p>Generators, validators, focused test resources, and the evidence behind each feature.</p></a>
+      <a href="/neon/synchronized-ai"><span>01</span><h3>Synchronized NPCs & traffic</h3><p>Server-owned ambient peds and mission actors driven by GTA's native AI, with one simulator and multiplayer presentation.</p></a>
+      <a href="/neon/story-runtime"><span>02</span><h3>Story runtime</h3><p>Native file cutscenes, ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
+      <a href="/neon/extended-world"><span>03</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
+      <a href="/neon/native-world"><span>04</span><h3>Native world packs</h3><p>Server-delivered static worlds, strict auditing, one-shot authorization, native activation, and server isolation.</p></a>
+      <a href="/neon/models-and-streaming"><span>05</span><h3>Custom models</h3><p>Stable server model IDs mapped to local GTA slots, with native-parent fallback and resource cleanup.</p></a>
+      <a href="/neon/rendering-and-limits"><span>06</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
     </div>
   </section>
 
@@ -60,7 +61,7 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     </div>
   </section>
 
-  <div class="neon-warning"><strong>Compatibility:</strong> Neon can negotiate larger packet formats with supported clients. Older connections keep standard MTA encodings or the documented parent-model fallback. Do not assume these APIs exist on every MTA installation.</div>
+  <div class="neon-warning"><strong>Compatibility:</strong> Do not assume Neon APIs or network extensions exist on an ordinary MTA installation. Servers using current Neon-only model, native-world, or task-presentation protocols must keep client and server packages on the same network epoch.</div>
 </StarlightPage>
 
 <style>

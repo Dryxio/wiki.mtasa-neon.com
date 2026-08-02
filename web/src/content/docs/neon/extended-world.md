@@ -53,6 +53,10 @@ Commit [`ce3f6fe72`](https://github.com/Dryxio/mtasa-neon/commit/ce3f6fe72) buil
 
 Use the [extended radar APIs](/neon/functions#radar) and the `extended-radar-test` resource to verify coordinate selection, replacement, cleanup, and diagnostics.
 
+Four optional client resources package the reviewed native-world radar catalogues: 15 Bullworth tiles, 80 Vice City tiles, 81 Liberty City tiles, and 63 Carcer City tiles. Each resource loads its complete TXD set before changing the registry, rolls back only its own tiles on failure or stop, and exposes `getNativeWorldRadarStatus` and `reloadNativeWorldRadar` as resource exports rather than core Lua APIs. The generated assets are not stored in Git; build them from legally obtained source material with `utils/extended-world/build_native_world_radar_resources.py`.
+
+Bullworth, Liberty City, and Carcer City were exercised together with 159 registered tiles. Vice City's package and manifest were statically checked, but not included in that matching selected-set runtime pass.
+
 ## Resident IMG city workflow
 
 Commit [`a53602ba7`](https://github.com/Dryxio/mtasa-neon/commit/a53602ba7) adds resource-managed per-client residency for large Liberty City, Vice City, Carcer City, and Bullworth packs.
@@ -69,7 +73,7 @@ The switch works like this:
 
 Resident cities switch between finite sets of runtime slots while GTA is already running. Their model allocations may use the [custom model registry](/neon/models-and-streaming), but the resource still owns the archives, preload barrier, and teardown sequence.
 
-This is separate from [native world packs](/neon/native-world). Native packs register audited IDE/IMG/COL/IPL data through GTA's startup spatial-streaming path and have a process-lifetime trust boundary.
+This is separate from [native world packs](/neon/native-world). Native packs register audited IDE/IMG/COL/IPL data through GTA's startup spatial-streaming path and keep an active selected-set trust boundary for the session. The current v3 runtime can move between reviewed cities inside that selected set, while keeping only one imported city resident at a time, then drain and detach the generation during session shutdown.
 
 ## Test maps are not bundled worlds
 
@@ -79,7 +83,7 @@ Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are test cases
 
 - Extended coordinates do not automatically provide radar, paths, population, zones, audio, interiors, or environment data.
 - Project2DFX searchlights, distant cars, and static shadows are not implemented.
-- One native pack can now activate at startup, but multi-pack or hot-switched native worlds still need aggregate model, TXD, collision, IPL, archive, streaming-memory, LOD, and optional-subsystem budgets.
+- Native World v3 supports an ordered set of reviewed packs, automatic spatial city residency, and generation-fenced teardown. The supported path to a different selected set still needs a new startup ticket and clean restart because same-process readmission remains incomplete; arbitrary third-party worlds are not accepted.
 - Ordinary draw distances remain unchanged unless a server or resource changes them.
 
 ## Implementation note

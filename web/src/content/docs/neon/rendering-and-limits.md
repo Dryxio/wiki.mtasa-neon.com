@@ -23,7 +23,9 @@ Runtime evidence exceeded the old ceilings with 1,033 visible entities and 4,677
 
 Commit [`4b7a1f523`](https://github.com/Dryxio/mtasa-neon/commit/4b7a1f523) relocates GTA's 64-entry corona array to 4,096 process-lifetime entries and patches the verified initialization, rendering, reflection, registration, and coordinate-update references. The first native slots remain available to GTA; up to 4,094 scripted coronas were validated in game.
 
-Commit [`d0a91316b`](https://github.com/Dryxio/mtasa-neon/commit/d0a91316b) reads `SALodLights.dat` and renders distant static coronas and timed traffic lights through that pool. The feature is disabled by default and supports a 300–5,000 unit draw-distance range.
+Commit [`d0a91316b`](https://github.com/Dryxio/mtasa-neon/commit/d0a91316b) introduced distant static coronas and timed traffic lights from `SALodLights.dat`. The later startup-catalogue work in [`cc25c8017`](https://github.com/Dryxio/mtasa-neon/commit/cc25c8017) captures all accepted IPL definitions while GTA scans the world, so lights remain discoverable regardless of the player's current location.
+
+Since [`25648d888`](https://github.com/Dryxio/mtasa-neon/commit/25648d888), Project2DFX does not consume GTA/MTA's shared 4,096-entry corona pool. It has a private 25,000-entry candidate and render queue and submits visible lights through GTA's buffered sprite renderer. In the current San Andreas catalogue, 20,363 accepted static definitions are eligible.
 
 What works today:
 
@@ -33,7 +35,11 @@ What works today:
 - rebuild and telemetry APIs;
 - lifecycle cleanup.
 
+The in-game Neon settings tab exposes independent player controls for extended draw distance and Project2DFX. Both are off on a clean install. Draw distance is adjustable from 300 to 5,000 units; distant-light corona radius from 10% to 100%. Resource or server overrides take priority, and clearing them restores the saved player choice instead of leaving a temporary runtime value behind. Fog distance remains independent.
+
 Searchlight cones are recorded for future work. Distant cars, static shadows, and other Project2DFX modules are not implemented.
+
+The full startup catalogue and private queue were compiled and checked in game during a city flight without a new crash or perceptible slowdown. That is a focused runtime check, not a broad performance guarantee; dense production scenes still need their own measurements.
 
 ## Markers, checkpoints, and coronas
 

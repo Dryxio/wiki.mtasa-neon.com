@@ -5,9 +5,11 @@ sidebar:
   order: 6
 ---
 
-Neon exposes reusable GTA story systems instead of hard-coding one mission in C++. A resource can combine native ped tasks, cameras, file cutscenes, mission audio and text, recorded vehicles, and actor policies while keeping mission progress on the server.
+Neon exposes reusable GTA story systems instead of hard-coding one mission in C++. A resource can combine synchronized native NPCs, ped and vehicle tasks, cameras, file cutscenes, mission audio and text, recorded vehicles, and actor policies while keeping mission progress on the server.
 
 Most low-level calls run on the client that currently simulates the ped or vehicle. They do not make a mission authoritative by themselves: the server still has to own state, validate client observations, coordinate participants, and clean up every scene.
+
+For the high-level model—one native simulator, server-owned state, and presentation for every other player—start with [Synchronized NPCs and traffic](/neon/synchronized-ai).
 
 ## Model-native walking
 
@@ -23,7 +25,9 @@ The [`native-ped-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test
 
 The engine calls are deliberately lower-level than a complete population manager. [`updateAmbientPedPopulationModels`](/neon/functions/updateAmbientPedPopulationModels) retains GTA's eight zone-model slots until [`resetAmbientPedPopulationModels`](/neon/functions/resetAmbientPedPopulationModels) is called. [`getAmbientPedSpawnCandidate`](/neon/functions/getAmbientPedSpawnCandidate) proposes one model and position but does not establish network ownership, validate it against other players, create an element, or clean anything up.
 
-The V1 reference resource is limited to civilians outdoors in dimension and interior zero. Vehicles, police, gangs, dealers, couples, attractors, conversations, and simulation without an eligible client remain open work. Two-client runs in Los Santos and Las Venturas checked 23 owner-epoch changes with zero task failures; the observing client showed no freeze, teleport, disappearance, or walk-to-run transition during the final handoff run.
+The `ambient-wander` profile adds GTA's stock pedestrian and parked-vehicle avoidance plus civilian threat and damage decisions on the current owner. A server-validated aim transition can reach that owner through [`addPedNativeGunAimedAtEvent`](/neon/functions/addPedNativeGunAimedAtEvent). When MTA's normal synchronized hit did not create the native response there, [`addPedNativeDamageResponseEvent`](/neon/functions/addPedNativeDamageResponseEvent) can replay only the behavior decision, never the physical damage.
+
+The V1 reference resource is limited to civilians outdoors in dimension and interior zero. Autonomous ambient vehicles, police, gangs, dealers, couples, attractors, conversations, and simulation without an eligible client remain open work. Two-client runs in Los Santos and Las Venturas checked 23 owner-epoch changes with zero task failures; the observing client showed no freeze, teleport, disappearance, or walk-to-run transition during the final handoff run. A later two-client behavior pass covered cross-owner aim, non-lethal damage, hands-up interruption, physical reaction, recovery, flee, parked-vehicle avoidance, surrounding panic, handoff, and cleanup. Complex local collision turns can still diverge by roughly one to two metres before reconverging.
 
 ## Native ped tasks
 
@@ -57,7 +61,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedTaskSequence`](/neon/functions/setPedTaskSequence) | `CTaskComplexSequence` dispatched through `CTaskComplexUseSequence` | `0615 / 0616 / 0618 / 063F` |
 | [`getPedTaskSequenceProgress`](/neon/functions/getPedTaskSequenceProgress) | Reads the active child from `CTaskComplexUseSequence` | `0646 GET_SEQUENCE_PROGRESS` |
 | [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) | Native scripted-speech state; no `CTask` | `0A09 SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH` |
-| [`setPedWeaponShootingRate`](/neon/functions/setPedWeaponShootingRate) | Persistent byte consumed by native gun tasks | `07DD SET_CHAR_SHOOT_RATE` |
+| [`getPedWeaponShootingRate`](/neon/functions/getPedWeaponShootingRate) / [`setPedWeaponShootingRate`](/neon/functions/setPedWeaponShootingRate) | Read or write the persistent byte consumed by native gun tasks; no `CTask` | Getter has no SCM opcode; setter is `07DD SET_CHAR_SHOOT_RATE` |
 | [`setPedWeaponAccuracy`](/neon/functions/setPedWeaponAccuracy) | Persistent byte consumed by native weapon tasks | `02E2 SET_CHAR_ACCURACY` |
 | [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | Persistent `PED_MISSION` policy; no `CTask` | — |
 | [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | Grouped native story-actor flags; no `CTask` | — |
@@ -107,7 +111,9 @@ Sequence construction validates each descriptor before handing its child task to
 - Native task acceptance is not proof of arrival, damage, dialogue completion, or mission success.
 - The server remains responsible for ownership epochs, timeouts, failure handling, and progression.
 
-Only the current syncer executes the real GTA AI task. Other clients receive ordinary synchronized world state, while the current compact presentation relay covers locomotion produced by active go-to and Wander leaves. It does not yet reproduce arbitrary live combat, vehicle-transition, look/aim, physical-response, or task-generated animation state for non-syncers.
+Only the current syncer executes the real GTA AI task. Other clients receive ordinary synchronized world state plus reusable presentation channels for active go-to and Wander locomotion; ordered task-generated animations on a dedicated 100 ms lane; fight and paired-chat associations; on-foot and drive-by weapon audiovisuals; and selected avoidance, threat, damage, physical-response, and flee states. Observer weapon presentation is cancelled before ammo, projectiles, line-of-sight hits, damage, script fire, or tag progress can become authoritative.
+
+This is not yet a universal serialization of GTA's task tree. Generic vehicle-entry and exit presentation, arbitrary look or aim state, every physical response, every task family, and complete join-in-progress or migration coverage remain open. Coordinate weapon snapshots are also not frame-perfect entity tracking during fast motion.
 
 The intended general model keeps one native simulator and gives observers generation-scoped visual baselines and snapshots. Observers may render locomotion, pose and animation through GTA, but must not run competing AI, create damage, change seats, or report task completion. Verifying that path requires at least two connected clients, although the observer may be automated and controlled by the same tester.
 
@@ -142,6 +148,8 @@ Story resources often need native policies that are narrower than MTA's general 
 These ped policies survive local native recreation. Some restore a captured value when cleared; others are explicit last-writer-wins values. Check each function's lifecycle before sharing a ped between resources.
 
 The resource-owned [`acquirePedNativeEventProfile`](/neon/functions/acquirePedNativeEventProfile) lease is different. Its current `mission` profile restores a narrow set of GTA mission-ped event decisions while this client is the authoritative syncer with a live native ped. It does not load arbitrary decision-maker files or serialize an active response task across migration.
+
+The audited mission-ped response path preserves GTA's native choking and melee/fight reactions at the call sites used by Tagging Up Turf. The Ballas fight style, player melee damage, and choking exit were first checked in a single-client run. Later two-client passes verified reusable fight and paired-chat animation presentation, including GTA's missing command-3 melee advance correction. Choking still has no separate two-client claim, and these checkpoints do not prove a universal combat snapshot system.
 
 Vehicles expose their native story state through:
 
@@ -271,7 +279,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 
 - Low-level native tasks have no general completion event or durable migration-safe handle.
 - Streaming leases preserve instances; they do not choose a syncer or reconstruct arbitrary work.
-- Remote native-task presentation currently covers only active go-to locomotion, not the full live action and animation state.
+- Remote native-task presentation covers the checked locomotion, ordered animation, fight/chat, weapon audiovisual, and selected physical-response channels, not every GTA task or transition.
 - Client-local actor and vehicle policies must be replicated and cleared by the resource.
 - File cutscenes, camera state, audio, and text are local presentation systems coordinated by server barriers.
 - Complete multi-participant cutscene and mission checkpoint validation remains open.

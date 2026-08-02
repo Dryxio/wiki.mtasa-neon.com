@@ -12,22 +12,22 @@ A Neon custom model has two identities: a stable ID used by the server and netwo
 The registry covers objects, vehicles, peds, players, buildings, pickups, spawn packets, RPCs, names, enumeration, type queries, capacity queries, and lifecycle fallback. The initial object and vehicle work is tracked by [`a7a20d32b`](https://github.com/Dryxio/mtasa-neon/commit/a7a20d32b), and the completed cross-element registry by [`dc25a615c`](https://github.com/Dryxio/mtasa-neon/commit/dc25a615c).
 
 ```text
-server logical ID (30000+) ──network identity──> client definition
+server logical ID (42341–65534) ──network identity──> client definition
                                                 ├─ native parent fallback
                                                 └─ client-local GTA runtime slot
 ```
 
 In practice:
 
-- logical IDs begin at 30,000 and are not reused during the server process;
+- logical IDs run from 42,341 through 65,534 and are not reused during the server process; 65,535 remains the invalid-model sentinel;
 - each definition has a resource owner, type, native parent, and optional qualified name;
 - each client may allocate a different runtime slot for the same logical ID;
-- legacy clients and clients without an active runtime slot use the native parent;
+- clients without an active runtime slot use the native parent;
 - freeing a definition remaps surviving elements before runtime slots disappear;
 - resource shutdown performs the same cleanup automatically;
 - native ped and player render entities are prepared before slot release to avoid stale `CBaseModelInfo` references.
 
-The [model API group](/neon/functions#models) contains allocation, freeing, metadata, naming, enumeration, capacity, and forward/reverse mapping functions. The five introspection entries added by the completion commit are included even though the current engine README omits them.
+The [model API group](/neon/functions#models) contains allocation, freeing, metadata, naming, enumeration, capacity, and forward/reverse mapping functions. Commit [`ac3a54f57`](https://github.com/Dryxio/mtasa-neon/commit/ac3a54f57) moved the server range above Neon's complete FileID layout and made the standard client model consumers resolve logical IDs before touching GTA slots.
 
 ## Using model IDs correctly
 
