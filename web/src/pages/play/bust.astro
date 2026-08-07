@@ -1,0 +1,282 @@
+---
+const neonUri = 'mtaneon://213.32.90.138:22004';
+const serverAddress = '213.32.90.138:22004';
+const downloadUrl = 'https://github.com/Dryxio/mtasa-neon/releases/latest/download/MTA-Neon-Setup.exe';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0a09" />
+    <meta name="robots" content="noindex" />
+    <title>Play BUST with MTA Neon</title>
+    <meta
+      name="description"
+      content="Open MTA Neon and connect directly to the BUST GTA: San Andreas pursuit server."
+    />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="card" aria-labelledby="page-title">
+        <div class="eyebrow">MTA:SA NEON</div>
+        <h1 id="page-title">BUST</h1>
+        <p class="subtitle">1V1 GTA: SAN ANDREAS PURSUITS</p>
+
+        <div class="rule" aria-hidden="true"></div>
+
+        <p id="launch-status" class="status" aria-live="polite">
+          Opening MTA Neon. Your browser may ask for permission.
+        </p>
+
+        <a id="launch-neon" class="button button-primary" href={neonUri}>OPEN MTA NEON</a>
+        <a class="button button-secondary" href={downloadUrl}>DOWNLOAD MTA NEON</a>
+
+        <div class="fallback">
+          <p>If nothing happens, install MTA Neon and try again.</p>
+          <div class="address-row">
+            <code id="server-address">{serverAddress}</code>
+            <button id="copy-address" type="button">COPY IP</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script is:inline>
+      (() => {
+        const neonUri = 'mtaneon://213.32.90.138:22004';
+        const launchButton = document.getElementById('launch-neon');
+        const status = document.getElementById('launch-status');
+        const copyButton = document.getElementById('copy-address');
+        const address = document.getElementById('server-address');
+
+        const launch = () => {
+          status.textContent = 'Opening MTA Neon. Confirm the browser prompt if it appears.';
+          window.location.assign(neonUri);
+          window.setTimeout(() => {
+            status.textContent = 'Still here? Use OPEN MTA NEON again or install the latest client.';
+          }, 1800);
+        };
+
+        launchButton.addEventListener('click', (event) => {
+          event.preventDefault();
+          launch();
+        });
+
+        copyButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(address.textContent.trim());
+            copyButton.textContent = 'COPIED';
+          } catch {
+            copyButton.textContent = 'COPY FAILED';
+          }
+        });
+
+        if (!new URLSearchParams(window.location.search).has('manual')) {
+          window.setTimeout(launch, 250);
+        } else {
+          status.textContent = 'Press OPEN MTA NEON to connect directly to BUST.';
+        }
+      })();
+    </script>
+  </body>
+</html>
+
+<style>
+  :root {
+    color-scheme: dark;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #080706;
+    color: #f6f3ed;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+      radial-gradient(circle at 72% 18%, rgba(242, 140, 24, 0.18), transparent 28rem),
+      repeating-linear-gradient(115deg, transparent 0 48px, rgba(255, 255, 255, 0.015) 49px 50px),
+      #080706;
+  }
+
+  .shell {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 28px 18px;
+  }
+
+  .card {
+    position: relative;
+    width: min(100%, 560px);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 24px;
+    padding: clamp(30px, 7vw, 56px);
+    background: linear-gradient(145deg, rgba(24, 22, 19, 0.98), rgba(10, 9, 8, 0.98));
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+    text-align: center;
+  }
+
+  .card::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 5px;
+    background: #f28c18;
+    content: '';
+  }
+
+  .eyebrow {
+    color: #f28c18;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+  }
+
+  h1 {
+    margin: 16px 0 2px;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: clamp(5rem, 20vw, 8rem);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.88;
+    text-shadow:
+      3px 3px 0 #000,
+      -1px -1px 0 #000,
+      0 0 32px rgba(242, 140, 24, 0.2);
+  }
+
+  .subtitle {
+    margin: 16px 0 0;
+    color: #bcb7af;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  .rule {
+    width: 72px;
+    height: 3px;
+    margin: 28px auto;
+    background: #f28c18;
+  }
+
+  .status {
+    min-height: 44px;
+    margin: 0 0 22px;
+    color: #ddd8d0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .button {
+    display: flex;
+    width: 100%;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    text-decoration: none;
+    transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .button-primary {
+    background: #f28c18;
+    color: #090806;
+  }
+
+  .button-primary:hover {
+    background: #ff9f2e;
+  }
+
+  .button-secondary {
+    margin-top: 10px;
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.04);
+    color: #f6f3ed;
+  }
+
+  .button-secondary:hover {
+    border-color: rgba(242, 140, 24, 0.7);
+    background: rgba(242, 140, 24, 0.08);
+  }
+
+  .fallback {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .fallback p {
+    margin: 0 0 12px;
+    color: #8f8a83;
+    font-size: 0.8rem;
+  }
+
+  .address-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  code {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    color: #d8d3cb;
+    font-size: 0.78rem;
+  }
+
+  button {
+    min-height: 42px;
+    border: 1px solid rgba(242, 140, 24, 0.45);
+    border-radius: 8px;
+    padding: 0 15px;
+    background: transparent;
+    color: #f28c18;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 900;
+  }
+
+  @media (max-width: 440px) {
+    .card {
+      border-radius: 18px;
+      padding: 34px 22px;
+    }
+
+    .address-row {
+      flex-direction: column;
+    }
+
+    code {
+      min-height: 42px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button {
+      transition: none;
+    }
+  }
+</style>
