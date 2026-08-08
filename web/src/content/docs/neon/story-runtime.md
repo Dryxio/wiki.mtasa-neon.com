@@ -11,6 +11,8 @@ Most low-level calls run on the client that currently simulates the ped or vehic
 
 For the high-level model—one native simulator, server-owned state, and presentation for every other player—start with [Synchronized NPCs and traffic](/neon/synchronized-ai).
 
+<!-- MEDIA PLACEHOLDER: Multiplayer story-runtime montage. Suggested file: /neon-media/story-runtime.webp or a short video. Combine one cutscene/camera moment with one native task visible to a second player; label the mission harness used. -->
+
 ## Model-native walking
 
 [`setPedUseNativeWalkingStyle`](/neon/functions/setPedUseNativeWalkingStyle) and [`isPedUsingNativeWalkingStyle`](/neon/functions/isPedUsingNativeWalkingStyle) make a ped follow the current skin model's native motion group.
@@ -50,6 +52,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedGoToOffset`](/neon/functions/setPedGoToOffset) | `CTaskComplexSeekEntityRadiusAngleOffset`, optionally through `CTaskComplexUseSequence` | `06A8 TASK_GOTO_CHAR_OFFSET` |
 | [`setPedKillOnFoot`](/neon/functions/setPedKillOnFoot) | `CTaskComplexKillPedOnFoot` | `05E2 TASK_KILL_CHAR_ON_FOOT` |
 | [`setPedWander`](/neon/functions/setPedWander) | `CTaskComplexWanderStandard` | `05DE TASK_WANDER_STANDARD` |
+| [`setPedJump`](/neon/functions/setPedJump) | `CTaskComplexJump`, `CTaskSimpleJump`, `CTaskComplexInAirAndLand`, optional `CTaskSimpleClimb`, and `CTaskSimpleLand` | `TASK_JUMP`; numeric opcode not verified in the audited source |
 | [`setPedTurnToFace`](/neon/functions/setPedTurnToFace) | `CTaskComplexTurnToFaceEntityOrCoord` | `0639 TASK_TURN_CHAR_TO_FACE_CHAR` |
 | [`setPedEnterVehicle`](/neon/functions/setPedEnterVehicle) | `CTaskComplexEnterCarAsDriver` or `CTaskComplexEnterCarAsPassenger` | `05CA / 05CB` |
 | [`setPedExitVehicle`](/neon/functions/setPedExitVehicle) | `CTaskComplexLeaveCar` | `05CD TASK_LEAVE_CAR` |

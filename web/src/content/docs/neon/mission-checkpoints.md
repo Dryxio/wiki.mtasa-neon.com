@@ -11,6 +11,8 @@ They are useful for two reasons. Players can explore recognizable mission paths,
 
 These are regression checkpoints, not a finished campaign runtime. “Implemented” means the resource contains the path. “Exercised” means that exact path was observed in game. Static checks or successful builds alone are not presented as gameplay validation.
 
+<!-- MEDIA PLACEHOLDER: Mission checkpoint gallery. Suggested files: /neon-media/tagging-up-turf.webp, /neon-media/drive-thru.webp, and /neon-media/nines-and-aks.webp. Link each still to a captioned gameplay video and keep the evidence label consistent with the status table below. -->
+
 ## Current status
 
 | Resource | What is currently available | Strongest evidence | Still open |

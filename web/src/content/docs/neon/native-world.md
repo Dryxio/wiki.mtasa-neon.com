@@ -11,6 +11,8 @@ The active native-world session owns that selected catalogue, but it does not ke
 
 This is a reviewed multi-city path, not a general-purpose arbitrary-world loader.
 
+<!-- MEDIA PLACEHOLDER: Native-world residency. Suggested file: /neon-media/native-world-city-switch.webp or a video showing travel between two reviewed city regions. State which generated test packs are shown and avoid implying that their assets ship with Neon. -->
+
 ## What a player or server operator should expect
 
 - The client downloads, audits, and caches the exact set before GTA may load it.

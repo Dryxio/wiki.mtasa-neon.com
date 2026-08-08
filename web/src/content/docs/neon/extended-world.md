@@ -7,6 +7,8 @@ sidebar:
 
 Neon makes more of the San Andreas world usable without moving the original map. The supported XY range is **−10,000 through +9,999**. GTA's sector grids and the related validation, rendering, line-of-sight, pickup, water, and network code all understand that range.
 
+<!-- MEDIA PLACEHOLDER: Extended-world overview. Suggested files: /neon-media/extended-world.webp and /neon-media/extended-radar.webp. Show a coordinate outside the stock world and the matching minimap/F11 tile coverage. -->
+
 ## Sector relocation
 
 The active GTA grids grow from 120 × 120 to 400 × 400 for the main world and from 30 × 30 to 100 × 100 for LODs. Neon patches GTA 1.0 US initialization, lookup, rendering, and scanning code rather than presenting a larger Lua-only coordinate range. The implementation is tracked by commit [`842983c91`](https://github.com/Dryxio/mtasa-neon/commit/842983c91).

@@ -21,6 +21,24 @@ const journeys = [
     guide: '/neon/rendering-and-limits',
     functions: ['engineGetRendererStats', 'engineGetDistantLightStats', 'getMarkerLimitStats'],
   },
+  {
+    title: 'Customize vehicle audio',
+    description: 'Own one client configuration, reload it safely, and trigger configured backfires.',
+    guide: '/neon/vehicle-audio',
+    functions: ['engineLoadVehicleAudioConfig', 'engineReloadVehicleAudioConfig', 'enginePlayVehicleAudioBackfire'],
+  },
+  {
+    title: 'Use verified identity',
+    description: 'Read verified player IDs and make server bans aware of Neon and Discord identities.',
+    guide: '/neon/identity',
+    functions: ['isPlayerNeonAuthenticated', 'getPlayerNeonID', 'addBan'],
+  },
+  {
+    title: 'Synchronize native AI',
+    description: 'Run GTA pedestrian behavior on one owner and present the supported lifecycle to other players.',
+    guide: '/neon/synchronized-ai',
+    functions: ['setPedWander', 'setPedJump', 'acquirePedNativeEventProfile'],
+  },
 ] as const;
 
 const categoryEntries = Object.entries(neonCategories).map(([key, category]) => ({
@@ -251,7 +269,7 @@ const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: st
   .neon-api-intro p { margin-bottom: 0; color: var(--sl-color-gray-2); }
   .journeys, .category-directory { margin: 3rem 0; }
   .section-heading h2 { margin: .3rem 0 1rem; }
-  .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
+  .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: .8rem; }
   .journey-grid article { min-width: 0; margin-top: 0; padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; background: rgba(242,140,24,.035); }
   .journey-grid h3 { margin: 0; font-size: 1.05rem; }
   .journey-grid h3 a { color: #ffad35; text-decoration: none; }

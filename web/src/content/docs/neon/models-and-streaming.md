@@ -7,6 +7,8 @@ sidebar:
 
 A Neon custom model has two identities: a stable ID used by the server and network, and a physical GTA slot chosen locally by each client. This page covers that model registry only; city archives and native world packs have their own ownership and lifecycle.
 
+<!-- MEDIA PLACEHOLDER: Custom model lifecycle. Suggested file: /neon-media/custom-models.webp. Show the same server-owned model on two clients and, if useful, a parent-model fallback after the custom definition is released. -->
+
 ## Server-authoritative model registry
 
 The registry covers objects, vehicles, peds, players, buildings, pickups, spawn packets, RPCs, names, enumeration, type queries, capacity queries, and lifecycle fallback. The initial object and vehicle work is tracked by [`a7a20d32b`](https://github.com/Dryxio/mtasa-neon/commit/a7a20d32b), and the completed cross-element registry by [`dc25a615c`](https://github.com/Dryxio/mtasa-neon/commit/dc25a615c).

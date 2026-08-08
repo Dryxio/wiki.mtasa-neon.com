@@ -60,6 +60,15 @@ export default defineConfig({
           ],
         },
         {
+          label: "Player & server systems",
+          items: [
+            { label: "Neon client", link: "/neon/client-experience" },
+            { label: "SkyGFX visuals", link: "/neon/skygfx" },
+            { label: "Neon Identity", link: "/neon/identity" },
+            { label: "Custom vehicle audio", link: "/neon/vehicle-audio" },
+          ],
+        },
+        {
           label: "World & engine systems",
           items: [
             { label: "Extended world", link: "/neon/extended-world" },

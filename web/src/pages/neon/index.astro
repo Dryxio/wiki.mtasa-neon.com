@@ -36,12 +36,16 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     <p class="eyebrow">SYSTEM MAP</p>
     <h2>What Neon changes under the hood</h2>
     <div class="system-grid">
-      <a href="/neon/synchronized-ai"><span>01</span><h3>Synchronized NPCs & traffic</h3><p>Server-owned ambient peds and mission actors driven by GTA's native AI, with one simulator and multiplayer presentation.</p></a>
-      <a href="/neon/story-runtime"><span>02</span><h3>Story runtime</h3><p>Native file cutscenes, ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
-      <a href="/neon/extended-world"><span>03</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
-      <a href="/neon/native-world"><span>04</span><h3>Native world packs</h3><p>Server-delivered static worlds, strict auditing, one-shot authorization, native activation, and server isolation.</p></a>
-      <a href="/neon/models-and-streaming"><span>05</span><h3>Custom models</h3><p>Stable server model IDs mapped to local GTA slots, with native-parent fallback and resource cleanup.</p></a>
-      <a href="/neon/rendering-and-limits"><span>06</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
+      <a href="/neon/synchronized-ai"><span>01</span><h3>Synchronized NPCs & traffic</h3><p>Server-owned peds and mission actors driven by GTA's native AI, with one simulator and multiplayer presentation.</p></a>
+      <a href="/neon/skygfx"><span>02</span><h3>PS2-style visuals</h3><p>Selected SkyGFX color, blur, radiosity, depth-bias, and YCbCr effects integrated into the Neon client.</p></a>
+      <a href="/neon/client-experience"><span>03</span><h3>Neon client & servers</h3><p>A GTA-style menu, live server discovery, favorites, artwork, localization, and an integrated join flow.</p></a>
+      <a href="/neon/story-runtime"><span>04</span><h3>Story runtime</h3><p>Native cutscenes, ped tasks, script cameras, mission audio and text, recorded cars, and co-op building blocks.</p></a>
+      <a href="/neon/vehicle-audio"><span>05</span><h3>Custom vehicle audio</h3><p>Resource-owned engine sound configurations, synchronized opt-in modes, lifecycle cleanup, and backfires.</p></a>
+      <a href="/neon/identity"><span>06</span><h3>Neon Identity</h3><p>Optional verified Neon and Discord identities for server policy, Lua resources, and stronger bans.</p></a>
+      <a href="/neon/extended-world"><span>07</span><h3>Extended world</h3><p>A 20 km world range, extended water and radar, a dynamic F11 map, and large city resources.</p></a>
+      <a href="/neon/native-world"><span>08</span><h3>Native world packs</h3><p>Server-delivered static worlds, strict auditing, one-shot authorization, native activation, and server isolation.</p></a>
+      <a href="/neon/models-and-streaming"><span>09</span><h3>Custom models</h3><p>Stable server model IDs mapped to local GTA slots, with native-parent fallback and resource cleanup.</p></a>
+      <a href="/neon/rendering-and-limits"><span>10</span><h3>Rendering & limits</h3><p>Larger native pools, live renderer stats, distant lights, editable CULL zones, and marker diagnostics.</p></a>
     </div>
   </section>
 
@@ -74,13 +78,13 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
   .hero-actions { position: relative; display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
   .hero-actions a { padding: .75rem 1rem; color: #f3eadc; text-decoration: none; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: #14110e; }
   .hero-actions .primary { color: #0a0806; font-weight: 800; background: #f28c18; box-shadow: .25rem .25rem 0 #5b2a06; }
-  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: 1rem 0 4rem; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: .8rem; margin: 1rem 0 4rem; }
   .stat-grid div { display: flex; flex-direction: column; margin-top: 0; padding: 1.1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .8rem; background: var(--sl-color-bg-nav); }
   .stat-grid strong { color: #f28c18; font-size: 1.8rem; line-height: 1; }
   .stat-grid span { margin-top: .45rem; color: var(--sl-color-gray-3); font-size: .78rem; }
   .section-block { margin: 4rem 0; }
   .section-block > h2 { margin-top: .6rem; font-size: 2rem; }
-  .system-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
+  .system-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; gap: 1rem; margin-top: 1.5rem; }
   .system-grid a { padding: 1.4rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .25rem; background: linear-gradient(145deg, rgba(242,140,24,.055), transparent); }
   .system-grid a:hover { border-color: rgba(242,140,24,.72); transform: translateY(-2px); }
   .system-grid span { color: #f28c18; font-family: monospace; font-size: .75rem; }

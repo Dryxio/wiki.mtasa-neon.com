@@ -108,3 +108,29 @@ For a Neon documentation update:
 Commit messages for documentation changes must describe the reader problem,
 the editorial reasoning, the pages or APIs affected, and the build/link/visual
 checks performed.
+
+## Production deployment
+
+Deploy the Neon site only from the `web` directory linked to the Vercel project
+named `mtasa-neon-wiki`:
+
+```sh
+cd web
+npm run build
+vercel deploy --prod --yes
+```
+
+Do not use `vercel deploy --prebuilt` for this repository. A prebuilt
+`.vercel/output` directory can come from another checkout and publish the
+official MTA wiki under Neon's aliases even though Vercel reports a successful
+deployment.
+
+After every production deployment, request all of these public routes and
+confirm that they return Neon pages rather than the upstream MTA 404 redirect:
+
+- `https://mtasa-neon-wiki.vercel.app/`
+- `https://mtasa-neon-wiki.vercel.app/neon/`
+- one generated API route under `/neon/functions/`
+
+Also inspect a representative page at desktop and mobile widths before calling
+the deployment complete.

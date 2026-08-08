@@ -14,6 +14,10 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Goal | Start here | Current scope |
 | --- | --- | --- |
 | Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared outdoor civilian peds use GTA's native models, paths, Wander AI, reactions, owner handoff, and observer presentation. Ambient vehicles and the remaining population families are still in progress. |
+| Give the game a PS2-style image | [SkyGFX and PS2-style visuals](/neon/skygfx) | Selected color, blur, depth-bias, radiosity, and YCbCr effects are integrated and optional. This is not complete SkyGFX or exact PS2 parity. |
+| Discover and join Neon servers | [Neon client experience](/neon/client-experience) | A GTA-style menu combines the public registry with live server data, filters, favorites, artwork, localization, and connection states. |
+| Add verified community identity | [Neon Identity](/neon/identity) | Servers can choose disabled, optional, or required Neon/Discord identity and use verified IDs in resources and bans. |
+| Give custom vehicles their own sound | [Custom vehicle audio](/neon/vehicle-audio) | One client resource owns a configuration lease and presents opted-in vehicles through the packaged FMOD runtime. |
 | Use more of the world | [Extended world](/neon/extended-world) | A 20 km XY domain with matching sectors, water, radar, map, pickup, and network work. |
 | Load static worlds through GTA | [Native world packs](/neon/native-world) | A server can select an ordered set from the four reviewed v3 city packs. One imported city is resident at a time; changing the selected set requires a clean process. |
 | Give resources stable custom model IDs | [Custom models](/neon/models-and-streaming) | Server identities map to local GTA slots with native-parent fallback and cleanup. |
@@ -54,6 +58,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Visible entity pointers | 1,000 | 8,192 |
 | Visible LOD pointers | 1,000 | 8,192 |
 | Streaming RenderWare instances | 2,500 | 30,000 |
+| PS2-style post effects | Not built in | Selected, opt-in SkyGFX color filter, blur, timecycle adaptation, depth-bias, radiosity, and YCbCr paths |
 | Native CULL editing | Internal only | Resource-owned Lua CRUD, stable IDs, and cleanup |
 | Project2DFX distant lights | Not integrated | Opt-in static coronas and timed traffic lights from the complete startup IPL catalogue, using a private 25,000-light render queue |
 
