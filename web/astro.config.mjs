@@ -63,7 +63,8 @@ export default defineConfig({
           label: "Player & server systems",
           items: [
             { label: "Neon client", link: "/neon/client-experience" },
-            { label: "SkyGFX visuals", link: "/neon/skygfx" },
+            { label: "SkyGFX & radar", link: "/neon/skygfx" },
+            { label: "Native GTA radio", link: "/neon/native-radio" },
             { label: "Neon Identity", link: "/neon/identity" },
             { label: "Custom vehicle audio", link: "/neon/vehicle-audio" },
           ],
@@ -73,6 +74,7 @@ export default defineConfig({
           items: [
             { label: "Extended world", link: "/neon/extended-world" },
             { label: "Custom models", link: "/neon/models-and-streaming" },
+            { label: "SA-MP maps", link: "/neon/samp-maps" },
             { label: "Native world packs", link: "/neon/native-world" },
             { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
           ],

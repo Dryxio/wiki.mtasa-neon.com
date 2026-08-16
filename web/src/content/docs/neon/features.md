@@ -13,13 +13,15 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 | Goal | Start here | Current scope |
 | --- | --- | --- |
-| Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared outdoor civilian peds use GTA's native models, paths, Wander AI, reactions, owner handoff, and observer presentation. Ambient vehicles and the remaining population families are still in progress. |
-| Give the game a PS2-style image | [SkyGFX and PS2-style visuals](/neon/skygfx) | Selected color, blur, depth-bias, radiosity, and YCbCr effects are integrated and optional. This is not complete SkyGFX or exact PS2 parity. |
+| Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared civilians, native gang groups, gang combat, motorcycle carjacks, and dealers use GTA's population/task systems with server ownership and client handoff. Ambient vehicles and other population families remain open. |
+| Load SA-MP / Texture Studio maps | [SA-MP maps](/neon/samp-maps) | Parse Pawn exports directly, resolve SA-MP custom objects, apply material slots, building removals, interiors/worlds, and redistribute the fixed object-streaming budget when needed. |
+| Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
+| Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
 | Discover and join Neon servers | [Neon client experience](/neon/client-experience) | A GTA-style menu combines the public registry with live server data, filters, favorites, artwork, localization, and connection states. |
 | Add verified community identity | [Neon Identity](/neon/identity) | Servers can choose disabled, optional, or required Neon/Discord identity and use verified IDs in resources and bans. |
 | Give custom vehicles their own sound | [Custom vehicle audio](/neon/vehicle-audio) | One client resource owns a configuration lease and presents opted-in vehicles through the packaged FMOD runtime. |
 | Use more of the world | [Extended world](/neon/extended-world) | A 20 km XY domain with matching sectors, water, radar, map, pickup, and network work. |
-| Load static worlds through GTA | [Native world packs](/neon/native-world) | A server can select an ordered set from the four reviewed v3 city packs. One imported city is resident at a time; changing the selected set requires a clean process. |
+| Load static worlds through GTA | [Native world packs](/neon/native-world) | A server can select an ordered set from the reviewed city packs. One imported city is resident at a time; changing the selected set requires the documented lifecycle. |
 | Give resources stable custom model IDs | [Custom models](/neon/models-and-streaming) | Server identities map to local GTA slots with native-parent fallback and cleanup. |
 | Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native tasks, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
 | See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Tagging Up Turf and Drive-Thru have substantial in-game coverage; Nines and AK's remains partially exercised. |
@@ -38,8 +40,10 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Low-precision network XY | About −8,192 to +8,192 | −10,000 to +10,000 on Neon-capable connections |
 | Absolute network camera range | About −8,192 to +8,192 | About −16,384 to +16,384 on Neon-capable connections |
 | Procedural seabed | Unlimited | Server-configurable 3,000–10,000 or unlimited |
-| Native minimap | Fixed 12 × 12 stock grid | Sparse 40 × 40 logical grid with protected stock cells |
+| Native minimap | Fixed 12 × 12 stock grid | Sparse 40 × 40 logical grid plus Vanilla/Definitive client radar profiles |
 | F11 map | Packaged San Andreas image | Runtime atlas composed from native and registered extended tiles |
+| MTA object streaming split | Fixed 500 normal / 500 low-LOD | Same 1000-slot hard budget, resource-adjustable split including 1000/0 |
+| SA-MP map exports | Conversion normally required | Native Texture Studio/Pawn parser, custom-object loader, removals, worlds/interiors, and material slots |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
 | Native world packs | Not available | Legacy single-pack formats plus format-3 multi-IMG child packs, an audited selected-set coordinator, immutable cache, and owner-server isolation |
 | Reviewed native-world catalog | — | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |
@@ -58,7 +62,9 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Visible entity pointers | 1,000 | 8,192 |
 | Visible LOD pointers | 1,000 | 8,192 |
 | Streaming RenderWare instances | 2,500 | 30,000 |
-| PS2-style post effects | Not built in | Selected, opt-in SkyGFX color filter, blur, timecycle adaptation, depth-bias, radiosity, and YCbCr paths |
+| PS2-style post effects | Not built in | Integrated SkyGFX color filter, YCbCr and depth-bias first-run profile; blur and radiosity remain opt-in |
+| Radar renderer | Stock GTA radar | Configurable Vanilla or Definitive Edition profile with widescreen-safe layout controls |
+| Resource visual overrides | No Neon layer | Allowlisted radar/SkyGFX settings stack by resource and restore player preferences on stop |
 | Native CULL editing | Internal only | Resource-owned Lua CRUD, stable IDs, and cleanup |
 | Project2DFX distant lights | Not integrated | Opt-in static coronas and timed traffic lights from the complete startup IPL catalogue, using a private 25,000-light render queue |
 
@@ -68,10 +74,12 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | --- | --- | --- |
 | Custom model identity | Client-local runtime allocation | Server-stable logical IDs mapped to per-client GTA slots |
 | Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
+| SA-MP custom-object identity | Not integrated | Original SA-MP IDs resolved to resource-owned Neon runtime models by the reference loader |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Ambient pedestrian traffic | Local GTA population remains disabled | Server-owned MTA peds proposed from GTA's civilian models and paths, with one native-AI owner, handoff epochs, observer presentation, and cleanup |
+| Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, and dealers proposed from GTA's popcycle/model/path rules with owner epochs and cleanup |
+| Ambient gang behavior | Local-only single-player logic | Owner-only native groups with leader/follower movement, fight/flee decisions, gang weapons, synchronized damage admission, and bike-jack handoff |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
-| Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, ordered animation, fight/chat, weapon audiovisual, and selected ambient-reaction presentation without competing AI or duplicate damage |
+| Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
 | Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |
 | Native route continuity | Stream range normally ends native simulation | Resource-owned streaming leases plus a server-owned route harness with owner epochs and syncer reconstruction |
 | Story actor and vehicle policy | General MTA abstractions | Persistent native actor flags, event-profile leases, raw door locks, tyre policy, vehicle proofs, and mission collision loading |
@@ -79,6 +87,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Native file cutscenes | Not exposed as a resource-owned API | Stock DAT/CUT/IFP playback with load/start barriers, synchronized skip, fades, completion, and cleanup |
 | Stock entry-exit transitions | Native manager disabled by MTA because its entry path crashes | Optional server-owned Lua runtime using audited IPL pairs, exact on-foot triggers, fades, authoritative interior moves, and rollback |
 | Mission audio | No owned GTA mission slots | Four resource-owned native slots with load recovery and cleanup, plus the original mission-passed tunes |
+| GTA radio playback state | Not exposed to Lua | Client Lua snapshot/restore for station, track, seek position and queue; resources can relay it between clients |
 | Mission GXT text | No resource-owned native lease | Exclusive block lease with small/help/big text queues |
 | Recorded-car playback | Not exposed | Resource-owned direct non-looped native playback |
 | Gang tags | Disabled single-player tag path | Resource-owned native spray hits, persistent 8-alpha progress, Grove rendering, and cleanup |
@@ -92,10 +101,11 @@ The tables describe available code paths, not one shared stability level. Follow
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- Focused test resources for engine limits, world systems, native tasks, scene primitives, mission checkpoints, compatibility, and cleanup.
+- A native SA-MP map parser/loader fixture, object-streaming quota harness, and native-radio playback resource.
+- Focused test resources for engine limits, world systems, native tasks, synchronized population, scene primitives, mission checkpoints, compatibility, and cleanup.
 - A CI-built Windows Neon installer with its own branding, registry state, protocol registration, shortcuts, and uninstall path, isolated from an existing official MTA installation.
 
-See [Tooling and verification](/neon/tooling-and-verification) for the test levels and harness index. A successful build or static check is not described as an in-game pass.
+See [Tooling and verification](/neon/tooling-and-verification) for the broader test-level definitions. A successful build or static check is not described as an in-game pass.
 
 ## API inventory
 

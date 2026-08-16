@@ -1,99 +1,102 @@
 ---
 title: Synchronized NPCs and traffic
-description: How Neon turns GTA:SA's native pedestrian and mission AI into shared multiplayer entities, what works today, and what remains.
+description: How Neon runs GTA:SA's native pedestrian AI in one shared multiplayer world.
 sidebar:
   order: 2
 ---
 
-Neon's central gameplay direction is simple: **use GTA:SA's original single-player AI in one shared multiplayer world**. Pedestrians and mission actors are real server-owned MTA elements. One eligible client runs the native GTA task, while the other players receive synchronized movement and native-looking presentation without running competing AI.
+Neon uses **GTA:SA's original pedestrian AI as the simulation layer for server-owned MTA peds**. One eligible client runs the native task tree. The server owns the population and authority epochs, while other clients receive synchronized movement and supported native presentation without running competing AI.
 
-The first ambient-traffic milestone is usable now, but it is not the whole San Andreas population system. Current runtime evidence covers outdoor civilian pedestrians, owner handoff, several native reactions, moving-vehicle knockdowns, airborne and climb presentation, and selected mission-task presentation with two clients. Autonomous ambient vehicles, police, gangs, dealers, couples, attractors, conversations, and simulation without an eligible client remain in progress.
+The shared ambient runtime now covers **civilians, native gang groups, gang combat, motorcycle carjacks, and dealers**. Autonomous ambient vehicles, police population, couples, attractors, conversations, and headless simulation are still outside the completed slice.
 
-<!-- MEDIA PLACEHOLDER: Shared traffic overview. Suggested file: /neon-media/synchronized-traffic.webp or a short video. Show two players observing the same server-owned crowd, not two unrelated local populations. -->
+<!-- MEDIA PLACEHOLDER: Shared population overview. Show two clients observing the same civilians and a gang group. -->
 
-## The multiplayer model
+## One shared population, not one crowd per client
 
-Neon does not re-enable GTA's local `CPopulation::AddToPopulation` loop. That would let every client create a different, unsynchronized crowd. Instead, a resource follows one authority path:
+Neon does not turn GTA's local `CPopulation::AddToPopulation` loop back on. Each client would otherwise create a different crowd.
 
-1. A client asks GTA for a civilian model and native path-placement candidate.
-2. The server validates that proposal against all players, population caps, spacing, dimension, and resource state.
-3. The server creates one real MTA ped and assigns one current syncer.
-4. That syncer runs GTA's native AI. Observers receive transforms, locomotion, animation, and the supported presentation channels without gaining damage, seat, tag, or mission authority.
-5. If ownership changes, the resource revokes the old generation before assigning a newer epoch. The server remains responsible for cleanup and progression throughout.
+Instead, the reference population runtime follows one authority path:
 
-This pattern is reusable beyond background traffic. The same separation between one simulator, server-owned state, and observer-only presentation supports mission actors, convoys, escorts, hostile NPCs, scripted traffic, and freeroam events.
+1. Clients keep GTA's native population models and zone state current.
+2. The server combines synchronized population targets with live civilian, gang, and dealer counts.
+3. One client asks GTA for a read-only spawn or gang-group candidate.
+4. Near-enough clients can veto a candidate they can already see.
+5. The server validates the proposal, creates real MTA peds, and assigns one owner epoch.
+6. Only that owner runs GTA's native AI. Observers receive the supported movement, animation, combat, and physical presentation.
+7. Handoff revokes the old generation before a new client resumes simulation.
 
-## What works now
+The server remains authoritative for element lifetime, health, seats, damage admission, ownership, and cleanup.
 
-### Shared civilian pedestrians
+## Native population profiles
 
-The [`native-ped-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/native-ped-traffic) reference resource creates a conservative outdoor population shared by every player. GTA supplies the stock civilian models and path candidates, the server owns the peds, and the active syncer runs `CTaskComplexWanderStandard`, the task behind SCM `05DE TASK_WANDER_STANDARD`.
+[`getAmbientPedPopulationProfile`](/neon/functions/getAmbientPedPopulationProfile) exposes GTA's current popcycle targets instead of making a Lua resource approximate density from scratch. The profile includes civilian, gang, cop, and dealer targets plus the active zone, time slice, density multipliers, creation distance, and gang weights.
 
-The resource limits the population globally, near each player, and per map cell. It rejects proposals that are too close to another player, reserves space under MTA's logical ped ceiling, transfers ownership only after a sustained distance advantage, removes corpses, and destroys every resource-owned ped when traffic stops.
+[`getAmbientPedSpawnCandidate`](/neon/functions/getAmbientPedSpawnCandidate) can now request `civilian`, `gang`, or `dealer` candidates explicitly. [`getAmbientPedGangGroupCandidate`](/neon/functions/getAmbientPedGangGroupCandidate) returns a native two-to-four-member gang placement. Both are **proposal APIs**: they create nothing by themselves.
 
-### Native reactions
+The reversible zone layer also exposes [`setAmbientPedPopulationZoneState`](/neon/functions/setAmbientPedPopulationZoneState) and [`resetAmbientPedPopulationZonesToBootstrap`](/neon/functions/resetAmbientPedPopulationZonesToBootstrap) so a resource can apply campaign-style zone state without permanently mutating the process.
 
-The `ambient-wander` event profile lets GTA choose reactions on the active owner while observers remain presentation-only. The checked slice includes pedestrian and parked-vehicle avoidance, aimed-at and nearby-gunfire responses, non-lethal damage decisions, physical reaction and recovery, surrounding panic, and flee or fight choices from the civilian model's decision maker.
+## Civilians, gangs, and dealers
 
-MTA still owns bullet, health, death, and ordinary element synchronization. [`addPedNativeDamageResponseEvent`](/neon/functions/addPedNativeDamageResponseEvent) replays only the missing GTA behavior decision; it cannot apply damage a second time. [`addPedNativeGunAimedAtEvent`](/neon/functions/addPedNativeGunAimedAtEvent) inserts GTA's real `CEventGunAimedAt` only for the resource that owns the active profile token.
+### Civilians
 
-### Presentation for other players
+Civilian peds use GTA's loaded zone models, path placement, `CTaskComplexWanderStandard`, avoidance, threat, damage reaction, flee/fight decisions, and the existing owner-handoff presentation paths.
 
-Only the syncer runs the real task tree. Reusable engine channels currently present these parts to non-syncers:
+### Gang groups
 
-- locomotion mode, speed, direction, and bounded higher-rate spatial updates when movement changes materially;
-- ordered task-generated animations, including loop metadata, on a dedicated 100 ms lane;
-- native fight and paired-chat animation associations;
-- on-foot and drive-by weapon animation, muzzle flash, shells, audio, gun light, and spray FX, with local damage and tag progress suppressed;
-- selected ambient avoidance, threat, damage, physical-response, and flee presentation.
-- moving-vehicle impacts, knockdown recovery, airborne state, jump/land transitions, and selected climb/vault phase and anchor data.
+Gang population is no longer represented as unrelated single peds. The owner can acquire one of GTA's native ambient group slots with [`acquirePedNativeGroup`](/neon/functions/acquirePedNativeGroup). GTA then owns leader/follower locomotion, social behavior, collective decisions, and the selected fight/flee task allocation.
 
-This is broader than one mission-specific workaround. Tagging Up Turf, Drive-Thru, Nines and AK's, and ambient traffic use the same network and presentation layers. New task families still need their own two-client comparison when they introduce a visual state that those shared channels do not carry.
+The resource keeps the group server-owned and reacquires the native group only on the current syncer. [`releasePedNativeGroup`](/neon/functions/releasePedNativeGroup) and resource shutdown remove the local native lease. [`getPedNativeGroupDiagnostic`](/neon/functions/getPedNativeGroupDiagnostic) exists for focused debugging, not gameplay state.
 
-### Jump, airborne state, and climbing
+### Gang combat
 
-[`setPedJump`](/neon/functions/setPedJump) starts GTA's `CTaskComplexJump` lifecycle on a living, streamed ped controlled by the caller. GTA owns the jump, in-air, landing, and optional `CTaskSimpleClimb` decisions instead of a resource approximating them with a fixed animation.
+Ambient gang members use GTA's runtime gang weapon tables and native combat decisions. A native owner hit is authenticated before it is replayed on the authoritative victim, so observers can present the attack without applying duplicate damage.
 
-Neon's observer channel carries the airborne transition and the selected climb/vault anchor, phase, and handoff state. The focused `native-ped-traffic` air and climb commands exercised three airborne handoffs plus climb/vault handoff with two clients. This evidence applies to the recorded cases; it is not a universal snapshot of every GTA physical task.
+Motorcycle carjacks use the same boundary. GTA resolves the jack on the group owner, the server validates the target and seat state, and the real player owner installs the canonical bike-jacked task. [`addPedNativeBikeJackTask`](/neon/functions/addPedNativeBikeJackTask) is the low-level victim-side bridge used by that flow.
 
-<!-- MEDIA PLACEHOLDER: Jump/climb handoff. Suggested file: /neon-media/synchronized-climb-handoff.webp or a captioned video. Keep both clients visible if possible and mark the moment authority changes. -->
+### Dealers
 
-### Native mission driving
+Dealer population uses GTA's dealer quota, race/weather model choice, dealer ped type, and unarmed WanderStandard behavior. Dealers reduce their own native deficit but are kept separate from GTA's ordinary stock-counted total-ped gate, matching the retail population rules instead of folding them into civilians.
 
-Neon exposes GTA's original road-driving, drive-to, drive-by, entry, exit, and task-sequence primitives. Drive-Thru has two-client coverage for vehicle and on-foot weapon presentation, while normal MTA synchronization remains authoritative for transforms, occupants, vehicle health, player health, and death.
+## Presentation and ownership
 
-This makes mission vehicles, convoys, escorts, and scripted traffic possible today. It does **not** mean Neon already spawns a complete autonomous ambient vehicle population.
+Only the current syncer runs the real native AI. Reusable observer channels cover:
 
-## Build a population resource
+- locomotion, rotation, and bounded spatial updates;
+- ordered native task animations;
+- fight/chat and weapon audiovisual presentation;
+- selected avoidance, threat, damage, flee, airborne, jump, landing, and climb state;
+- gang-group handoff and selected combat context.
 
-The complete [population API group](/neon/functions#population) documents signatures, ownership, source, commits, and focused evidence. The core flow uses:
+Normal MTA synchronization remains authoritative for element transforms, health, death, occupants, and network ownership. A resource should never treat observer-side GTA presentation as a second gameplay simulation.
 
-- [`updateAmbientPedPopulationModels`](/neon/functions/updateAmbientPedPopulationModels) while generation is active;
-- [`getAmbientPedSpawnCandidate`](/neon/functions/getAmbientPedSpawnCandidate) for a read-only native proposal;
-- [`resetAmbientPedPopulationModels`](/neon/functions/resetAmbientPedPopulationModels) when generation stops;
-- [`acquirePedNativeEventProfile`](/neon/functions/acquirePedNativeEventProfile) with `ambient-wander` on every client;
-- [`addPedNativeGunAimedAtEvent`](/neon/functions/addPedNativeGunAimedAtEvent) and [`addPedNativeDamageResponseEvent`](/neon/functions/addPedNativeDamageResponseEvent) for the cross-owner event cases.
+## Minimal resource shape
 
-The functions do not replace the server layer. A production resource still needs proposal validation, caps, ownership epochs, timeouts, handoff acknowledgements, player departure handling, corpse policy, and deterministic shutdown.
+A production population resource normally needs only this high-level loop:
 
-For a local check, start the reference resource, enable `/pedtraffic debug on`, then use `/pedtraffic on`. `/pedtraffic status` reports its current counters and `/pedtraffic off` must return the resource-owned population to zero. `/pedtraffic weapon` gives the caller a pistol for the threat and damage checkpoint.
+```lua
+-- client: keep GTA's native population context current
+updateAmbientPedPopulationModels(localPlayer.position)
 
-## Evidence and real limits
+local profile = getAmbientPedPopulationProfile()
+local candidate = getAmbientPedSpawnCandidate(localPlayer.position, "civilian")
 
-Commit [`b159bcd0c`](https://github.com/Dryxio/mtasa-neon/commit/b159bcd0c) introduced the civilian V1 and its three population primitives. Release Win32 builds and two-client runs in Los Santos and Las Venturas covered 23 owner-epoch changes with zero client task failures. The final observing-client pass showed no visible freeze, teleport, disappearance, or walk-to-run transition; restart and last-player departure returned the owned population to zero.
+if profile and candidate then
+    triggerServerEvent("population:candidate", resourceRoot, candidate)
+end
+```
 
-Commit [`65c6b103c`](https://github.com/Dryxio/mtasa-neon/commit/65c6b103c) added the ambient reaction profile and two event bridges. The affected client projects and the x64 server built successfully. A later two-client run covered cross-owner aim, non-lethal damage, hands-up interruption, physical reaction, recovery, flee, parked-vehicle avoidance, surrounding panic, owner handoff, and shutdown.
+The server still has to validate proposals, compare live deficits, create the actual peds, assign ownership epochs, handle player departure, and remove every owned element on shutdown.
 
-Commits [`adb30851a`](https://github.com/Dryxio/mtasa-neon/commit/adb30851a) and [`161dc1b7`](https://github.com/Dryxio/mtasa-neon/commit/161dc1b7) added moving-vehicle and airborne reactions, the public jump task, and climb/vault handoff state. The focused resource and `SyncMovement_Tests.cpp` cover the encoded lifecycle; the commits also record the two-client handoff runs described above.
+For groups, the current owner acquires the native group only after the server has assigned the complete member set.
 
-The current boundaries matter:
+## Current limits
 
-- V1 is civilian-only, outdoors, in dimension and interior zero.
-- There is no autonomous ambient vehicle population yet.
-- Complex local collision turns can diverge by roughly one to two metres before reconverging because clients reach collision on different frames.
-- A syncer migration does not reconstruct every arbitrary native task. Purpose-built resource layers still own route or mission reconstruction.
-- Coordinate weapon snapshots are not frame-perfect entity tracking during fast movement.
-- Vehicle transitions, arbitrary look/aim state, every physical response, and every GTA task family are not covered by one universal observer format. The new airborne and climb states cover their selected lifecycles rather than removing that limitation.
-- No eligible client means no native AI simulation; headless or offline simulation is not implemented.
+- Ambient **vehicle** population is not complete. Native vehicle tasks remain available for server-authored missions, convoys, escorts, and scripted traffic.
+- The completed ambient population slice is still focused on outdoor world simulation; arbitrary interiors and every GTA population family are not implied.
+- No eligible client means no native AI simulation. There is no headless GTA task runner.
+- Syncer migration does not serialize every arbitrary GTA task tree. Supported families have explicit handoff or presentation state.
+- Different clients can reach collision on different frames, so short local divergence can still occur before authoritative state reconverges.
 
-Use [Story runtime](/neon/story-runtime) for the full task, lifecycle, camera, cutscene, audio, and mission architecture. Use [Mission checkpoints](/neon/mission-checkpoints) to see exactly which story paths were exercised in game.
+The later population work is tracked by [`1004257b9`](https://github.com/Dryxio/mtasa-neon/commit/1004257b9), [`39f782fd9`](https://github.com/Dryxio/mtasa-neon/commit/39f782fd9), [`75dd85f77`](https://github.com/Dryxio/mtasa-neon/commit/75dd85f77), [`9fa50ed6a`](https://github.com/Dryxio/mtasa-neon/commit/9fa50ed6a), [`53478fdb3`](https://github.com/Dryxio/mtasa-neon/commit/53478fdb3), and [`083927c23`](https://github.com/Dryxio/mtasa-neon/commit/083927c23). Two-client runs cover density, group handoff, melee and firearm combat, motorcycle carjacks, dealer handoff, observer state, and deterministic cleanup.
+
+Use [Story runtime](/neon/story-runtime) for server-authored mission actors and vehicle tasks.

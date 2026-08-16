@@ -1,48 +1,74 @@
 ---
-title: SkyGFX and PS2-style visuals
-description: Enable Neon's selected SkyGFX effects, understand what each option changes, and see the current compatibility limits.
+title: SkyGFX, radar, and client visuals
+description: Neon's integrated PS2-style effects, Definitive Edition radar profile, and resource-owned visual overrides.
 ---
 
-Neon can give San Andreas a more console-like image without asking players to install a separate ASI mod. The Windows client packages a controlled SkyGFX bridge and exposes the effects that have been integrated with MTA so far.
+Neon packages a controlled SkyGFX bridge and a configurable radar renderer directly in the Windows client. Players do not need a separate ASI install, and servers can request temporary visual profiles without overwriting the player's saved settings.
 
-The integration is **off by default**. It changes only the local player's rendering and does not affect server logic, synchronization, or other players' settings.
+## First-run visual profile
 
-<!-- MEDIA PLACEHOLDER: SkyGFX disabled/enabled comparison. Suggested files: /neon-media/skygfx-off.webp and /neon-media/skygfx-on.webp. Capture the same camera, time, weather, resolution, brightness, and display settings. A desktop two-column comparison should stack cleanly on mobile. -->
+New Neon installs use a lightweight PS2-style profile by default:
 
-## Turn it on
+- SkyGFX integration: **enabled**;
+- PS2 color filter: **enabled**;
+- YCbCr correction: **enabled**;
+- PS2 depth bias: **enabled**;
+- soft color-filter blur: **disabled**;
+- PS2 radiosity: **disabled**;
+- GTA heat haze: **disabled**;
+- GTA motion blur: **disabled**.
 
-1. Open **Settings** in the Neon client.
-2. Select the **SkyGfx** tab.
-3. Enable **SkyGfx**, then choose the effects you want.
-4. Press **OK**. Changes apply immediately.
+Players can change these options in **Settings → SkyGfx**. This is still a selected MTA-compatible integration, not full SkyGFX and not a claim of exact PS2 parity.
 
-The status line reports whether the packaged bridge is active, missing, incompatible, or failed to initialize. A normal clean installation starts with the integration disabled even though its runtime is present.
-
-## Available effects
+## Available SkyGFX effects
 
 | Option | What it changes |
 | --- | --- |
-| PS2 color filter | Replaces GTA's PC color-filter pass with the integrated PS2-style pass. |
+| PS2 color filter | Replaces GTA's compatible PC color-filter pass with the integrated PS2-style pass. |
 | Soft color-filter blur | Adds the softer blur used by the selected console-style filter. |
-| Adapt PC timecycle color values | Adjusts the PC timecycle values before the PS2-style filter so the result is not graded twice. |
-| PS2 depth-bias precision | Uses the integrated PS2-style depth-bias behavior for affected rendering. |
-| Console YCbCr color correction | Applies the selected console color-space correction as the final world post-effect. |
-| PS2 radiosity glow | Replaces the compatible radiosity calls with the integrated PS2-style glow. |
+| Adapt PC timecycle values | Adjusts PC timecycle values before the PS2-style filter. |
+| PS2 depth bias | Uses the integrated PS2-style depth-bias behavior. |
+| YCbCr correction | Applies the selected console color-space correction after world rendering. |
+| PS2 radiosity | Uses the integrated PS2-style radiosity path with configurable intensity and passes. |
 
-Radiosity exposes four intensity presets — 24, 35, 48, and 64 — plus one to four blur and composite passes. Higher values are a visual preference, not a quality or performance guarantee.
+Radiosity intensity accepts 1–255 and its filter/render pass counts accept 1–4. Higher settings are a visual choice, not a quality guarantee.
 
-<!-- MEDIA PLACEHOLDER: Radiosity intensity/passes. Suggested file: /neon-media/skygfx-radiosity.webp or a short WebM. Use a bright night scene or sunset where the difference is clear, and include the selected settings in the caption. -->
+## Fullscreen device resets
 
-## Scope and compatibility
+The current release bridge uses **API v5**. Neon releases SkyGFX-owned Direct3D default-pool resources before a D3D9 reset and recreates them afterward, fixing the exclusive-fullscreen Alt-Tab reset failure that could previously leave GTA unresponsive when radiosity was active.
 
-This is a selected MTA-compatible integration, not the complete SkyGFX renderer and not a claim of exact PS2 parity. Neon currently exposes the color filter, soft blur, PC-timecycle adaptation, depth-bias precision, radiosity, and YCbCr paths described above.
+API v4 remains accepted for compatible legacy color processing, but published Neon builds pin the tested v5 bridge with the device lifecycle callbacks.
 
-The bridge is Windows/Direct3D-specific. It uses API version 4 and refuses incompatible bridge builds. If another component has already modified one of the guarded GTA call sites, Neon leaves that effect disabled instead of overwriting an unknown owner. If a color-filter or radiosity dispatch fails during a frame, Neon falls back to GTA's vanilla pass for that frame; a failed YCbCr pass is skipped.
+## Vanilla or Definitive Edition radar
 
-## Evidence
+The Neon radar settings offer two renderers:
 
-Commit [`6cbc7b4ec`](https://github.com/Dryxio/mtasa-neon/commit/6cbc7b4ec) introduced the selected PS2 color, blur, timecycle, depth-bias, and radiosity paths. Commit [`7ff70b729`](https://github.com/Dryxio/mtasa-neon/commit/7ff70b729) added YCbCr correction. The bridge and affected client projects built, and the color, radiosity, and later YCbCr paths were checked in game. This does not establish exhaustive parity across every weather, resolution, shader, or graphics mod.
+- **Vanilla** — the normal GTA radar presentation with Neon's configurable layout;
+- **Definitive Edition** — a widescreen-safe renderer backed by the bundled 144-tile texture archive.
 
-Commit [`0464ee0c1`](https://github.com/Dryxio/mtasa-neon/commit/0464ee0c1) packages `skygfx_mta.dll` with public Windows installs, so players do not need a separate bridge download.
+Players can change radar position, width, height, and widescreen-safe behavior from the Neon settings. The client reports the effective HUD geometry instead of assuming the stock 4:3 layout.
+
+## Resource-owned visual overrides
+
+Client resources can read and temporarily override an allowlisted set of radar and SkyGFX options with [`getNeonClientSetting`](/neon/functions/getNeonClientSetting), [`setNeonClientSetting`](/neon/functions/setNeonClientSetting), and [`resetNeonClientSettings`](/neon/functions/resetNeonClientSettings).
+
+```lua
+setNeonClientSetting("radar.style", "definitive")
+```
+
+Useful setting names include:
+
+- `radar.style`, `radar.position_x`, `radar.position_y`, `radar.width`, `radar.height`, `radar.widescreen_safe`;
+- `skygfx.enabled`, `skygfx.color_filter`, `skygfx.color_filter_blur`, `skygfx.pc_timecycle`, `skygfx.depth_bias`, `skygfx.ycbcr`, `skygfx.radiosity`;
+- `skygfx.radiosity_intensity`, `skygfx.radiosity_filter_passes`, `skygfx.radiosity_render_passes`;
+- read-only `skygfx.status`.
+
+Overrides are session-scoped and owned by the calling resource. They stack in application order, do not replace the player's saved preferences, and are removed automatically when the resource stops. A managed setting is shown read-only in the native UI until the override disappears.
+
+## Evidence and limits
+
+Commit [`7322b1d71`](https://github.com/Dryxio/mtasa-neon/commit/7322b1d71) added the first-run profile, resource-scoped SkyGFX overrides, and API v5 device-reset lifecycle. Commit [`fb8ee02c4`](https://github.com/Dryxio/mtasa-neon/commit/fb8ee02c4) added the Definitive Edition radar, layout controls, and the general Neon visual-setting bridge.
+
+The integrated effects and radar renderer were built and checked in game. The documented scope does not imply complete SkyGFX parity across every weather, resolution, graphics mod, or hardware configuration.
 
 For Project2DFX, pool sizes, CULL zones, and renderer diagnostics, continue with [Rendering and limits](/neon/rendering-and-limits).
