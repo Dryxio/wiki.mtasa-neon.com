@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-San Andreas is full of dynamic props that MTA has never exposed to scripts: Grove Street boxes, crates, bins, street clutter, breakable furniture. They are created by GTA's own IPL/streaming path, simulated by GTA physics, and were invisible to Lua.
+San Andreas is full of dynamic props that MTA has never exposed to scripts: cardboard boxes, crates, bins, street clutter, breakable furniture. They are created by GTA's own IPL/streaming path, simulated by GTA physics, and were invisible to Lua.
 
 Neon publishes them as read/write client elements of type **`worldobject`**. GTA keeps physics ownership. Lua observes the real object and can react to it.
 
@@ -13,7 +13,7 @@ Neon publishes them as read/write client elements of type **`worldobject`**. GTA
        poster="/neon-media/world-objects-poster.jpg"
        style="width:100%;height:auto;border-radius:.5rem;">
   <source src="/neon-media/world-objects-showcase.mp4" type="video/mp4" />
-  Your browser cannot play this clip. It shows a Grove Street box bound to a
+  Your browser cannot play this clip. It shows a cardboard box bound to a
   <code>worldobject</code> element, with live coordinates, damage feedback, and a push objective.
 </video>
 
