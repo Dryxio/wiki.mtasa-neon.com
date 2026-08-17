@@ -17,7 +17,7 @@ Neon publishes them as read/write client elements of type **`worldobject`**. GTA
   <code>worldobject</code> element, with live coordinates, damage feedback, and a push objective.
 </video>
 
-The clip runs `test-resources/world-object-scripting-harness`: a native box is bound to a `worldobject`, a halo and 3D label track it, the player and a vehicle push it, and damage/break events are logged. The object is never moved from Lua — GTA physics drives it while Lua reads the transform each frame.
+The clip runs `test-resources/world-object-scripting-harness`: a native box is bound to a `worldobject`, a halo and 3D label track it, the player and a vehicle push it, and damage/break events are logged. The object is never moved from Lua. GTA physics drives it while Lua reads the transform each frame.
 
 ## What a `worldobject` is
 
@@ -91,7 +91,7 @@ end)
 
 `onClientElementStreamIn` and `onClientElementStreamOut` also fire on the proxy when GTA creates or converts away the streamed object. They carry no extra arguments; the element is `source`.
 
-Damage and break events are raised even for an object Neon has not adopted yet during a pool scan — the handler adopts it on demand, so the first hit on a freshly created object is not lost.
+Damage and break events are raised even for an object Neon has not adopted yet during a pool scan. The handler adopts it on demand, so the first hit on a freshly created object is not lost.
 
 ## A minimal gameplay example
 
@@ -123,7 +123,7 @@ Four things change how you write against `worldobject`:
 
 - **It is client-side only.** There is no server element, no synchronization, and no server-side event. Two players see their own copies of the same native prop. Anything shared has to be relayed by your resource.
 - **It is not an MTA `object`.** Functions that require a real `object` element reject it, and it cannot be destroyed, respawned, recreated, or attached.
-- **Read/write covers the transform.** Object health, collision-damage effect, and break state are not properties yet — damage is observed through the events instead.
+- **Read/write covers the transform.** Object health, collision-damage effect, and break state are not properties yet. Damage is observed through the events instead.
 - **`getElementModel` returns `false` for it.** The model reaches Lua through the `model` argument of the damage and break events.
 
 ## Verification

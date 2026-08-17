@@ -43,8 +43,8 @@ API v4 remains accepted for compatible legacy color processing, but published Ne
 
 The Neon radar settings offer two renderers:
 
-- **Vanilla** — the normal GTA radar presentation with Neon's configurable layout;
-- **Definitive Edition** — a widescreen-safe renderer backed by the bundled 144-tile texture archive.
+- **Vanilla**: the normal GTA radar presentation with Neon's configurable layout;
+- **Definitive Edition**: a widescreen-safe renderer backed by the bundled 144-tile texture archive.
 
 Players can change radar position, width, height, and widescreen-safe behavior from the Neon settings. The client reports the effective HUD geometry instead of assuming the stock 4:3 layout.
 

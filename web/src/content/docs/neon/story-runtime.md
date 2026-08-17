@@ -9,7 +9,7 @@ Neon exposes reusable GTA story systems instead of hard-coding one mission in C+
 
 Most low-level calls run on the client that currently simulates the ped or vehicle. They do not make a mission authoritative by themselves: the server still has to own state, validate client observations, coordinate participants, and clean up every scene.
 
-For the high-level model—one native simulator, server-owned state, and presentation for every other player—start with [Synchronized NPCs and traffic](/neon/synchronized-ai).
+The high-level model is one native simulator, server-owned state, and presentation for every other player. Start with [Synchronized NPCs and traffic](/neon/synchronized-ai).
 
 <!-- MEDIA PLACEHOLDER: Multiplayer story-runtime montage. Suggested file: /neon-media/story-runtime.webp or a short video. Combine one cutscene/camera moment with one native task visible to a second player; label the mission harness used. -->
 
@@ -66,8 +66,8 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedScriptedSpeechMuted`](/neon/functions/setPedScriptedSpeechMuted) | Native scripted-speech state; no `CTask` | `0A09 SHUT_CHAR_UP_FOR_SCRIPTED_SPEECH` |
 | [`getPedWeaponShootingRate`](/neon/functions/getPedWeaponShootingRate) / [`setPedWeaponShootingRate`](/neon/functions/setPedWeaponShootingRate) | Read or write the persistent byte consumed by native gun tasks; no `CTask` | Getter has no SCM opcode; setter is `07DD SET_CHAR_SHOOT_RATE` |
 | [`setPedWeaponAccuracy`](/neon/functions/setPedWeaponAccuracy) | Persistent byte consumed by native weapon tasks | `02E2 SET_CHAR_ACCURACY` |
-| [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | Persistent `PED_MISSION` policy; no `CTask` | — |
-| [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | Grouped native story-actor flags; no `CTask` | — |
+| [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | Persistent `PED_MISSION` policy; no `CTask` | No SCM opcode |
+| [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | Grouped native story-actor flags; no `CTask` | No SCM opcode |
 | [`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) / [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) | Persistent inverse no-critical-hits bit | `0446 SET_CHAR_SUFFERS_CRITICAL_HITS` |
 | [`setPedStayInSamePlace`](/neon/functions/setPedStayInSamePlace) / [`getPedStayInSamePlace`](/neon/functions/getPedStayInSamePlace) | Persistent stay-put flag; no movement task | `0350 SET_CHAR_STAY_IN_SAME_PLACE` |
 | [`setPedNeverTargeted`](/neon/functions/setPedNeverTargeted) / [`isPedNeverTargeted`](/neon/functions/isPedNeverTargeted) | Persistent targeting flag; no `CTask` | `0568 SET_CHAR_NEVER_TARGETTED` |

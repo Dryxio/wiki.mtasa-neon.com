@@ -109,7 +109,7 @@ if check and check.compatible then
 end
 ```
 
-[`validatePedNativeCouple`](/neon/functions/validatePedNativeCouple) is the pre-flight check. It reports whether the pair is `compatible` and which member GTA should lead, based on the two peds' native walk speeds — a couple whose members walk at incompatible speeds would immediately break its own give-up distance. Passing that `leaderIndex` straight into [`acquirePedNativeCouple`](/neon/functions/acquirePedNativeCouple) is the intended flow.
+[`validatePedNativeCouple`](/neon/functions/validatePedNativeCouple) is the pre-flight check. It reports whether the pair is `compatible` and which member GTA should lead, based on the two peds' native walk speeds. A couple whose members walk at incompatible speeds would immediately break its own give-up distance. Passing that `leaderIndex` straight into [`acquirePedNativeCouple`](/neon/functions/acquirePedNativeCouple) is the intended flow.
 
 After the lease exists, GTA owns the pair behavior: walk-side selection and swapping, hand holding, looking at each other, and abandoning the couple past the give-up distance.
 
@@ -153,7 +153,7 @@ For groups, the current owner acquires the native group only after the server ha
 ## Current limits
 
 - Ambient **vehicle** population is not complete. Native vehicle tasks remain available for server-authored missions, convoys, escorts, and scripted traffic.
-- Ambient cops walk and avoid, but they never escalate. There is no wanted level, pursuit, or arrest behavior, and this is intentional rather than an unfinished stage — the retail cop task is not safe on an MTA ped.
+- Ambient cops walk and avoid, but they never escalate. There is no wanted level, pursuit, or arrest behavior, and this is intentional rather than an unfinished stage, because the retail cop task is not safe on an MTA ped.
 - The completed ambient population slice is still focused on outdoor world simulation; arbitrary interiors and every GTA population family are not implied.
 - No eligible client means no native AI simulation. There is no headless GTA task runner.
 - Syncer migration does not serialize every arbitrary GTA task tree. Supported families have explicit handoff or presentation state.

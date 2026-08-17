@@ -47,7 +47,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | SA-MP map exports | Conversion normally required | Native Texture Studio/Pawn parser, custom-object loader, removals, worlds/interiors, and material slots |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
 | Native world packs | Not available | Legacy single-pack formats plus format-3 multi-IMG child packs, an audited selected-set coordinator, immutable cache, and owner-server isolation |
-| Reviewed native-world catalog | — | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |
+| Reviewed native-world catalog | Not available | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |
 
 ## Rendering and native pools
 
@@ -74,7 +74,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Area | Standard MTA:SA | Neon |
 | --- | --- | --- |
 | Custom model identity | Client-local runtime allocation | Server-stable logical IDs mapped to per-client GTA slots |
-| Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
+| Supported server model types | Not available | Objects, vehicles, and peds with native-parent fallback |
 | SA-MP custom-object identity | Not integrated | Original SA-MP IDs resolved to resource-owned Neon runtime models by the reference loader |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
 | Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, dealers, and city cops proposed from GTA's popcycle/model/path rules with owner epochs and cleanup |
