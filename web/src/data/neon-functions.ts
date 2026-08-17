@@ -418,6 +418,35 @@ const updates: NeonFunction[] = [
   },
 
   {
+    name: 'engineLoadCOL', category: 'collision', side: 'client', extension: true,
+    signature: 'col|false engineLoadCOL(string|table collision)',
+    summary: 'Loads a collision model from a .col file as in standard MTA, or builds one from a Lua collision table.',
+    arguments: [arg('collision', 'string|table', 'A .col file path or raw data for the standard path, or a collision table of spheres, boxes and meshes for the Neon path.')],
+    returns: 'A col element, or false when no resource context exists or the collision could not be built.',
+    notes: [
+      'Passing anything other than a table falls through to the unchanged standard MTA behavior, so existing resources are unaffected.',
+      'The returned element is an ordinary col element. Apply it with engineReplaceCOL and destroy it as usual.',
+      'A malformed table raises a Lua error naming the exact path, such as spheres[2].radius must be finite.',
+    ],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaRuntimeCollisionDefs.cpp', commit: 'aba2101e9', test: 'test-resources/runtime-collision-wall-demo',
+    example: 'local col = engineLoadCOL({\n    boxes = { { position = { 0, 0, 0 }, size = { 4, 0.4, 2.5 }, material = 1 } },\n})\nengineReplaceCOL(col, engineRequestModel("object", 980))',
+  },
+  {
+    name: 'engineSetCOLData', category: 'collision', side: 'client',
+    signature: 'bool engineSetCOLData(col theCol, table collision)',
+    summary: "Rebuilds an existing col element's collision from a Lua table and re-applies it to every model it already replaced.",
+    arguments: [arg('theCol', 'col', 'A col element, including one created by engineLoadCOL from a table.'), arg('collision', 'table', 'Collision table of spheres, boxes and meshes.')],
+    returns: 'true when the new collision was built and applied; false when the element has no loaded collision or the rebuild failed.',
+    notes: [
+      'This is the reason to generate collision rather than ship a .col: the new shape lands immediately on objects that are already streamed in.',
+      'Rebuild only when the shape actually changes. Keep a signature of the current dimensions and skip identical frames when the shape is driven by held keys or continuous input.',
+      'The previous collision model is destroyed after the replacement succeeds.',
+    ],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaRuntimeCollisionDefs.cpp', commit: 'aba2101e9', test: 'test-resources/runtime-collision-wall-demo',
+    example: '-- Make the same wall taller without creating a new element\nengineSetCOLData(col, {\n    boxes = { { position = { 0, 0, 0 }, size = { 4, 0.4, 3 }, material = 1 } },\n})',
+  },
+
+  {
     name: 'openExternalURL', category: 'browser', side: 'client',
     signature: 'bool openExternalURL(string url)',
     summary: 'Opens an approved HTTPS destination in the operating system browser without exposing arbitrary shell execution.',

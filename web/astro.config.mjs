@@ -74,6 +74,7 @@ export default defineConfig({
           items: [
             { label: "Extended world", link: "/neon/extended-world" },
             { label: "Scriptable dynamic objects", link: "/neon/world-objects" },
+            { label: "Runtime collision", link: "/neon/runtime-collision" },
             { label: "Custom models", link: "/neon/models-and-streaming" },
             { label: "SA-MP maps", link: "/neon/samp-maps" },
             { label: "Native world packs", link: "/neon/native-world" },
