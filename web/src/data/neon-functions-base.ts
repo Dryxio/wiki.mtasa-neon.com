@@ -577,14 +577,18 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedWander", category: "tasks", side: "client", group: "movement",
     signature: "bool setPedWander(ped thePed [, string movement = \"walk\", int direction = -1, bool wanderSensibly = true])",
-    summary: "Starts GTA's standard on-foot wander task.",
-    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("movement", "string", "walk or run.", true, "walk"), arg("direction", "int", "-1 for GTA's native random direction, or a direction from 0 through 7.", true, "-1"), arg("wanderSensibly", "bool", "Use the native sensible-wander behavior.", true, "true")],
+    summary: "Starts GTA's standard on-foot wander task, or the safe ambient-cop wander task under the ambient-cop-safe event profile.",
+    arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("movement", "string", "walk or run.", true, "walk"), arg("direction", "int", "-1 for GTA's native random direction, or a direction from 0 through 7.", true, "-1"), arg("wanderSensibly", "bool", "Use the native sensible-wander behavior. Rejected as false while the ambient-cop-safe profile is selected.", true, "true")],
     returns: "true when the task was queued; false for invalid movement, direction, ped state, ownership, or task construction.",
+    notes: [
+      "A ped holding the ambient-cop-safe event profile gets Neon's safe ambient-cop wander task instead of WanderStandard.",
+      "Under that profile wanderSensibly = false returns false rather than being applied. Retail WanderCop hardcodes sensible walking, so accepting it would produce a hybrid state neither task can reach.",
+    ],
     nativeTask: {
-      tasks: ["CTaskComplexWanderStandard"], opcode: "05DE", command: "TASK_WANDER_STANDARD",
-      note: "A direction of -1 is resolved by GTA's native random-direction helper before the standard wander task is created.",
+      tasks: ["CTaskComplexWanderStandard", "CTaskComplexWander"], opcode: "05DE", command: "TASK_WANDER_STANDARD",
+      note: "A direction of -1 is resolved by GTA's native random-direction helper before the standard wander task is created. Under the ambient-cop-safe profile Neon builds a WANDER_TYPE_COP task on GTA's base Wander locomotion vtable with an empty scanner, so police escalation is unreachable.",
     },
-    oop: ["ped:setWander(movement, direction, wanderSensibly)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "c8176de3c", test: "test-resources/tagging-up-turf",
+    oop: ["ped:setWander(movement, direction, wanderSensibly)"], source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "500d3cf7e", test: "test-resources/native-ped-traffic",
   },
   {
     name: "setPedScriptedSpeechMuted", category: "tasks", side: "client", group: "movement",
@@ -710,11 +714,11 @@ export const neonFunctions: NeonFunction[] = [
     name: "acquirePedNativeEventProfile", category: "tasks", side: "client", group: "policies",
     signature: "int|false acquirePedNativeEventProfile(ped thePed, string profile)",
     summary: "Exclusively leases one of Neon's stock native-event adapters for a script ped.",
-    arguments: [arg("thePed", "ped", "Script ped; players are rejected. The mission profile requires setPedMissionActor, while ambient-wander rejects mission actors."), arg("profile", "string", "mission or ambient-wander.")],
+    arguments: [arg("thePed", "ped", "Script ped; players are rejected. The mission profile requires setPedMissionActor, while ambient-wander rejects mission actors."), arg("profile", "string", "mission, ambient-wander, or ambient-cop-safe.")],
     returns: "A non-zero resource-private token, or false when the ped, profile prerequisite, profile name, or exclusive ownership check fails.",
-    notes: ["The logical lease may be acquired before stream-in or sync ownership and survives native recreation and syncer generations.", "It becomes active only while this client is the authoritative ped syncer with a live native instance. Another resource cannot lease the same ped on this client.", "mission restores the audited mission decision path for events such as an occupied vehicle catching fire. ambient-wander admits stock pedestrian and parked-vehicle avoidance plus civilian gun-threat and damage decisions.", "Neither profile serializes the active response task across migration or loads custom SCM decision-maker files."],
+    notes: ["The logical lease may be acquired before stream-in or sync ownership and survives native recreation and syncer generations.", "It becomes active only while this client is the authoritative ped syncer with a live native instance. Another resource cannot lease the same ped on this client.", "mission restores the audited mission decision path for events such as an occupied vehicle catching fire. ambient-wander admits stock pedestrian and parked-vehicle avoidance plus civilian gun-threat and damage decisions.", "ambient-cop-safe marks the ped as a city cop for locomotion purposes: setPedWander then builds Neon's safe ambient-cop wander task and rejects wanderSensibly = false. It grants no wanted, pursuit, or arrest behavior, which is unreachable by construction rather than suppressed at runtime.", "No profile serializes the active response task across migration or loads custom SCM decision-maker files."],
     nativeTask: { note: "Acquisition does not create a CTask. GTA's decision maker constructs a response only after the active profile accepts a native event; there is no direct SCM opcode for the lease." },
-    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "65c6b103c", test: "test-resources/native-ped-traffic",
+    source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "5318f4360", test: "test-resources/native-ped-traffic",
     example: "assert(setPedMissionActor(ballas, true))\nlocal token = assert(acquirePedNativeEventProfile(ballas, \"mission\"))",
   },
   {

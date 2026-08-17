@@ -13,7 +13,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 | Goal | Start here | Current scope |
 | --- | --- | --- |
-| Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared civilians, native gang groups, gang combat, motorcycle carjacks, and dealers use GTA's population/task systems with server ownership and client handoff. Ambient vehicles and other population families remain open. |
+| Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared civilians, native gang groups, gang combat, motorcycle carjacks, dealers, city cops, and civilian couples use GTA's population/task systems with server ownership and client handoff. Ambient vehicles and other population families remain open. |
+| Script San Andreas' own physics props | [Scriptable dynamic objects](/neon/world-objects) | GTA-owned dynamic objects appear as client `worldobject` elements with live transforms plus damage and break events. GTA keeps physics ownership. |
 | Load SA-MP / Texture Studio maps | [SA-MP maps](/neon/samp-maps) | Parse Pawn exports directly, resolve SA-MP custom objects, apply material slots, building removals, interiors/worlds, and redistribute the fixed object-streaming budget when needed. |
 | Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
 | Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
@@ -76,8 +77,11 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Supported server model types | — | Objects, vehicles, and peds with native-parent fallback |
 | SA-MP custom-object identity | Not integrated | Original SA-MP IDs resolved to resource-owned Neon runtime models by the reference loader |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, and dealers proposed from GTA's popcycle/model/path rules with owner epochs and cleanup |
+| Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, dealers, and city cops proposed from GTA's popcycle/model/path rules with owner epochs and cleanup |
 | Ambient gang behavior | Local-only single-player logic | Owner-only native groups with leader/follower movement, fight/flee decisions, gang weapons, synchronized damage admission, and bike-jack handoff |
+| Ambient city cops | Local-only, and the retail cop task is unsafe on an MTA ped | A safe ambient-cop wander task on GTA's verified base locomotion: real path nodes, pauses, and road crossing with wanted, pursuit, and arrest unreachable by construction |
+| Ambient couples | Local-only single-player logic | Atomic two-ped native couple leases with GTA-owned walk side, hand holding, look-at, and give-up distance, plus a separate observer presentation lease |
+| Native dynamic objects | Not exposed to scripts | GTA-owned physics props published as client `worldobject` elements with live read/write transforms and cancellable damage and break events |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
 | Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |
@@ -101,7 +105,7 @@ The tables describe available code paths, not one shared stability level. Follow
 
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
-- A native SA-MP map parser/loader fixture, object-streaming quota harness, and native-radio playback resource.
+- A native SA-MP map parser/loader fixture, object-streaming quota harness, native-radio playback resource, and a world-object scripting showcase.
 - Focused test resources for engine limits, world systems, native tasks, synchronized population, scene primitives, mission checkpoints, compatibility, and cleanup.
 - A CI-built Windows Neon installer with its own branding, registry state, protocol registration, shortcuts, and uninstall path, isolated from an existing official MTA installation.
 
