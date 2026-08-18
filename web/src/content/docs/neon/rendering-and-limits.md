@@ -25,11 +25,11 @@ Runtime evidence exceeded the old ceilings with 1,033 visible entities and 4,677
 
 ## Coronas and Project2DFX
 
-Both sides below are the same Neon client with the option toggled, not two different builds. The night pair was captured 13 seconds apart from one viewpoint, so the time of day and weather match.
+Neon renders the distant world itself, with no ASI install. Both options are off on a clean install and toggled from the settings tab.
 
-![Night comparison over the city: with extended draw distance and Project2DFX off the world is fogged out beyond a short distance, and with them on the full city appears with hundreds of distant coronas and traffic lights](/neon-media/compare-project2dfx.jpg)
+![Night view over the city: fogged out beyond a short distance in MTA:SA, full skyline with hundreds of distant lights in Neon](/neon-media/compare-project2dfx.jpg)
 
-![Daytime rooftop comparison: distant buildings are flat low-detail blobs under MTA's original far clip, and resolve into detailed geometry under Neon's extended draw distance](/neon-media/compare-draw-distance.jpg)
+![Rooftop view over Los Santos: distant buildings are flat low-detail blobs in MTA:SA and resolve into detailed geometry in Neon](/neon-media/compare-draw-distance.jpg)
 
 Commit [`4b7a1f523`](https://github.com/Dryxio/mtasa-neon/commit/4b7a1f523) relocates GTA's 64-entry corona array to 4,096 process-lifetime entries and patches the verified initialization, rendering, reflection, registration, and coordinate-update references. The first native slots remain available to GTA; up to 4,094 scripted coronas were validated in game.
 
