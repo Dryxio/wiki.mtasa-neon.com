@@ -17,6 +17,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Script San Andreas' own physics props | [Scriptable dynamic objects](/neon/world-objects) | GTA-owned dynamic objects appear as client `worldobject` elements with live transforms plus damage and break events. GTA keeps physics ownership. |
 | Build collision shapes from script | [Runtime collision generation](/neon/runtime-collision) | Describe collision as a Lua table of spheres, boxes and meshes instead of shipping a `.col`, and rebuild it live on models already in the world. |
 | Grow vegetation anywhere | [Custom foliage](/neon/foliage) | Hand GTA's native plant manager a triangle, a surface and a density, and it grows its own grass there with normal rendering and wind. |
+| Control fire as a real element | [Managed fire](/neon/fire) | Server-synchronized `fire` elements that keep their identity, can be retargeted onto a moving element, and are changed while burning. |
 | Load SA-MP / Texture Studio maps | [SA-MP maps](/neon/samp-maps) | Parse Pawn exports directly, resolve SA-MP custom objects, apply material slots, building removals, interiors/worlds, and redistribute the fixed object-streaming budget when needed. |
 | Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
 | Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
@@ -92,6 +93,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Native dynamic objects | Not exposed to scripts | GTA-owned physics props published as client `worldobject` elements with live read/write transforms and cancellable damage and break events |
 | Collision authoring | A packaged `.col` file, fixed at build time | Collision serialized from a Lua table of spheres, boxes and meshes, rebuildable in place on models that are already streamed in |
 | Vegetation placement | Whatever the shipped map contains | Up to 64 resource-owned `foliage` triangles driving GTA's native plant manager, with live surface and density changes and dimension support |
+| Fire | Client-only `createFire`, returning a boolean with no handle | Synchronized `fire` elements with persistent identity, live strength, duration, damage-mask, spread and target changes, past GTA's 60-fire pool |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
 | Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |
