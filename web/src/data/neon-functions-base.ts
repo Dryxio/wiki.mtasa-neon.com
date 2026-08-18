@@ -94,6 +94,12 @@ export const neonCategories = {
     test: "test-resources/native-ped-traffic",
     lifecycle: "The model-residency pass retains GTA's eight stock zone-ped slots until reset or game teardown. Candidate queries create no element; a multiplayer resource must validate proposals, create and own peds, assign one syncer, advance owner epochs, and clean up every element. Native-event tokens belong to the calling resource, activate only on the current syncer, and are revoked on resource shutdown.",
   },
+  birds: {
+    title: "Scriptable birds",
+    guide: "/neon/birds",
+    test: "test-resources/bird-test",
+    lifecycle: "A bird belongs to the client resource that created it and is removed when that resource stops. Birds fade near their render distance instead of being destroyed, and a dimension or interior mismatch hides them while keeping the element alive.",
+  },
   fire: {
     title: "Managed fire",
     guide: "/neon/fire",

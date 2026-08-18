@@ -76,6 +76,8 @@ export default defineConfig({
             { label: "Scriptable dynamic objects", link: "/neon/world-objects" },
             { label: "Runtime collision", link: "/neon/runtime-collision" },
             { label: "Custom foliage", link: "/neon/foliage" },
+            { label: "Managed fire", link: "/neon/fire" },
+            { label: "Scriptable birds", link: "/neon/birds" },
             { label: "Custom models", link: "/neon/models-and-streaming" },
             { label: "SA-MP maps", link: "/neon/samp-maps" },
             { label: "Native world packs", link: "/neon/native-world" },
