@@ -49,7 +49,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Native minimap | Fixed 12 × 12 stock grid | Sparse 40 × 40 logical grid plus Vanilla/Definitive client radar profiles |
 | F11 map | Packaged San Andreas image | Runtime atlas composed from native and registered extended tiles |
 | MTA object streaming split | Fixed 500 normal / 500 low-LOD | Same 1000-slot hard budget, resource-adjustable split including 1000/0 |
-| SA-MP map exports | Conversion normally required | Native Texture Studio/Pawn parser, custom-object loader, removals, worlds/interiors, and material slots |
+| SA-MP map exports | Conversion normally required | Native Texture Studio/Pawn parser, custom-object loader, removals, worlds/interiors, and the `SetDynamicObjectMaterial` slots a retextured map depends on |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
 | Native world packs | Not available | Legacy single-pack formats plus format-3 multi-IMG child packs, an audited selected-set coordinator, immutable cache, and owner-server isolation |
 | Reviewed native-world catalog | Not available | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |

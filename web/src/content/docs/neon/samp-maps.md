@@ -5,6 +5,29 @@ description: Load Texture Studio / Pawn map exports directly in Neon, including 
 
 Neon can load common **SA-MP Texture Studio / Pawn map exports without converting them to Lua first**. The client parser understands object creation, virtual worlds, interiors, building removals, and per-material texture/color overrides.
 
+<video controls muted loop playsinline preload="metadata"
+       poster="/neon-media/samp-poster.jpg"
+       style="width:100%;height:auto;border-radius:.5rem;">
+  <source src="/neon-media/samp-showcase.mp4" type="video/mp4" />
+  Your browser cannot play this clip. It shows a SA-MP Pawn map export full of
+  SetDynamicObjectMaterial calls, then the same map walked through in game.
+</video>
+
+## Why material slots are the whole point
+
+The clip opens on the `.pwn` source, and almost every line is a `SetDynamicObjectMaterial` call. That is not unusual: in a real Texture Studio map, **nearly no object keeps its original GTA texture**. Mappers pick a handful of neutral shapes and retexture them, so a wall, a counter and a floor may all be the same model wearing three different materials.
+
+A parser that only replayed `CreateObject` would place every piece of geometry in the right position and still render a map that looks nothing like the original. Material slots are what makes the import faithful rather than merely geometrically correct, which is why they are handled alongside object creation instead of being left to the resource.
+
+Neon reads both the plain SA-MP form and the streamer plugin's dynamic form:
+
+| Recognised | Handled as |
+| --- | --- |
+| `CreateObject`, `CreateDynamicObject`, `CreateDynamicObjectEx` | Object placement |
+| `SetObjectMaterial`, `SetDynamicObjectMaterial` | Texture and color slots |
+| `RemoveBuildingForPlayer` | Building removals |
+| `SetObjectMaterialText`, `SetDynamicObjectMaterialText`, `AddSimpleModel` | Reported as unsupported in the diagnostics, never applied silently |
+
 For the complete ready-to-use path, use the bundled [`samp-map-loader`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/samp-map-loader) resource. It owns the model mappings, map elements, removals, material state, and cleanup.
 
 ## Load a map
@@ -25,14 +48,7 @@ The loader waits until every required custom model is ready before creating the 
 
 ## What the parser understands
 
-[`engineParseSAMPMap`](/neon/functions/engineParseSAMPMap) accepts the Pawn source text and returns inert data for:
-
-- `CreateObject`, `CreateDynamicObject`, and extended dynamic-object forms;
-- model, position, rotation, stream distance, and draw distance;
-- virtual world and interior metadata;
-- `RemoveBuildingForPlayer`-style removals;
-- `SetObjectMaterial` texture and color slots;
-- source line/column diagnostics.
+[`engineParseSAMPMap`](/neon/functions/engineParseSAMPMap) accepts the Pawn source text and returns inert data for the calls listed above, plus model, position, rotation, stream distance, draw distance, virtual world and interior metadata, and source line/column diagnostics.
 
 Parsing does **not** create an MTA element or load a model. That separation keeps resource ownership and failure policy in Lua.
 
