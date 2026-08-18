@@ -25,12 +25,52 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
     </div>
   </div>
 
+  <figure class="hero-shot">
+    <img src="/neon-media/compare-project2dfx.jpg" width="2566" height="720" loading="eager" decoding="async"
+         alt="Night view over the city: fogged out beyond a short distance in MTA:SA, full skyline with hundreds of distant lights in Neon" />
+  </figure>
+
   <div class="stat-grid">
     <div><strong>{neonFunctions.length}</strong><span>documented API entries</span></div>
     <div><strong>{clientCount}</strong><span>client entries</span></div>
     <div><strong>{serverCount}</strong><span>server entries</span></div>
     <div><strong>{sharedCount}</strong><span>shared entries</span></div>
   </div>
+
+  <section class="section-block">
+    <p class="eyebrow">IN GAME</p>
+    <h2>What it looks like</h2>
+    <div class="shot-grid">
+      <a href="/neon/world-objects">
+        <img src="/neon-media/world-objects-poster.jpg" width="1280" height="720" loading="lazy" decoding="async" alt="A cardboard box bound to a worldobject element, tracked with a live label next to a green objective zone" />
+        <h3>Dynamic world objects</h3><p>Track, move, damage and break San Andreas' own physics props.</p>
+      </a>
+      <a href="/neon/runtime-collision">
+        <img src="/neon-media/runtime-collision-poster.jpg" width="1280" height="720" loading="lazy" decoding="async" alt="A long sloped ramp drawn in game, with its runtime-generated collision outline shown in cyan" />
+        <h3>Runtime collision</h3><p>Build collision shapes from a Lua table and rebuild them live.</p>
+      </a>
+      <a href="/neon/foliage">
+        <img src="/neon-media/foliage-poster.jpg" width="1280" height="720" loading="lazy" decoding="async" alt="A triangle of native grass grown from Lua on a lawn at night" />
+        <h3>Custom foliage</h3><p>Grow GTA's own vegetation anywhere, at any density.</p>
+      </a>
+      <a href="/neon/rendering-and-limits">
+        <img src="/neon-media/cull-zone-poster.jpg" width="1280" height="720" loading="lazy" decoding="async" alt="Native CULL zone editing shown in game with 3D diagnostics" />
+        <h3>Native CULL zones</h3><p>Create and edit GTA's culling volumes from a resource.</p>
+      </a>
+      <a href="/neon/skygfx">
+        <img src="/neon-media/compare-skygfx.jpg" width="2566" height="720" loading="lazy" decoding="async" alt="Street-level view in Ganton: neutral colors in MTA:SA, warmer PS2-style grading in Neon" />
+        <h3>PS2-style visuals</h3><p>Console-era color, blur and radiosity, built into the client.</p>
+      </a>
+      <a href="/neon/rendering-and-limits">
+        <img src="/neon-media/compare-draw-distance.jpg" width="2566" height="720" loading="lazy" decoding="async" alt="Rooftop view over Los Santos: flat low-detail blobs in MTA:SA, detailed geometry in Neon" />
+        <h3>Extended draw distance</h3><p>See the city instead of a fog wall, up to 5,000 units.</p>
+      </a>
+      <a href="/neon/client-experience">
+        <img src="/neon-media/neon-main-menu.jpg" width="1920" height="1080" loading="lazy" decoding="async" alt="Neon main menu in the GTA:SA visual style with a Discord connected badge" />
+        <h3>Neon client</h3><p>A GTA-style menu, server browser and optional Discord identity.</p>
+      </a>
+    </div>
+  </section>
 
   <section class="section-block">
     <p class="eyebrow">SYSTEM MAP</p>
@@ -78,6 +118,14 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
   .hero-actions { position: relative; display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
   .hero-actions a { padding: .75rem 1rem; color: #f3eadc; text-decoration: none; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: #14110e; }
   .hero-actions .primary { color: #0a0806; font-weight: 800; background: #f28c18; box-shadow: .25rem .25rem 0 #5b2a06; }
+  .hero-shot { margin: 1rem 0 0; }
+  .hero-shot img { display: block; width: 100%; height: auto; border: 1px solid rgba(242,140,24,.35); border-radius: .35rem; }
+  .shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
+  .shot-grid a { display: flex; flex-direction: column; overflow: hidden; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .25rem; background: linear-gradient(145deg, rgba(242,140,24,.055), transparent); }
+  .shot-grid a:hover { border-color: rgba(242,140,24,.72); transform: translateY(-2px); }
+  .shot-grid img { display: block; width: 100%; height: 9rem; object-fit: cover; border-bottom: 1px solid var(--sl-color-gray-5); }
+  .shot-grid h3 { margin: .9rem 1rem .3rem; font-size: 1rem; }
+  .shot-grid p { margin: 0 1rem 1rem; color: var(--sl-color-gray-3); font-size: .85rem; }
   .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: .8rem; margin: 1rem 0 4rem; }
   .stat-grid div { display: flex; flex-direction: column; margin-top: 0; padding: 1.1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .8rem; background: var(--sl-color-bg-nav); }
   .stat-grid strong { color: #f28c18; font-size: 1.8rem; line-height: 1; }
@@ -99,6 +147,6 @@ const sharedCount = neonFunctions.filter((entry) => entry.side === 'shared').len
   .category-cloud a:hover { border-color: #f28c18; }
   .category-cloud span { color: var(--sl-color-gray-3); font-size: .78rem; }
   .neon-warning { margin-top: 3rem; padding: 1rem 1.2rem; border: 1px solid rgba(242,140,24,.28); border-radius: .2rem; background: rgba(242,140,24,.055); }
-  @media (max-width: 780px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .system-grid, .status-strip { grid-template-columns: 1fr; } .status-strip > a { grid-column: 1; } .category-cloud { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 480px) { .category-cloud { grid-template-columns: 1fr; } }
+  @media (max-width: 780px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .system-grid, .status-strip { grid-template-columns: 1fr; } .status-strip > a { grid-column: 1; } .category-cloud { grid-template-columns: 1fr 1fr; } .shot-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .category-cloud { grid-template-columns: 1fr; } .shot-grid { grid-template-columns: 1fr; } }
 </style>

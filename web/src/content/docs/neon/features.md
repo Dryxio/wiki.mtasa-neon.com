@@ -32,6 +32,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 ## World and streaming
 
+![Rooftop view over Los Santos: distant buildings are flat low-detail blobs in MTA:SA and resolve into detailed geometry in Neon](/neon-media/compare-draw-distance.jpg)
+
 | Area | Standard MTA:SA | Neon |
 | --- | ---: | ---: |
 | Main world-sector grid | 120 × 120 | 400 × 400 |
@@ -53,6 +55,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 ## Rendering and native pools
 
+![Night view over the city: fogged out beyond a short distance in MTA:SA, full skyline with hundreds of distant lights in Neon](/neon-media/compare-project2dfx.jpg)
+
 | Area | Standard MTA:SA | Neon |
 | --- | ---: | ---: |
 | GTA corona pool | 64 | 4,096; 4,094 available to scripted coronas |
@@ -72,6 +76,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Project2DFX distant lights | Not integrated | Opt-in static coronas and timed traffic lights from the complete startup IPL catalogue, using a private 25,000-light render queue |
 
 ## Models and gameplay
+
+![A cardboard box bound to a worldobject element, tracked with a live label next to a green objective zone](/neon-media/world-objects-poster.jpg)
 
 | Area | Standard MTA:SA | Neon |
 | --- | --- | --- |
