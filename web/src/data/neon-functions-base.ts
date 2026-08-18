@@ -94,6 +94,12 @@ export const neonCategories = {
     test: "test-resources/native-ped-traffic",
     lifecycle: "The model-residency pass retains GTA's eight stock zone-ped slots until reset or game teardown. Candidate queries create no element; a multiplayer resource must validate proposals, create and own peds, assign one syncer, advance owner epochs, and clean up every element. Native-event tokens belong to the calling resource, activate only on the current syncer, and are revoked on resource shutdown.",
   },
+  fracture: {
+    title: "Object fracture effects",
+    guide: "/neon/break-effects",
+    test: "test-resources/break-test",
+    lifecycle: "A break effect belongs to the resource that created it and is removed when that resource stops. Fragment geometry is cached per model, so repeated fractures of the same model reuse the first computed cut until the cache is cleared.",
+  },
   effects: {
     title: "Model 2DFX effects",
     guide: "/neon/model-2dfx",

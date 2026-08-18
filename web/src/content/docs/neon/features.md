@@ -20,6 +20,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Control fire as a real element | [Managed fire](/neon/fire) | Server-synchronized `fire` elements that keep their identity, can be retargeted onto a moving element, and are changed while burning. |
 | Fill the sky with controllable birds | [Scriptable birds](/neon/birds) | Client `bird` elements with their own renderer, steerable flight, restyling and optional gunshot hit testing, past GTA's six native ambient slots. |
 | Light the world with GTA's own effects | [Model 2DFX effects](/neon/model-2dfx) | Read, edit, add and remove the 2DFX records baked into GTA models: lights with native blink modes, particles, roadsign text, escalators and sun glare. |
+| Break any object, not just the prepared ones | [Object fracture effects](/neon/break-effects) | Fragments cut from an object's live RenderWare geometry at runtime, with durability profiles so ordinary GTA damage triggers the break. |
 | Load SA-MP / Texture Studio maps | [SA-MP maps](/neon/samp-maps) | Parse Pawn exports directly, resolve SA-MP custom objects, apply material slots, building removals, interiors/worlds, and redistribute the fixed object-streaming budget when needed. |
 | Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
 | Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
@@ -98,6 +99,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Fire | Client-only `createFire`, returning a boolean with no handle | Synchronized `fire` elements with persistent identity, live strength, duration, damage-mask, spread and target changes, past GTA's 60-fire pool |
 | Ambient birds | Six native GTA slots, no script access | Resource-owned `bird` elements with steerable flight, colors, wing beat, render distance and shootability; 128 verified at once |
 | Model 2DFX effects | Baked into models, not exposed | 13 client functions to read, edit, add and remove them, with per-resource overrides that roll back on stop |
+| Breakable objects | Only models shipping the DFF breakable plugin | Any streamed object, fractured from its own geometry with no breakable DFF or fracture metadata |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
 | Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |
