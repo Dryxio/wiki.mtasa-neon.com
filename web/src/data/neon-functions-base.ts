@@ -19,6 +19,17 @@ export interface NeonArgument {
   description: string;
 }
 
+export interface NeonOptionKey {
+  /** Key name inside the table argument. */
+  name: string;
+  type: string;
+  description: string;
+  /** Grouping label, so long option sets stay readable. */
+  group?: string;
+  required?: boolean;
+  default?: string;
+}
+
 export interface NeonNativeTask {
   tasks?: string[];
   opcode?: string;
@@ -33,6 +44,8 @@ export interface NeonFunction {
   signature: string;
   summary: string;
   arguments?: NeonArgument[];
+  /** Keys accepted inside a table argument, rendered as their own section. */
+  optionKeys?: NeonOptionKey[];
   returns: string;
   notes?: string[];
   oop?: string[];

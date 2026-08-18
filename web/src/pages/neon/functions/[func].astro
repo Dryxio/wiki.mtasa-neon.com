@@ -74,6 +74,21 @@ const relatedFunctions = relatedCandidates
     </div>
   </>}
 
+  {func.optionKeys && func.optionKeys.length > 0 && <>
+    <h2 id="table-keys">Table keys</h2>
+    {[...new Set(func.optionKeys.map((key) => key.group ?? ''))].map((group) => <>
+      {group && <h3 class="key-group">{group}</h3>}
+      <div class="key-list">
+        {func.optionKeys.filter((key) => (key.group ?? '') === group).map((key) => <div>
+          <div><code>{key.name}</code><span>{key.type}</span>{key.required
+            ? <em class="req">required</em>
+            : <em>optional{key.default ? ` · default ${key.default}` : ''}</em>}</div>
+          <p>{key.description}</p>
+        </div>)}
+      </div>
+    </>)}
+  </>}
+
   <h2 id="returns">Returns</h2>
   <p>{func.returns}</p>
 
@@ -171,6 +186,14 @@ const relatedFunctions = relatedCandidates
   .argument-list span { color: #ffad35; font-family: monospace; font-size: .78rem; }
   .argument-list em { color: var(--sl-color-gray-3); font-size: .74rem; }
   .argument-list p { margin: .4rem 0 0; }
+  .key-group { margin: 1.4rem 0 .55rem; font-size: .95rem; color: #ffad35; }
+  .key-list { display: grid; gap: .5rem; }
+  .key-list > div { padding: .7rem .9rem; border-left: 2px solid rgba(242,140,24,.32); background: var(--sl-color-bg-nav); }
+  .key-list > div > div { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+  .key-list span { color: #ffad35; font-family: monospace; font-size: .76rem; }
+  .key-list em { color: var(--sl-color-gray-3); font-size: .72rem; }
+  .key-list em.req { color: #ffbd5c; font-style: normal; font-weight: 700; }
+  .key-list p { margin: .35rem 0 0; font-size: .92rem; }
   .native-task { padding: 1rem 1.1rem; border: 1px solid rgba(242,140,24,.36); border-left: 3px solid #f28c18; border-radius: .35rem; background: linear-gradient(110deg, rgba(242,140,24,.08), rgba(10,8,6,.08)); }
   .native-task-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
   .native-task-header span { color: #f28c18; font-size: .67rem; font-weight: 900; letter-spacing: .1em; }
