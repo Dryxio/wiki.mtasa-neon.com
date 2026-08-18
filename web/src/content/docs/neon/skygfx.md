@@ -5,6 +5,10 @@ description: Neon's integrated PS2-style effects, Definitive Edition radar profi
 
 Neon packages a controlled SkyGFX bridge and a configurable radar renderer directly in the Windows client. Players do not need a separate ASI install, and servers can request temporary visual profiles without overwriting the player's saved settings.
 
+![Street-level comparison in Ganton: neutral stock colors with SkyGFX off, and warmer, more saturated PS2-style grading with SkyGFX on](/neon-media/compare-skygfx.jpg)
+
+Both halves are the same Neon client with the SkyGFX integration toggled. The in-game clocks differ slightly between the two captures, so part of the warmth also comes from GTA's own timecycle rather than from the color path alone.
+
 ## First-run visual profile
 
 New Neon installs use a lightweight PS2-style profile by default:

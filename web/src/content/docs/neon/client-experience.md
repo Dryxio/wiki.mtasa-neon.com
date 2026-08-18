@@ -5,7 +5,7 @@ description: The GTA:SA-inspired menu, server discovery, connection flow, artwor
 
 Neon includes its own GTA:SA-inspired client shell so players can discover and join servers without leaving the visual language of San Andreas. It sits above the existing MTA connection flow rather than replacing its protocol and validation rules.
 
-<!-- MEDIA PLACEHOLDER: Neon main menu. Suggested file: /neon-media/client-main-menu.webp. Capture a clean 16:9 view with no private nickname, token, address, or recent-server data. -->
+![Neon main menu in the GTA:SA visual style, with browse servers, quick connect, map editor, settings, about and quit entries, and a Discord connected identity badge in the corner](/neon-media/neon-main-menu.jpg)
 
 ## Find and join a server
 
@@ -13,7 +13,7 @@ The server browser combines the public Neon registry with live ASE server data. 
 
 Registry artwork and metadata are optional. Downloaded assets are validated, sanitized, cached, and replaced by normal fallback presentation when unavailable. Every listed server passed the registry source-IP and ASE publication flow; that is **not** a cryptographic attestation of the server binary or its resources.
 
-<!-- MEDIA PLACEHOLDER: Neon server browser. Suggested file: /neon-media/client-server-browser.webp. Show a useful populated list, filters, and one artwork card; hide private endpoints and passwords. -->
+![Neon server browser showing a list of community servers with flags, ping and player counts, and a details panel with artwork, description, regions and languages for the selected server](/neon-media/neon-server-browser.jpg)
 
 ## Publish or hide a server
 

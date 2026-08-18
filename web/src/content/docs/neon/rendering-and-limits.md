@@ -25,6 +25,12 @@ Runtime evidence exceeded the old ceilings with 1,033 visible entities and 4,677
 
 ## Coronas and Project2DFX
 
+Both sides below are the same Neon client with the option toggled, not two different builds. The night pair was captured 13 seconds apart from one viewpoint, so the time of day and weather match.
+
+![Night comparison over the city: with extended draw distance and Project2DFX off the world is fogged out beyond a short distance, and with them on the full city appears with hundreds of distant coronas and traffic lights](/neon-media/compare-project2dfx.jpg)
+
+![Daytime rooftop comparison: distant buildings are flat low-detail blobs under MTA's original far clip, and resolve into detailed geometry under Neon's extended draw distance](/neon-media/compare-draw-distance.jpg)
+
 Commit [`4b7a1f523`](https://github.com/Dryxio/mtasa-neon/commit/4b7a1f523) relocates GTA's 64-entry corona array to 4,096 process-lifetime entries and patches the verified initialization, rendering, reflection, registration, and coordinate-update references. The first native slots remain available to GTA; up to 4,094 scripted coronas were validated in game.
 
 Commit [`d0a91316b`](https://github.com/Dryxio/mtasa-neon/commit/d0a91316b) introduced distant static coronas and timed traffic lights from `SALodLights.dat`. The later startup-catalogue work in [`cc25c8017`](https://github.com/Dryxio/mtasa-neon/commit/cc25c8017) captures all accepted IPL definitions while GTA scans the world, so lights remain discoverable regardless of the player's current location.
