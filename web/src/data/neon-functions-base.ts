@@ -107,6 +107,12 @@ export const neonCategories = {
     test: "test-resources/native-ped-traffic",
     lifecycle: "The model-residency pass retains GTA's eight stock zone-ped slots until reset or game teardown. Candidate queries create no element; a multiplayer resource must validate proposals, create and own peds, assign one syncer, advance owner epochs, and clean up every element. Native-event tokens belong to the calling resource, activate only on the current syncer, and are revoked on resource shutdown.",
   },
+  physics: {
+    title: "Dynamic object physics",
+    guide: "/neon/object-physics",
+    test: "test-resources/dynamic-object-physics-harness",
+    lifecycle: "The switch is server-side and travels with the object. Position, rotation, linear velocity and angular velocity are synchronized, so motion survives a syncer change and a stream-out/stream-in cycle. Collision is not generated; the object is simulated with whatever its model already has.",
+  },
   fracture: {
     title: "Object fracture effects",
     guide: "/neon/break-effects",

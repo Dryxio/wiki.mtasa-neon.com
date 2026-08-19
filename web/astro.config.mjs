@@ -80,6 +80,7 @@ export default defineConfig({
             { label: "Scriptable birds", link: "/neon/birds" },
             { label: "Model 2DFX effects", link: "/neon/model-2dfx" },
             { label: "Object fracture effects", link: "/neon/break-effects" },
+            { label: "Dynamic object physics", link: "/neon/object-physics" },
             { label: "Custom models", link: "/neon/models-and-streaming" },
             { label: "SA-MP maps", link: "/neon/samp-maps" },
             { label: "Native world packs", link: "/neon/native-world" },

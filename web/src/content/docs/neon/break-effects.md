@@ -45,6 +45,20 @@ Then shoot it, ram it, blow it up. When health reaches zero, or a single hit exc
 
 This is deliberately **separate from `breakObject`**. The legacy function keeps GTA's native break semantics and its DFF requirement; a profiled object uses ordinary runtime geometry instead.
 
+## Explosions break them too
+
+A profiled object also takes damage from **real GTA explosions**, not just bullets and impacts. A rocket, a tank shell or a scripted `createExplosion` all feed the same durability.
+
+Damage follows GTA's own radial falloff, so distance matters:
+
+```text
+min(1, 2 * (radius - distance) / radius) * 300
+```
+
+with the weak rocket variant scaling that by `0.2`. An explosion outside the radius does nothing, and one strong enough drives health to zero and fractures the object like any other hit.
+
+This works **even on models whose vanilla object data would make them explosion-proof**, since the durability is Neon's rather than GTA's.
+
 ## Options
 
 Both functions accept the same fracture options, and profiles add durability ones.

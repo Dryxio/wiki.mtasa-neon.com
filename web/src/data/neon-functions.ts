@@ -426,6 +426,34 @@ const updates: NeonFunction[] = [
   },
 
   {
+    name: 'setObjectDynamicPhysics', category: 'physics', side: 'server',
+    signature: 'bool setObjectDynamicPhysics(object theObject, bool enabled)',
+    summary: "Opts an MTA object into GTA's own rigid-body physics, or back out of it.",
+    arguments: [
+      arg('theObject', 'object', 'Object created with createObject.'),
+      arg('enabled', 'bool', 'Whether the object is simulated by GTA physics.'),
+    ],
+    returns: 'true when the state was applied; false for an invalid object.',
+    notes: [
+      'Once enabled, setElementVelocity and setElementAngularVelocity set real motion instead of being overwritten on the next sync tick.',
+      'The syncer sends position, rotation, linear velocity and angular velocity, so a rolling or spinning object keeps its motion through a syncer change.',
+      'This does not generate collision. The object is simulated with whatever collision its model already has, so a model without useful collision will not behave.',
+      'There is no separate tuning API: a physical object uses GTA\'s own object properties, so mass, turn mass, air resistance and elasticity come from setObjectProperty.',
+    ],
+    oop: ['object:setDynamicPhysics(enabled)', 'object.dynamicPhysics'],
+    source: 'Server/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp', commit: 'd3d1f2bdc', test: 'test-resources/dynamic-object-physics-harness',
+    example: 'local ball = createObject(2114, x, y, z)\nsetObjectDynamicPhysics(ball, true)\nsetElementVelocity(ball, 12, 0, 3)\nsetElementAngularVelocity(ball, 0, 0.4, 0)',
+  },
+  {
+    name: 'isObjectDynamicPhysics', category: 'physics', side: 'server',
+    signature: 'bool isObjectDynamicPhysics(object theObject)',
+    summary: 'Reports whether an object is currently simulated by GTA physics.',
+    arguments: [arg('theObject', 'object', 'Object to query.')],
+    returns: 'true when dynamic physics is enabled; false otherwise or for an invalid object.',
+    oop: ['object:isDynamicPhysics()', 'object.dynamicPhysics'],
+    source: 'Server/mods/deathmatch/logic/luadefs/CLuaObjectDefs.cpp', commit: 'd3d1f2bdc', test: 'test-resources/dynamic-object-physics-harness',
+  },
+  {
     name: 'createObjectBreakEffect', category: 'fracture', side: 'client',
     signature: 'break-effect|false createObjectBreakEffect(object theObject [, table options])',
     summary: "Fractures a streamed object into fragments cut from its own live geometry.",
@@ -473,7 +501,7 @@ const updates: NeonFunction[] = [
       { name: "disableOriginalCollision", type: "bool", group: "Presentation", description: "Drop the source object's collision when it fractures." },
     ],
     returns: "true when the profile was applied; false for an invalid object or options.",
-    notes: ["Neon consumes GTA's native per-impact object damage. The fracture happens when health reaches zero, or when one hit exceeds instantBreakThreshold.", "This lets an ordinary runtime model break under gunfire without the DFF breakable plugin."],
+    notes: ["Neon consumes GTA's native per-impact object damage. The fracture happens when health reaches zero, or when one hit exceeds instantBreakThreshold.", "This lets an ordinary runtime model break under gunfire without the DFF breakable plugin.", "Real GTA explosions feed the same durability, following GTA's radial falloff, even on models whose vanilla object data would make them explosion-proof."],
     source: 'Client/mods/deathmatch/logic/luadefs/CLuaBreakEffectDefs.cpp', commit: '418f250d6', test: 'test-resources/break-test',
     example: "setObjectBreakProfile(theObject, { health = 500, instantBreakThreshold = 200 })",
   },
