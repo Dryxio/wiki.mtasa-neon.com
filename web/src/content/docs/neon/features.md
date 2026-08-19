@@ -22,6 +22,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Light the world with GTA's own effects | [Model 2DFX effects](/neon/model-2dfx) | Read, edit, add and remove the 2DFX records baked into GTA models: lights with native blink modes, particles, roadsign text, escalators and sun glare. |
 | Break any object, not just the prepared ones | [Object fracture effects](/neon/break-effects) | Fragments cut from an object's live RenderWare geometry at runtime, with durability profiles so ordinary GTA damage triggers the break. |
 | Give an object real physics | [Dynamic object physics](/neon/object-physics) | Opt an MTA object into GTA's rigid-body simulation, with position, rotation and both velocities synchronized across clients. |
+| Use GTA's cranes and winches | [Managed ropes](/neon/ropes) | The eight native rope types as synchronized `rope` elements, with cargo attachment and more logical ropes than the engine has slots. |
 | Load SA-MP / Texture Studio maps | [SA-MP maps](/neon/samp-maps) | Parse Pawn exports directly, resolve SA-MP custom objects, apply material slots, building removals, interiors/worlds, and redistribute the fixed object-streaming budget when needed. |
 | Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
 | Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
@@ -102,6 +103,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Model 2DFX effects | Baked into models, not exposed | 13 client functions to read, edit, add and remove them, with per-resource overrides that roll back on stop |
 | Breakable objects | Only models shipping the DFF breakable plugin | Any streamed object, fractured from its own geometry with no breakable DFF or fracture metadata |
 | Object physics | Objects are static unless scripted frame by frame | Opt-in native GTA rigid-body simulation, with linear and angular velocity synchronized through syncer changes |
+| Ropes | Only the legacy `createSWATRope` call | All eight native rope types as synchronized elements, with holder tracking, cargo attachment and eight native slots leased across more logical ropes |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
 | Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |

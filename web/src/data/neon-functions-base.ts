@@ -107,6 +107,12 @@ export const neonCategories = {
     test: "test-resources/native-ped-traffic",
     lifecycle: "The model-residency pass retains GTA's eight stock zone-ped slots until reset or game teardown. Candidate queries create no element; a multiplayer resource must validate proposals, create and own peds, assign one syncer, advance owner epochs, and clean up every element. Native-event tokens belong to the calling resource, activate only on the current syncer, and are revoked on resource shutdown.",
   },
+  ropes: {
+    title: "Managed ropes",
+    guide: "/neon/ropes",
+    test: "test-resources/rope-test",
+    lifecycle: "A rope belongs to the resource that created it. GTA has eight native rope slots, so Neon leases them to the logical ropes that need one; a rope without a lease still exists but is not natively simulated at that moment. Every native type except swat requires a valid physical holder.",
+  },
   physics: {
     title: "Dynamic object physics",
     guide: "/neon/object-physics",
