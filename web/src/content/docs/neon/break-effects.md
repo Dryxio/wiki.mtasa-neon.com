@@ -19,6 +19,10 @@ Neon fractures **any** streamed object. Fragments are generated from the object'
 
 The clip runs `test-resources/break-showcase`. The props are ordinary GTA models with no breakable plugin.
 
+For a longer walkthrough, including tank shells levelling a street of props, there is a full video:
+
+[![Watch runtime destruction in GTA:SA](/neon-media/break-youtube-poster.jpg)](https://youtu.be/RCc2HiIRbT4)
+
 ## Two ways in
 
 **Fracture it now**, explicitly:
