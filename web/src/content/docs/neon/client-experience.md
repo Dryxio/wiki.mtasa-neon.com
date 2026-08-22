@@ -13,7 +13,7 @@ The server browser combines the public Neon registry with live ASE server data. 
 
 Registry artwork and metadata are optional. Downloaded assets are validated, sanitized, cached, and replaced by normal fallback presentation when unavailable. Every listed server passed the registry source-IP and ASE publication flow; that is **not** a cryptographic attestation of the server binary or its resources.
 
-![Neon server browser showing a list of community servers with flags, ping and player counts, and a details panel with artwork, description, regions and languages for the selected server](/neon-media/neon-server-browser.jpg)
+![Neon server browser listing populated community servers with flags, ping and player counts, and a details panel with description, a copyable mtaneon:// server link, regions and languages](/neon-media/neon-server-browser.jpg)
 
 ## Publish or hide a server
 
