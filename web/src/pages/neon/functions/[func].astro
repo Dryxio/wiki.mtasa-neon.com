@@ -37,7 +37,6 @@ const relatedFunctions = relatedCandidates
 <StarlightPage frontmatter={{ template: 'doc', title: func.name, description: func.summary, tableOfContents: true }}>
   <div class="neon-function-banner">
     <div><span>NEON {func.extension ? 'EXTENSION' : 'API'}</span><a href={`/neon/functions#${func.category}`}>{category.title}</a></div>
-    <p>{func.extension ? 'Existing API with Neon behavior' : 'Exclusive to Neon'}</p>
   </div>
 
   <p class="summary">{func.summary}</p>
@@ -179,7 +178,6 @@ const relatedFunctions = relatedCandidates
   .neon-function-banner div { display: flex; align-items: center; gap: .7rem; }
   .neon-function-banner span { padding: .22rem .45rem; color: #0a0806; background: #f28c18; border-radius: .12rem; font-size: .65rem; font-weight: 900; letter-spacing: .08em; }
   .neon-function-banner a { color: #ffad35; font-weight: 700; }
-  .neon-function-banner p { margin: 0; color: var(--sl-color-gray-3); font-size: .8rem; }
   .summary { margin: 2rem 0; font-size: 1.2rem; color: var(--sl-color-gray-2); }
   .syntax-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
   .syntax-heading h2 { margin-bottom: .6rem; }
