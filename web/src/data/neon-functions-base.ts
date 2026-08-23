@@ -43,8 +43,6 @@ export interface NeonFunction {
   side: NeonSide;
   signature: string;
   summary: string;
-  /** Broad-user explanation of the workflow this API replaces or unlocks. */
-  useCase?: string;
   arguments?: NeonArgument[];
   /** Keys accepted inside a table argument, rendered as their own section. */
   optionKeys?: NeonOptionKey[];
@@ -553,7 +551,6 @@ export const neonFunctions: NeonFunction[] = [
     name: "setPedGoTo", category: "tasks", side: "client", group: "movement",
     signature: "bool setPedGoTo(ped thePed, Vector3 target [, string movement = \"walk\", float radius = 0.5, float slowdownRadius = 2.0, int timeout = -2])",
     summary: "Give an NPC a destination and GTA's original pedestrian AI takes over: it follows the native path network, navigates around obstacles, walks or runs naturally, slows down, and stops at the target.",
-    useCase: "Before this API, a resource had to steer the ped frame by frame, simulate controls, or build its own waypoint and pathfinding system. Now one call hands the whole movement to GTA.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite destination."), arg("movement", "string", "walk, run, or sprint.", true, "walk"), arg("radius", "float", "Positive arrival radius.", true, "0.5"), arg("slowdownRadius", "float", "Slowdown radius not smaller than radius.", true, "2.0"), arg("timeout", "int", "-2 for untimed, -1 for SCM-compatible 20 seconds, or a non-negative millisecond timeout.", true, "-2")],
     returns: "true when the native task was installed; false when ownership, streaming, liveness, target, movement, radius, or timeout checks fail.",
     oop: ["ped:setGoTo(target, movement, radius, slowdownRadius, timeout)"],
@@ -646,7 +643,6 @@ export const neonFunctions: NeonFunction[] = [
     name: "setPedWander", category: "tasks", side: "client", group: "movement",
     signature: "bool setPedWander(ped thePed [, string movement = \"walk\", int direction = -1, bool wanderSensibly = true])",
     summary: "Tell an NPC to wander and GTA's original pedestrian AI takes over: it follows the native path network, chooses its own direction from node to node, and keeps walking or running without Lua waypoints.",
-    useCase: "Before this API, ambient NPCs needed scripted control loops or hand-authored routes. Now one call starts GTA's original free-roaming pedestrian behavior, which is the foundation for living street populations.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("movement", "string", "walk or run.", true, "walk"), arg("direction", "int", "-1 for GTA's native random direction, or a direction from 0 through 7.", true, "-1"), arg("wanderSensibly", "bool", "Use the native sensible-wander behavior. Rejected as false while the ambient-cop-safe profile is selected.", true, "true")],
     returns: "true when the task was queued; false for invalid movement, direction, ped state, ownership, or task construction.",
     notes: [
@@ -725,7 +721,6 @@ export const neonFunctions: NeonFunction[] = [
     name: "setPedDriveWander", category: "tasks", side: "client", group: "driving",
     signature: "bool setPedDriveWander(ped thePed, vehicle theVehicle, float speed [, string|int drivingStyle = 0])",
     summary: "Put an NPC behind the wheel and tell it to cruise. GTA's original driving AI takes over: it follows the native road network, chooses streets, steers, accelerates, brakes, and reacts to traffic according to the driving style.",
-    useCase: "Before this API, traffic scripts had to fake throttle and steering or maintain their own routes. Now GTA can drive continuously on its own, which makes native ambient traffic possible.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("theVehicle", "vehicle", "Streamed, non-blown vehicle occupied by the ped as driver."), arg("speed", "float", "Finite speed from 0 through 255."), arg("drivingStyle", "string|int", "Integer 0..6 or one of the documented stop/avoid/plough-through names.", true, "0")],
     returns: "true when the native wander task was assigned; false when ownership, vehicle, seat, speed, or style checks fail.",
     nativeTask: {
@@ -740,7 +735,6 @@ export const neonFunctions: NeonFunction[] = [
     name: "setPedDriveTo", category: "tasks", side: "client", group: "driving",
     signature: "bool setPedDriveTo(ped thePed, vehicle theVehicle, Vector3 target, float speed [, string|int mode = \"normal\", string|int drivingStyle = \"stop_for_cars\"])",
     summary: "Give an NPC driver a destination and GTA's original driving AI takes over: it follows the native road network, chooses a route, steers, accelerates, and brakes as it drives toward the target.",
-    useCase: "Before this API, a resource had to script steering, checkpoints, and recovery itself. Now the route-following drive is delegated to the same GTA task used by story missions.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("theVehicle", "vehicle", "Streamed, non-blown vehicle occupied by the ped in driver seat 0 and controlled by this client."), arg("target", "Vector3", "Finite world destination."), arg("speed", "float", "Finite cruise speed from 0 up to, but not including, 255."), arg("mode", "string|int", "Integer 0..3 or normal, accurate, straight_line, or racing.", true, "normal"), arg("drivingStyle", "string|int", "Integer 0..6 or one of the documented stop/avoid/plough-through names.", true, "stop_for_cars")],
     returns: "true when GTA accepted the scripted command; false when ped, vehicle, seat, ownership, target, speed, mode, style, or task construction is invalid.",
     notes: ["true does not mean the destination has been reached; the API has no completion event or durable task handle.", "The linked route harness exercises this task inside a native sequence. The standalone call has not been exercised separately in game."],

@@ -42,11 +42,6 @@ const relatedFunctions = relatedCandidates
 
   <p class="summary">{func.summary}</p>
 
-  {func.useCase && <div class="use-case">
-    <strong>WHAT THIS UNLOCKS</strong>
-    <p>{func.useCase}</p>
-  </div>}
-
   {func.featuredExample && func.example && <>
     <h2 id="example">Complete example</h2>
     <Code code={func.example} lang="lua" />
@@ -186,9 +181,6 @@ const relatedFunctions = relatedCandidates
   .neon-function-banner a { color: #ffad35; font-weight: 700; }
   .neon-function-banner p { margin: 0; color: var(--sl-color-gray-3); font-size: .8rem; }
   .summary { margin: 2rem 0; font-size: 1.2rem; color: var(--sl-color-gray-2); }
-  .use-case { margin: 0 0 2rem; padding: 1rem 1.1rem; border-left: .2rem solid #f28c18; background: rgba(242,140,24,.07); }
-  .use-case strong { color: #ffad35; font-size: .72rem; letter-spacing: .08em; }
-  .use-case p { margin: .45rem 0 0; color: var(--sl-color-gray-2); }
   .syntax-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
   .syntax-heading h2 { margin-bottom: .6rem; }
   .syntax-heading button { padding: .4rem .6rem; color: #ffbd5c; background: rgba(242,140,24,.06); border: 1px solid rgba(242,140,24,.4); border-radius: .35rem; font-size: .72rem; font-weight: 800; }
