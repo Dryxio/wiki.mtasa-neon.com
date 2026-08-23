@@ -1,11 +1,11 @@
 ---
 title: Native world packs
-description: Audited static-world sets, immutable caches, startup authorization, spatial residency, and generation-fenced session teardown.
+description: Load reviewed city packs such as Vice City, Liberty City, Bullworth, and Carcer City through GTA's own streaming system.
 sidebar:
   order: 4
 ---
 
-Native world packs let GTA register additional IDE, IMG, COL, and binary IPL data through its native streaming path. The current format-3 runtime can prepare a server-selected set from four reviewed city packs: **Bullworth, Vice City, Liberty City, and Carcer City**.
+Load reviewed city packs such as **Bullworth, Vice City, Liberty City, and Carcer City** through GTA's own streaming system, then travel between the selected cities while GTA streams the correct world around the player.
 
 The active native-world session owns that selected catalogue, but it does not keep every imported city resident at once. Neon automatically retires the previous city and materializes the selected pack whose reviewed bounds contain the new streaming position. San Andreas remains available between those regions.
 

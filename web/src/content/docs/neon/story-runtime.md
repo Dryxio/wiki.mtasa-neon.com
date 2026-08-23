@@ -1,11 +1,11 @@
 ---
 title: Story runtime
-description: Synchronized ambient pedestrians, native ped tasks, file cutscenes, camera leases, mission audio and text, recorded cars, and multiplayer-oriented mission primitives.
+description: Build GTA-style missions in Lua with NPCs, vehicles, cameras, original cutscenes, mission text, audio, and server-owned multiplayer progress.
 sidebar:
   order: 6
 ---
 
-Neon exposes reusable GTA story systems instead of hard-coding one mission in C++. A resource can combine synchronized native NPCs, ped and vehicle tasks, cameras, file cutscenes, mission audio and text, recorded vehicles, and actor policies while keeping mission progress on the server.
+Build GTA-style missions in Lua: direct NPCs and vehicles, animate cameras, play original cutscenes, show mission text, trigger audio, and keep multiplayer progress on the server.
 
 Most low-level calls run on the client that currently simulates the ped or vehicle. They do not make a mission authoritative by themselves: the server still has to own state, validate client observations, coordinate participants, and clean up every scene.
 

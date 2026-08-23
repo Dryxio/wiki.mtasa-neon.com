@@ -1,11 +1,11 @@
 ---
 title: Custom models
-description: Stable server model identities, client runtime mappings, native-parent fallback, and resource ownership.
+description: Give custom objects, vehicles, and peds stable model IDs that work consistently for the server and every connected player.
 sidebar:
   order: 4
 ---
 
-A Neon custom model has two identities: a stable ID used by the server and network, and a physical GTA slot chosen locally by each client. This page covers that model registry only; city archives and native world packs have their own ownership and lifecycle.
+Give custom objects, vehicles, and peds stable model IDs that work consistently for the server and every connected player. Each model keeps a GTA parent for its default behavior and fallback.
 
 <!-- MEDIA PLACEHOLDER: Custom model lifecycle. Suggested file: /neon-media/custom-models.webp. Show the same server-owned model on two clients and, if useful, a parent-model fallback after the custom definition is released. -->
 

@@ -1,11 +1,11 @@
 ---
 title: Rendering and limits
-description: Expanded GTA pools, renderer telemetry, Project2DFX, CULL zones, and marker diagnostics.
+description: Render denser scenes with more objects, markers, lights, and distant buildings, with live usage counters for each system.
 sidebar:
   order: 5
 ---
 
-Neon moves GTA's real fixed-size arrays and patches every verified place that initializes, reads, updates, renders, clears, or resets them. These are native capacity changes, not Lua-side counters pretending the old arrays are larger.
+Render denser scenes with more objects, markers, lights, and distant buildings. Live counters show how much of each expanded rendering system the current scene is using.
 
 ## Start with the visual features
 

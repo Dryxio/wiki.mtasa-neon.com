@@ -59,7 +59,7 @@ const updates: NeonFunction[] = [
   {
     name: 'getAmbientPedSpawnCandidate', category: 'population', side: 'client',
     signature: 'table|false, string? getAmbientPedSpawnCandidate(Vector3 origin [, string selection = "auto", int gangId = -1])',
-    summary: 'Asks GTA for one read-only civilian, gang, dealer, or cop spawn proposal using the current native population state.',
+    summary: 'Ask GTA where it would naturally place an NPC near a position. The result includes the suggested skin, NPC type, position, and facing direction—without creating the NPC.',
     arguments: [
       arg('origin', 'Vector3', 'Finite population origin.'),
       arg('selection', 'string', 'auto, civilian, gang, dealer, or cop.', true, '"auto"'),
@@ -131,7 +131,7 @@ const updates: NeonFunction[] = [
   {
     name: 'acquirePedNativeGroup', category: 'population', side: 'client', group: 'movement',
     signature: 'int|false acquirePedNativeGroup(table peds, string profile)',
-    summary: 'Places two to five locally simulated script peds into one owner-only GTA native ambient group.',
+    summary: 'Put several NPCs into one group so GTA treats them as a single walking group and manages their shared movement.',
     arguments: [arg('peds', 'table', 'Array of two to five script peds simulated by this client.'), arg('profile', 'string', 'Currently ambient-random.')],
     returns: 'A resource-private group token, or false when membership, ownership, streaming, or native group-slot checks fail.',
     notes: ['The token is resource-owned and must be reacquired after a syncer handoff.', 'Only the current owner runs the native group intelligence.'],
@@ -214,7 +214,7 @@ const updates: NeonFunction[] = [
   {
     name: 'acquirePedNativeCouple', category: 'population', side: 'client', group: 'movement',
     signature: 'int|false acquirePedNativeCouple(ped a, ped b, int leaderIndex)',
-    summary: 'Atomically places two locally simulated peds into one GTA native couple with an explicit leader.',
+    summary: 'Pair two NPCs and GTA makes them walk together, choose their side, hold hands, and look at each other. They separate if they move too far apart.',
     arguments: [
       arg('a', 'ped', 'First member, simulated by this client.'),
       arg('b', 'ped', 'Second member, simulated by this client.'),

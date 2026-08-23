@@ -1,9 +1,9 @@
 ---
 title: Custom vehicle audio
-description: Load a resource-owned vehicle audio configuration, activate it on vehicles, trigger backfires, and clean it up safely.
+description: Give selected vehicle models custom engine sounds and backfires, then restore GTA audio automatically when the system stops.
 ---
 
-Neon lets a client resource replace the presentation of selected vehicle sounds with a packaged FMOD-backed configuration. The server can synchronize which vehicles opt in through element data, while each client loads the same resource-owned configuration and presents nearby vehicles locally.
+Give selected vehicle models custom engine sounds and backfires from a resource. The server can choose which vehicles use them, every client hears the same configured sound set, and GTA audio returns automatically when the system stops.
 
 This is useful beyond racing: custom cars, mission vehicles, convoys, roleplay fleets, cinematics, and scripted events can all share the same audio layer.
 

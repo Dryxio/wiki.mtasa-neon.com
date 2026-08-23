@@ -1,11 +1,11 @@
 ---
 title: Mission checkpoints
-description: Story resources that exercise Neon's mission primitives, with honest validation scope and remaining gaps.
+description: Explore three GTA mission recreations built from the public Lua APIs documented here.
 sidebar:
   order: 7
 ---
 
-Neon includes three story resources built from the same public primitives available to other resources: `Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's`.
+Explore and inspect three GTA mission recreations—`Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's`—built from the public Lua APIs documented here.
 
 They are useful for two reasons. Players can explore recognizable mission paths, and resource authors can inspect working combinations of native tasks, file cutscenes, cameras, mission audio and text, gang tags, route handoffs, actor policies, and cleanup.
 

@@ -271,7 +271,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "engineRequestModel", category: "models", side: "server",
     signature: "int|false engineRequestModel(string type, int parentID [, string name = \"\"])",
-    summary: "Allocates a stable, resource-owned logical model for an object, vehicle, or ped.",
+    summary: "Reserve a custom model ID for an object, vehicle, or ped so the server and all clients can use it consistently.",
     arguments: [arg("type", "string", "object, vehicle, or ped."), arg("parentID", "int", "Native GTA model used for gameplay behavior and legacy fallback."), arg("name", "string", "Optional resource-local registry name.", true, "\"\"")],
     returns: "A logical model ID from 42341 through 65534, or false when validation, naming, quota, parent, or registry-capacity checks fail.",
     notes: ["Logical IDs are not reused during the server process.", "The server qualifies a non-empty name with the owning resource.", "Commit ac3a54f57 moved the range above Neon's complete FileID layout; 65535 remains the invalid-model sentinel."],
@@ -452,7 +452,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "renderScriptImportantArea", category: "markers", side: "client",
     signature: "bool renderScriptImportantArea(Vector3 center, float radiusX, float radiusY [, int localId])",
-    summary: "Submits GTA's SCM important-area visual: three pulsing additive red cylinders with native ground correction.",
+    summary: "Draw GTA's original red pulsing mission-area marker at a position: three cylinders automatically aligned with the ground.",
     arguments: [arg("center", "Vector3", "Finite center position."), arg("radiusX", "float", "Positive X radius."), arg("radiusY", "float", "Positive Y radius."), arg("localId", "int", "Optional caller-local identity mixed with the resource identity.", true)],
     returns: "true after a valid frame submission; false for invalid dimensions, missing resource context, or unavailable marker service.",
     notes: ["This is visual only and creates no collision shape."],
@@ -483,7 +483,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedUseNativeWalkingStyle", category: "walking", side: "shared",
     signature: "bool setPedUseNativeWalkingStyle(ped thePed, bool enabled)",
-    summary: "Makes a ped follow the current skin model's native motion group, or restores MTA's explicit walking-style path.",
+    summary: "Make a ped or player automatically use the walk and run animations associated with its current skin, including after changing its model.",
     arguments: [arg("thePed", "ped", "Target ped or player."), arg("enabled", "bool", "Whether model-native selection is active.")], returns: "true when the policy was applied; false for an invalid element.",
     oop: ["ped:setUseNativeWalkingStyle(enabled)", "ped.usingNativeWalkingStyle = enabled"],
     source: "Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp", commit: "012f05529",
@@ -566,7 +566,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedChatWith", category: "tasks", side: "client", group: "movement",
     signature: "bool setPedChatWith(ped thePed, ped partner, bool leadSpeaker [, bool updateDirection = true, bool conversationEnabled = true])",
-    summary: "Starts GTA's native partner-chat task between two distinct peds.",
+    summary: "Pair two NPCs and GTA makes them face each other and perform its original conversation behavior, with one character leading and the other replying.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("partner", "ped", "Distinct living streamed conversation partner."), arg("leadSpeaker", "bool", "Whether the first ped leads the conversation."), arg("updateDirection", "bool", "Allow the task to turn the speakers toward each other.", true, "true"), arg("conversationEnabled", "bool", "Enable the native conversation exchange.", true, "true")],
     returns: "true when the native task was queued; false when either ped, streaming state, liveness, simulation ownership, or task construction is invalid.",
     oop: ["ped:setChatWith(partner, leadSpeaker, updateDirection, conversationEnabled)"],
@@ -618,7 +618,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedGoToOffset", category: "tasks", side: "client", group: "movement",
     signature: "bool setPedGoToOffset(ped thePed, ped target [, int timeout = -1, float radius = 0.5, float angle = 0.0, bool repeatTask = false])",
-    summary: "Makes a ped seek a radius-and-angle offset around another ped using GTA's native entity task.",
+    summary: "Tell an NPC to move to a chosen side and distance around another NPC. GTA tracks the other NPC while approaching that offset.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped."), arg("timeout", "int", "-1 for GTA's SCM-compatible 50-second seek timeout, or a non-negative timeout in milliseconds.", true, "-1"), arg("radius", "float", "Finite positive distance from the target.", true, "0.5"), arg("angle", "float", "Finite native angular offset around the target.", true, "0.0"), arg("repeatTask", "bool", "Wrap the movement in GTA's native repeating mission sequence.", true, "false")],
     returns: "true when the native task or repeating sequence was queued; false when validation or construction fails.",
     nativeTask: {
@@ -630,7 +630,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedKillOnFoot", category: "tasks", side: "client", group: "combat",
     signature: "bool setPedKillOnFoot(ped thePed, ped target)",
-    summary: "Queues GTA's native on-foot kill task against another ped.",
+    summary: "Give an NPC a target and GTA's combat AI takes over: it follows them, chooses between guns and melee, aims, attacks, and reacts to nearby vehicles.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "ped", "Distinct living streamed target ped.")],
     returns: "true when the combat task was queued; false for invalid peds, liveness, streaming, ownership, or task construction.",
     nativeTask: {
@@ -696,7 +696,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedEnterVehicle", category: "tasks", side: "client", group: "driving", extension: true,
     signature: "bool setPedEnterVehicle(ped thePed [, vehicle theVehicle, bool|int passengerOrSeat])",
-    summary: "Extends MTA's authoritative vehicle-entry lifecycle with a verified native passenger-entry task after server confirmation.",
+    summary: "Tell an NPC which vehicle and seat to enter. GTA makes it approach the vehicle, use the correct door, and get in as driver or passenger.",
     arguments: [arg("thePed", "ped", "Ped requesting entry."), arg("theVehicle", "vehicle", "Target vehicle; the established MTA inference remains available.", true), arg("passengerOrSeat", "bool|int", "Passenger flag or explicit MTA seat. Seat 0 is driver; seat 1 is the first passenger/SCM passenger index 0.", true)],
     returns: "true when the authoritative request was accepted; false otherwise.",
     nativeTask: {
@@ -709,7 +709,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedExitVehicle", category: "tasks", side: "client", group: "driving", extension: true,
     signature: "bool setPedExitVehicle(ped thePed)",
-    summary: "Extends MTA's authoritative vehicle-exit lifecycle with a verified native leave-car task on the syncer.",
+    summary: "Tell an NPC to leave its vehicle and GTA performs the original exit movement, animation, and door handling.",
     arguments: [arg("thePed", "ped", "Ped requesting exit.")], returns: "true when the authoritative exit request was accepted; false otherwise.",
     nativeTask: {
       tasks: ["CTaskComplexLeaveCar"], opcode: "05CD", command: "TASK_LEAVE_CAR",
@@ -749,7 +749,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedDriveBy", category: "tasks", side: "client", group: "combat",
     signature: "bool setPedDriveBy(ped thePed, ped|vehicle|Vector3 target, float abortRange [, string|int style = \"ai_all_directions\", bool seatRHS = false, int frequency = 100])",
-    summary: "Queues GTA's native gang drive-by task for an owned script ped already riding in an owned vehicle.",
+    summary: "Give a passenger a target and GTA makes them turn, aim, animate, and fire from the vehicle using its built-in drive-by behavior.",
     arguments: [arg("thePed", "ped", "Living streamed script ped simulated by this client."), arg("target", "ped|vehicle|Vector3", "Distinct live streamed ped, distinct non-blown streamed vehicle, or finite world coordinate."), arg("abortRange", "float", "Finite non-negative native abort distance."), arg("style", "string|int", "Integer 0..8 or fixed_lhs, fixed_rhs, start_from_lhs, start_from_rhs, ai_side, fixed_fwd, fixed_back, ai_fwd_back, or ai_all_directions.", true, "ai_all_directions"), arg("seatRHS", "bool", "Native right-hand-seat selector; false selects the left-hand side.", true, "false"), arg("frequency", "int", "Firing frequency percentage from 0 through 100.", true, "100")],
     returns: "true when GTA accepted the scripted task; false when ownership, ped, vehicle, target, range, style, frequency, or task construction is invalid.",
     notes: ["The task is immediate and has no completion event or resource-owned handle.", "Neon redirects only script-command mission actors through GTA's AI aim, animation, IK, and NPC spread paths. Local and remote player drive-bys retain MTA's existing input, camera, and hitbox behavior."],
@@ -920,7 +920,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedShootAt", category: "tasks", side: "client", group: "combat",
     signature: "bool setPedShootAt(ped thePed, Vector3 target [, int duration = 1000, int burstLength = 5])",
-    summary: "Replaces the owned ped's primary task with GTA's native coordinate GunControl firing task.",
+    summary: "Give an NPC a world position and GTA makes it aim and fire controlled bursts at that point for the requested duration.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("target", "Vector3", "Finite target; an XY value of 0,0 is rejected because GTA treats it as no coordinate."), arg("duration", "int", "Milliseconds; every negative value is indefinite.", true, "1000"), arg("burstLength", "int", "Positive native burst size.", true, "5")],
     returns: "true when the native task was installed; false for failed ownership, liveness, target, or burst validation.",
     nativeTask: {
@@ -932,7 +932,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setPedTaskSequence", category: "tasks", side: "client", group: "sequences",
     signature: "bool setPedTaskSequence(ped thePed, table tasks [, bool repeat = false])",
-    summary: "Builds and dispatches one native GTA sequence containing up to eight supported child tasks.",
+    summary: "Give an NPC up to eight actions—walk, drive, shoot, flee, leave a vehicle, or die—and GTA performs them in order or repeats the sequence.",
     arguments: [arg("thePed", "ped", "Living streamed ped simulated by this client."), arg("tasks", "table", "Array of 1–8 leave_car, leave_car_immediately, go_to, shoot_at, drive_to, smart_flee, or die descriptors."), arg("repeat", "bool", "Repeat the native sequence after its final child.", true, "false")],
     returns: "true when GTA accepted the composed sequence; false after validation, factory, sequence-slot, or dispatch failure.",
     notes: ["leave_car requires a vehicle; go_to and shoot_at use the same fields and defaults as their standalone functions.", "drive_to requires x/y/z and speed, with optional mode, drivingStyle, and vehicleModel. It carries no vehicle pointer, matching SCM's placeholders so GTA binds the ped's current vehicle when that child starts.", "leave_car_immediately requires a streamed vehicle. smart_flee requires a streamed target ped, a positive safeDistance, and a duration of -1 or at least zero. die has no extra fields.", "Child-task ownership transfers into GTA's global sequence template; the Lua table is not retained."],
@@ -998,7 +998,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "acquireObjectGangTag", category: "tasks", side: "client", group: "tags",
     signature: "bool acquireObjectGangTag(object theObject [, int progress = 0])",
-    summary: "Gives the calling resource exclusive ownership of a supported tag object and registers it with GTA's native spray path.",
+    summary: "Turn a supported object into a real sprayable GTA gang tag. GTA advances the paint progress naturally and the state survives streaming.",
     arguments: [arg("theObject", "object", "Tag object using model 1490 or 1524 through 1531."), arg("progress", "int", "Initial Grove-material progress from 0 through 255.", true, "0")],
     returns: "true when ownership was acquired or refreshed by the same resource; false for an unsupported object, invalid progress, or another owner.",
     notes: ["Ownership and progress survive stream-out and native object recreation.", "GTA advances progress in its original 8-alpha spray steps."],
@@ -1100,7 +1100,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "enginePreloadWorldAreaInDirection", category: "scene", side: "client",
     signature: "bool enginePreloadWorldAreaInDirection(Vector3 position, float headingDegrees)",
-    summary: "Runs GTA's directional scene request and synchronous load sequence used by story transitions.",
+    summary: "Ask GTA to preload the world around a destination and viewing direction before revealing a teleport or cutscene.",
     arguments: [arg("position", "Vector3", "Finite scene position."), arg("headingDegrees", "float", "Finite direction in degrees.")],
     returns: "true after GTA completes the directional load; false for non-finite input.",
     notes: ["This call can block while GTA loads the requested scene; stage it under an appropriate fade."], source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "e4bddaac4", test: "test-resources/tagging-up-turf",
@@ -1148,21 +1148,21 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "setScriptCameraFixed", category: "camera", side: "client",
     signature: "bool setScriptCameraFixed(int token, Vector3 position, Vector3 target [, float upOffset = 0, bool jumpCut = true])",
-    summary: "Activates GTA's fixed script camera and native point-at control.",
+    summary: "Place the camera at one position and make it look at another, using an immediate cut or GTA's camera transition.",
     arguments: [arg("token", "int", "Current lease token."), arg("position", "Vector3", "Finite camera position."), arg("target", "Vector3", "Finite look-at target."), arg("upOffset", "float", "Native vertical point-at offset.", true, "0"), arg("jumpCut", "bool", "Use an immediate cut rather than a transition.", true, "true")],
     returns: "true when the current lease accepted the fixed camera; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
   },
   {
     name: "moveScriptCamera", category: "camera", side: "client",
     signature: "bool moveScriptCamera(int token, Vector3 from, Vector3 to, int durationMs [, bool ease = true])",
-    summary: "Starts GTA's native camera-position vector track.",
+    summary: "Move the camera between two world positions over a chosen duration, linearly or with GTA's original easing.",
     arguments: [arg("token", "int", "Current lease token."), arg("from", "Vector3", "Start position."), arg("to", "Vector3", "End position."), arg("durationMs", "int", "Positive duration in milliseconds."), arg("ease", "bool", "Use GTA's eased track instead of linear motion.", true, "true")],
     returns: "true when the track started; false for stale ownership or invalid vectors/duration.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
   },
   {
     name: "trackScriptCamera", category: "camera", side: "client",
     signature: "bool trackScriptCamera(int token, Vector3 from, Vector3 to, int durationMs [, bool ease = true])",
-    summary: "Starts GTA's native look-at target vector track.",
+    summary: "Animate what the camera looks at from one point to another, independently from the camera's own movement.",
     arguments: [arg("token", "int", "Current lease token."), arg("from", "Vector3", "Initial target."), arg("to", "Vector3", "Final target."), arg("durationMs", "int", "Positive duration in milliseconds."), arg("ease", "bool", "Use eased tracking.", true, "true")],
     returns: "true when the target track started; false otherwise.", source: "Client/mods/deathmatch/logic/luadefs/CLuaCameraDefs.cpp", commit: "8cf6cc3cb",
   },
@@ -1213,7 +1213,7 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "requestFileCutscene", category: "cutscene", side: "client",
     signature: "int|false requestFileCutscene(string name [, int visibleArea])",
-    summary: "Acquires the exclusive camera lease, optionally owns GTA's visible world area, and starts loading a stock file cutscene.",
+    summary: "Load one of GTA:SA's original mission cutscenes by name. The returned handle lets Lua start it, detect completion, skip it, and restore gameplay afterward.",
     arguments: [arg("name", "string", "Stock cutscene name from GTA's audio-track table, from one through seven characters."), arg("visibleArea", "int", "Optional SCM-style visible world area from 0 through 255. It does not change the player's interior.", true)],
     returns: "A non-zero generation token, or false when the name or visible area is invalid, another camera lease is active, or GTA already has a file cutscene active.",
     notes: ["Loading is asynchronous. Wait for isFileCutsceneLoaded before starting playback.", "When visibleArea is supplied, the lease captures GTA's current visible area before loading and restores it on explicit release, camera takeover, resource stop, or failed cleanup.", "Managed loading repairs area 13 only on the current native cutscene-manager objects. Ordinary MTA objects keep their existing area behavior."],

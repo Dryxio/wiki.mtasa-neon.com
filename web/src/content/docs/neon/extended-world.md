@@ -1,11 +1,11 @@
 ---
 title: Extended world
-description: Neon's 20 km world domain, water, radar, F11 atlas, and city residency architecture.
+description: Build locations far beyond San Andreas with matching world streaming, water, radar, and F11 map support.
 sidebar:
   order: 2
 ---
 
-Neon makes more of the San Andreas world usable without moving the original map. The supported XY range is **−10,000 through +9,999**. GTA's sector grids and the related validation, rendering, line-of-sight, pickup, water, and network code all understand that range.
+Build locations far beyond the normal San Andreas area using coordinates from **−10,000 through +9,999**, with matching world streaming, water, radar, and F11 map support. San Andreas stays at its original coordinates.
 
 <!-- MEDIA PLACEHOLDER: Extended-world overview. Suggested files: /neon-media/extended-world.webp and /neon-media/extended-radar.webp. Show a coordinate outside the stock world and the matching minimap/F11 tile coverage. -->
 
