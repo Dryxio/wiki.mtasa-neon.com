@@ -20,6 +20,39 @@ Lead with information in this order:
 The first screen and first section of a guide must answer a user question.
 Commit chronology is not an information architecture.
 
+## Broad-user clarity
+
+Write the first description for a reader who understands basic Lua and game
+scripting but does not know GTA engine internals.
+
+- Begin with the action the user takes and the concrete result they see. For
+  example: give an NPC a destination, then explain that GTA follows its path
+  network, avoids obstacles, moves naturally, slows down, and stops there.
+- Name the useful behavior explicitly. Do not make readers infer it from terms
+  such as native task, lease, generation, authoritative owner, runtime slot,
+  renderer pool, SCM opcode, or internal class name.
+- Keep engine vocabulary, ownership rules, failure conditions, and provenance
+  in the later technical sections where they remain available without blocking
+  the initial explanation.
+- Prefer short, direct sentences and familiar words. A summary should normally
+  read as “give or tell X to do Y, and GTA handles Z.”
+- Do not add redundant promotional callouts such as `Exclusive to Neon`,
+  `Existing API with Neon behavior`, or `What this unlocks`. The site context
+  already establishes that the reader is viewing Neon documentation.
+- Avoid leading with a comparison to standard MTA. If earlier limitations are
+  necessary context, use a plain `Before this API, ...` sentence after the
+  concrete description and never let it replace the explanation of current
+  behavior.
+- Put a complete runnable example near the top when an API exposes a major
+  behavior that a broad reader could otherwise miss.
+- Simplicity must not become overstatement. Verify every visible outcome in the
+  final engine code and focused test resources, and move nuance or limitations
+  below the opening summary rather than silently dropping them.
+
+Before publishing, read the opening description without the function name or
+technical sections. A broad reader should still understand what they can make
+happen in the game and why the feature is useful.
+
 ## Relevance and hierarchy
 
 - Give top-level sections and overview cards to public capabilities, important
@@ -116,9 +149,11 @@ named `mtasa-neon-wiki`:
 
 ```sh
 cd web
-npm run build
 vercel deploy --prod --yes
 ```
+
+Vercel runs the configured build during deployment; do not run a separate local
+build solely for production publication.
 
 Do not use `vercel deploy --prebuilt` for this repository. A prebuilt
 `.vercel/output` directory can come from another checkout and publish the
