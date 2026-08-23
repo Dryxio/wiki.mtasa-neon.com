@@ -1,13 +1,15 @@
 ---
 title: Synchronized NPCs and traffic
-description: How Neon runs GTA:SA's native pedestrian AI in one shared multiplayer world.
+description: Use GTA:SA's original AI to run shared NPCs and civilian road traffic in multiplayer.
 sidebar:
   order: 2
 ---
 
-Neon uses **GTA:SA's original pedestrian AI as the simulation layer for server-owned MTA peds**. One eligible client runs the native task tree. The server owns the population and authority epochs, while other clients receive synchronized movement and supported native presentation without running competing AI.
+Neon lets a server fill one shared world with **NPCs and civilian road traffic driven by GTA:SA's original AI**. Pedestrians walk, react, fight, flee, and form groups using GTA's own behavior. Cars choose GTA's roads and lanes, drive themselves, and carry suitable drivers and passengers.
 
-The shared ambient runtime now covers **civilians, native gang groups, gang combat, motorcycle carjacks, dealers, city cops, and civilian couples**. Autonomous ambient vehicles, attractors, conversations, and headless simulation are still outside the completed slice.
+The server owns the real NPCs and vehicles. One eligible player simulates each native AI task, while everyone else receives the synchronized result instead of running a competing copy.
+
+The shared ambient runtime covers **civilians, native gang groups, gang combat, motorcycle carjacks, dealers, city cops, civilian couples, and autonomous civilian road traffic**. Attractors, conversations, and headless simulation remain outside the completed slice.
 
 <!-- MEDIA PLACEHOLDER: Shared population overview. Show two clients observing the same civilians and a gang group. -->
 
@@ -19,13 +21,27 @@ Instead, the reference population runtime follows one authority path:
 
 1. Clients keep GTA's native population models and zone state current.
 2. The server combines synchronized population targets with live civilian, gang, dealer, and cop counts.
-3. One client asks GTA for a read-only spawn, gang-group, or couple candidate.
+3. One client asks GTA for a read-only pedestrian, group, couple, or road-traffic candidate.
 4. Near-enough clients can veto a candidate they can already see.
-5. The server validates the proposal, creates real MTA peds, and assigns one owner epoch.
+5. The server validates the proposal, creates the real NPCs or vehicles, and assigns one owner epoch.
 6. Only that owner runs GTA's native AI. Observers receive the supported movement, animation, combat, and physical presentation.
 7. Handoff revokes the old generation before a new client resumes simulation.
 
 The server remains authoritative for element lifetime, health, seats, damage admission, ownership, and cleanup.
+
+## Civilian road traffic
+
+Neon can create shared traffic that drives itself on GTA's original road network. GTA chooses a vehicle that fits the current area, a valid road and lane near the player, its direction, normal driving speed and style, and suitable skins for its driver and passengers.
+
+The server then creates one real vehicle with all of its occupants. One player runs GTA's `DriveWander` behavior, so the car follows roads, changes direction at road junctions, reacts to the world, and keeps driving without a Lua resource scripting every steering adjustment. Other players see that same vehicle and its occupants through normal synchronization.
+
+Three proposal functions expose the native choices without creating anything:
+
+- [`getAmbientVehicleModelCandidate`](/neon/functions/getAmbientVehicleModelCandidate) asks GTA which civilian road vehicle belongs in the current area.
+- [`getAmbientVehicleSpawnCandidate`](/neon/functions/getAmbientVehicleSpawnCandidate) asks GTA for a road lane, position, direction, speed, and driving style.
+- [`getAmbientVehicleOccupantModelCandidate`](/neon/functions/getAmbientVehicleOccupantModelCandidate) asks GTA for a suitable driver and passenger skins.
+
+The reference resource creates traffic around players in shared 180-unit areas. Nearby players share the same cars instead of receiving duplicate local traffic. Its production profile allows four vehicles per active area and no more than 40 across the server, with ownership handoff, stuck recovery, destruction, and cleanup handled as one lifecycle.
 
 ## Native population profiles
 
@@ -127,6 +143,7 @@ Only the current syncer runs the real native AI. Reusable observer channels cove
 - selected avoidance, threat, damage, flee, airborne, jump, landing, and climb state;
 - gang-group handoff and selected combat context;
 - couple pairing and walk-side presentation through its own observer lease.
+- autonomous road traffic, including its driver and optional passengers.
 
 Normal MTA synchronization remains authoritative for element transforms, health, death, occupants, and network ownership. A resource should never treat observer-side GTA presentation as a second gameplay simulation.
 
@@ -152,13 +169,15 @@ For groups, the current owner acquires the native group only after the server ha
 
 ## Current limits
 
-- Ambient **vehicle** population is not complete. Native vehicle tasks remain available for server-authored missions, convoys, escorts, and scripted traffic.
+- The completed traffic slice covers civilian road cars, vans, trucks, motorcycles, BMX bicycles, and quads in world 0. Boats, aircraft, trailers, parked-car generation, mission routes, and emergency-service behavior are separate work.
 - Ambient cops walk and avoid, but they never escalate. There is no wanted level, pursuit, or arrest behavior, and this is intentional rather than an unfinished stage, because the retail cop task is not safe on an MTA ped.
 - The completed ambient population slice is still focused on outdoor world simulation; arbitrary interiors and every GTA population family are not implied.
 - No eligible client means no native AI simulation. There is no headless GTA task runner.
 - Syncer migration does not serialize every arbitrary GTA task tree. Supported families have explicit handoff or presentation state.
 - Different clients can reach collision on different frames, so short local divergence can still occur before authoritative state reconverges.
 
-The later population work is tracked by [`1004257b9`](https://github.com/Dryxio/mtasa-neon/commit/1004257b9), [`39f782fd9`](https://github.com/Dryxio/mtasa-neon/commit/39f782fd9), [`75dd85f77`](https://github.com/Dryxio/mtasa-neon/commit/75dd85f77), [`9fa50ed6a`](https://github.com/Dryxio/mtasa-neon/commit/9fa50ed6a), [`53478fdb3`](https://github.com/Dryxio/mtasa-neon/commit/53478fdb3), [`083927c23`](https://github.com/Dryxio/mtasa-neon/commit/083927c23), [`3accf283f`](https://github.com/Dryxio/mtasa-neon/commit/3accf283f), [`5318f4360`](https://github.com/Dryxio/mtasa-neon/commit/5318f4360), [`500d3cf7e`](https://github.com/Dryxio/mtasa-neon/commit/500d3cf7e), and [`d709fa696`](https://github.com/Dryxio/mtasa-neon/commit/d709fa696). Two-client runs cover density, group handoff, melee and firearm combat, motorcycle carjacks, dealer handoff, cop locomotion and handoff, couple formation, observer state, and deterministic cleanup.
+The later population work is tracked by [`1004257b9`](https://github.com/Dryxio/mtasa-neon/commit/1004257b9), [`39f782fd9`](https://github.com/Dryxio/mtasa-neon/commit/39f782fd9), [`75dd85f77`](https://github.com/Dryxio/mtasa-neon/commit/75dd85f77), [`9fa50ed6a`](https://github.com/Dryxio/mtasa-neon/commit/9fa50ed6a), [`53478fdb3`](https://github.com/Dryxio/mtasa-neon/commit/53478fdb3), [`083927c23`](https://github.com/Dryxio/mtasa-neon/commit/083927c23), [`3accf283f`](https://github.com/Dryxio/mtasa-neon/commit/3accf283f), [`5318f4360`](https://github.com/Dryxio/mtasa-neon/commit/5318f4360), [`500d3cf7e`](https://github.com/Dryxio/mtasa-neon/commit/500d3cf7e), and [`d709fa696`](https://github.com/Dryxio/mtasa-neon/commit/d709fa696). Synchronized road traffic was added in [`12e5799`](https://github.com/Dryxio/mtasa-neon/commit/12e5799) and completed in [`b23f57d`](https://github.com/Dryxio/mtasa-neon/commit/b23f57d), with the production resource enabled in [`9e2613e`](https://github.com/Dryxio/mtasa-neon/commit/9e2613e), its client-readiness handoff added in [`145d31a`](https://github.com/Dryxio/mtasa-neon/commit/145d31a), and shared player-area scaling added in [`3222987`](https://github.com/Dryxio/mtasa-neon/commit/3222987).
+
+Two-client runs cover pedestrian density, group handoff, combat, motorcycle carjacks, dealers, cops, couples, civilian vehicle creation, native driving, passenger entry, ownership handoff, stuck recovery, destruction, and deterministic cleanup. The later four-per-area and global-40 production scaling was checked through resource validation and deterministic allocation simulations rather than a new gameplay run.
 
 Use [Story runtime](/neon/story-runtime) for server-authored mission actors and vehicle tasks.

@@ -1,25 +1,28 @@
 ---
 title: Native world packs
-description: Load reviewed city packs such as Vice City, Liberty City, Bullworth, and Carcer City through GTA's own streaming system.
+description: Load large custom maps through GTA's own world loader and streaming system, then switch map sets at runtime.
 sidebar:
   order: 4
 ---
 
-Load reviewed city packs such as **Bullworth, Vice City, Liberty City, and Carcer City** through GTA's own streaming system, then travel between the selected cities while GTA streams the correct world around the player.
+Give a server a custom static-world pack and Neon loads its models, textures, collision, and object placements through **GTA's own world loader and streaming system**. The map becomes a native part of the world: GTA loads the nearby area as the player moves instead of a Lua resource creating the whole map as thousands of scripted objects.
 
-The active native-world session owns that selected catalogue, but it does not keep every imported city resident at once. Neon automatically retires the previous city and materializes the selected pack whose reviewed bounds contain the new streaming position. San Andreas remains available between those regions.
+Bullworth, Vice City, Liberty City, and Carcer City are the reviewed proof packs, not a hardcoded list of allowed cities. A server can publish its own map after converting it to the supported format and passing the same strict file, model, collision, placement, and size checks.
 
-This is a reviewed multi-city path, not a general-purpose arbitrary-world loader.
+One server may select up to eight compatible packs. Neon keeps only the imported city around the player's current position active, automatically unloads the previous one, and streams the next one through GTA. San Andreas remains available between those regions.
+
+After the initial authorization setup, the player can leave a server and join another Native World server with a different map set **without restarting GTA**. Neon safely unloads the old native content, returns the game to a clean state, and loads the new server's audited set in the same GTA process. If that cleanup cannot be proved safe, Neon falls back to a verified restart instead of risking a mixed or corrupted world.
 
 <!-- MEDIA PLACEHOLDER: Native-world residency. Suggested file: /neon-media/native-world-city-switch.webp or a video showing travel between two reviewed city regions. State which generated test packs are shown and avoid implying that their assets ship with Neon. -->
 
 ## What a player or server operator should expect
 
 - The client downloads, audits, and caches the exact set before GTA may load it.
-- Activation still uses a controlled two-launch flow and the same passwordless numeric endpoint.
+- The first authorization still uses a controlled two-launch setup and the same passwordless numeric endpoint.
 - The server chooses an ordered set of one to eight unique, compatible child packs. Order is part of the set identity.
 - One imported city is spatially resident at a time. Travel can switch cities inside the selected set without restarting MTA.
-- Session shutdown can now drain and detach the committed format-3 content. The supported path to a different selected set or server still requires a new startup ticket and clean restart because same-process readmission is not complete.
+- After that setup, the client can unload one committed format-3 set and admit a different server or set in the same GTA process.
+- If runtime cleanup is not safe, the client automatically uses a verified restart fallback.
 - Current Neon client and server builds must match the native-world protocol. There is no silent downgrade to an ordinary resource download.
 - Radar, paths, population, zones, audio, interiors, and environment data are separate work.
 
@@ -116,7 +119,9 @@ While a selected set is active, Neon pins connection routes to the owner endpoin
 
 Format-3 teardown now has explicit `Active → Draining → Detached → Neutral` fences. It stops new city work, flushes outstanding streaming I/O, removes generation-owned entities, IPL and LOD anchors, collisions, model bindings and archive channels, releases immutable-cache handles, restores the native stores and pools, and then releases the endpoint-owned session. The recorded live gate reached content-neutral, session-neutral, admission-baseline-matching, I/O-quiescent state with zero cache handles.
 
-That is a real cleanup boundary, not a supported hot server switch yet. The later readmission checkpoint is still marked WIP: after reconnect, a changed structural baseline makes Neon publish `restart-required=yes`. Use the clean two-launch flow for a different set or server until that invariant is resolved.
+Once that clean boundary is reached, Neon can queue a new connection and admit a different server or ordered map set without restarting GTA. This is the supported runtime hot-switch path, not merely a teardown test.
+
+If the live process cannot reach the required clean state, Neon publishes `restart-required=yes` and uses the exact-readback restart path. The fallback deliberately replaces the GTA process rather than loading new native content on top of uncertain state.
 
 The endpoint is only a locator. The opaque network identity provides continuity inside this workflow; it is not PKI or proof of the operator's legal identity.
 
@@ -137,9 +142,9 @@ The four-city tour observed these peak values:
 
 These are observed high-water marks, not universal safe budgets. Other current boundaries are:
 
-- only the four reviewed pack pipelines are accepted; arbitrary static worlds are not proved;
+- custom static worlds are supported when they can be converted to the closed format-3 grammar and pass every audit; the four named cities remain the reviewed real-world proof sets;
 - at most one imported city is materialized at a time;
-- the selected catalogue cannot be replaced while its generation is active, and supported readmission still uses a clean restart;
+- an active catalogue must fully drain before another one is admitted; safe completion allows same-process readmission, otherwise the verified restart fallback is used;
 - two exact audited GTA SA 1.0 US executable identities are supported;
 - high static IPL slots cannot own car generators;
 - paths, nodes, population, zones, audio, interiors, radar, and environment remain separate;
@@ -151,9 +156,11 @@ Formats 1 and 2 remain for the original Bullworth path. Format 1 uses the compil
 
 ## Verification summary
 
-The strongest runtime pass exercised San Andreas plus all four reviewed cities through generations 2–29, including adjacent and direct city switches, physical-bank reuse, death/respawn, reconnect, resource restart, and server restart. A separate non-contiguous Bullworth + Liberty City + Carcer City set kept omitted Vice City inactive. The generic network contract was then checked with a three-pack ordered set and rejection of an exact old client before join.
+The strongest residency pass exercised San Andreas plus all four reviewed cities through generations 2–29, including adjacent and direct city switches, physical-bank reuse, death/respawn, reconnect, resource restart, and server restart. A separate non-contiguous Bullworth + Liberty City + Carcer City set kept omitted Vice City inactive. The generic network contract was then checked with a three-pack ordered set and rejection of an exact old client before join.
 
-All 3,038 reviewed Vice City and Liberty City LOD relationships were preserved. The format-3 transport and set parser, aggregate planner, cache recovery, registrar, generic network contract, neutral-state baseline, generation ownership, runtime drain, teardown, and session release also have focused automated coverage. The teardown sequence grew through a recorded 196-test suite, while the later 57-test readmission checkpoint remains explicitly WIP. Relevant client projects, including Game SA, Core, Client Deathmatch, and Multiplayer SA where affected, built for the corresponding checkpoints.
+The completed hot-switch pass kept one GTA process alive through ten same-set server-to-server cycles, then changed from a four-pack set to a different three-pack set in that same process. A forced unsafe-drain case also reached the verified restart fallback. Game SA, Core, and Client Deathmatch built for the checkpoint, and 62 focused contract tests passed.
+
+All 3,038 reviewed Vice City and Liberty City LOD relationships were preserved. The format-3 transport and set parser, aggregate planner, cache recovery, registrar, generic network contract, neutral-state baseline, generation ownership, runtime drain, teardown, session release, same-process readmission, and restart fallback have focused automated coverage. Relevant client projects, including Game SA, Core, Client Deathmatch, and Multiplayer SA where affected, built for the corresponding checkpoints.
 
 This evidence covers the reviewed assets and named lifecycle. It does not prove arbitrary content, every possible one-to-eight-pack combination, every optional GTA subsystem, or a real D3D device reset.
 
@@ -164,7 +171,7 @@ This evidence covers the reviewed assets and named lifecycle. It does not prove 
 - transactional registrar, LOD bootstrap, and generation-fenced residency: [`3b4ee3d8b`](https://github.com/Dryxio/mtasa-neon/commit/3b4ee3d8b), [`f9ff61552`](https://github.com/Dryxio/mtasa-neon/commit/f9ff61552), and [`7cee41f57`](https://github.com/Dryxio/mtasa-neon/commit/7cee41f57);
 - reviewed selection and generic network contract: [`22f863ea2`](https://github.com/Dryxio/mtasa-neon/commit/22f863ea2) and [`ac3a54f57`](https://github.com/Dryxio/mtasa-neon/commit/ac3a54f57);
 - live registrar baselines, neutral contract, generation journal, drain, detach, and session release: [`52453ba39`](https://github.com/Dryxio/mtasa-neon/commit/52453ba39), [`f386b71e9`](https://github.com/Dryxio/mtasa-neon/commit/f386b71e9), [`5e208efcb`](https://github.com/Dryxio/mtasa-neon/commit/5e208efcb), [`555386e57`](https://github.com/Dryxio/mtasa-neon/commit/555386e57), [`759b35e19`](https://github.com/Dryxio/mtasa-neon/commit/759b35e19), and [`8fdf082cf`](https://github.com/Dryxio/mtasa-neon/commit/8fdf082cf);
-- incomplete same-process readmission checkpoint: [`b00858f6b`](https://github.com/Dryxio/mtasa-neon/commit/b00858f6b).
+- reusable same-process hot-switch lifecycle and verified restart fallback: [`84ea917fe`](https://github.com/Dryxio/mtasa-neon/commit/84ea917fe).
 
 Focused harnesses and evidence labels are indexed on [Tooling and verification](/neon/tooling-and-verification).
 

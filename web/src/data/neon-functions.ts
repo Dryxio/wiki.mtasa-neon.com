@@ -17,6 +17,12 @@ export type { NeonArgument, NeonNativeTask, NeonOptionKey, NeonSide, NeonTaskGro
 
 export const neonCategories = {
   ...baseNeonCategories,
+  population: {
+    title: 'Synchronized NPCs and road traffic',
+    guide: '/neon/synchronized-ai',
+    test: 'test-resources/native-ped-traffic',
+    lifecycle: 'Candidate queries create nothing. A multiplayer resource must validate each proposal, create and own the real NPCs and vehicles, assign one current syncer, handle ownership changes, and clean up every element. Native AI and event tokens belong to the calling resource and are revoked when that resource stops.',
+  },
   mapping: {
     title: 'SA-MP maps and object streaming',
     guide: '/neon/samp-maps',
@@ -56,6 +62,42 @@ const arg = (name: string, type: string, description: string, optional = false, 
 });
 
 const updates: NeonFunction[] = [
+  {
+    name: 'getAmbientVehicleSpawnCandidate', category: 'population', side: 'client',
+    signature: 'table|false, string? getAmbientVehicleSpawnCandidate(Vector3 origin, int modelId)',
+    summary: 'Ask GTA to choose a valid road lane, position, direction, speed, and driving style for a vehicle near the player—without creating the vehicle.',
+    arguments: [
+      arg('origin', 'Vector3', 'Position around which GTA should look for a road.'),
+      arg('modelId', 'int', 'Supported civilian road-vehicle model ID.'),
+    ],
+    returns: 'A table with model, x, y, z, rotation, cruiseSpeed, vehicleClass, and drivingStyle; or false plus a reason when GTA cannot find a valid road placement.',
+    notes: [
+      'The function only proposes a spawn. The server still creates and owns the real vehicle.',
+      'The result uses GTA\'s road network and lane placement, including a ground check.',
+    ],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp', commit: 'b23f57d74', test: 'test-resources/native-vehicle-traffic',
+    example: 'local model = getAmbientVehicleModelCandidate()\nif model then\n    local spawn = getAmbientVehicleSpawnCandidate(localPlayer.position, model.model)\n    if spawn then\n        outputDebugString(("vehicle %d at %.1f, %.1f"):format(spawn.model, spawn.x, spawn.y))\n    end\nend',
+  },
+  {
+    name: 'getAmbientVehicleModelCandidate', category: 'population', side: 'client',
+    signature: 'table|false, string? getAmbientVehicleModelCandidate()',
+    summary: 'Ask GTA which civilian road vehicle naturally fits the current area and population settings—without creating it.',
+    returns: 'A table with model, carGroup, and vehicleClass; or false plus a reason when GTA cannot select a road vehicle.',
+    notes: ['The choice comes from GTA\'s current population and car-group state.', 'The server still decides whether to accept the proposal and create the vehicle.'],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp', commit: 'b23f57d74', test: 'test-resources/native-vehicle-traffic',
+  },
+  {
+    name: 'getAmbientVehicleOccupantModelCandidate', category: 'population', side: 'client',
+    signature: 'table|false getAmbientVehicleOccupantModelCandidate(int vehicleModelId [, int maximumOccupants = 4])',
+    summary: 'Ask GTA which pedestrian skins naturally fit a vehicle, so it can be created with a suitable driver and passengers.',
+    arguments: [
+      arg('vehicleModelId', 'int', 'Supported civilian road-vehicle model ID.'),
+      arg('maximumOccupants', 'int', 'Maximum number of proposed occupants, from 1 through 4.', true, '4'),
+    ],
+    returns: 'An array of one to four pedestrian model IDs, or false when GTA cannot produce a compatible occupant list.',
+    notes: ['The first model is used for the driver; any remaining models can be used for passengers.', 'The function creates no peds or vehicle.'],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaWorldDefs.cpp', commit: 'b23f57d74', test: 'test-resources/native-vehicle-traffic',
+  },
   {
     name: 'getAmbientPedSpawnCandidate', category: 'population', side: 'client',
     signature: 'table|false, string? getAmbientPedSpawnCandidate(Vector3 origin [, string selection = "auto", int gangId = -1])',
