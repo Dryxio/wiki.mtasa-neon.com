@@ -33,7 +33,38 @@ The V1 reference resource is limited to civilians outdoors in dimension and inte
 
 ## Native ped tasks
 
-The [native task API group](/neon/functions#tasks) covers movement, social actions, driving, combat, actor policies, task sequences, and gang tags.
+These are not animation helpers or a new Lua movement solver. Neon exposes the
+**original GTA:SA task system**, previously unavailable to Lua resources. Give
+an NPC a destination and GTA's pedestrian AI takes over: it follows the native
+path network, navigates around obstacles, moves naturally, slows down, and stops
+at the target. Put an NPC behind the wheel and GTA's driving AI can do the same
+on the road network. Lua chooses the intent while the game performs the movement.
+
+That unlocks several high-level behaviors without simulating controls or writing
+a pathfinder in the resource:
+
+- [`setPedGoTo`](/neon/functions/setPedGoTo) sends an NPC to one coordinate using
+  GTA's pedestrian pathfinding, including native obstacle steering, slowdown,
+  and arrival.
+- [`setPedWander`](/neon/functions/setPedWander) lets an NPC choose successive
+  pedestrian path nodes on its own, which is useful for ambient street life.
+- [`setPedDriveWander`](/neon/functions/setPedDriveWander) starts GTA's continuous
+  road autopilot for ambient traffic.
+- [`setPedDriveTo`](/neon/functions/setPedDriveTo) gives that autopilot a specific
+  world destination, as in a single-player mission.
+
+```lua
+-- client.lua: no waypoint loop and no simulated movement controls
+local npc = createPed(270, 2495.2, -1687.4, 13.5)
+local destination = Vector3(2520.0, -1672.0, 13.8)
+
+if npc then
+    setPedGoTo(npc, destination, "run", 0.75, 3.0)
+end
+```
+
+The [native task API group](/neon/functions#tasks) also covers social actions,
+combat, actor policies, task sequences, and gang tags.
 
 Mutating task or combat calls require a living, streamed ped simulated by the caller. That can be the local player, a client-local ped, or a server ped for which this client is the current syncer. Vehicle tasks also require local control of the streamed vehicle.
 
