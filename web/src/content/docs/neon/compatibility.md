@@ -99,7 +99,9 @@ Do not redistribute a local `CUSTOM` build as if it were the public package.
 
 Native-world transport and activation need matching Neon client and server builds. A format-3 child can be published inertly, but only the selected-set coordinator may request startup. An incompatible client is rejected rather than receiving a partial set.
 
-Activation requires a clean two-launch transaction to the same passwordless numeric endpoint. Once the selected catalogue is active, the process is pinned to that endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated; connecting elsewhere or changing the selected set requires closing MTA. Spatial residency may still switch between cities already admitted to that set.
+The first authorization requires a clean two-launch transaction to the same passwordless numeric endpoint. While a selected catalogue is active, the session is pinned to its owner endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated, and spatial residency can switch between packs already admitted to the set.
+
+Connecting to a different server or changing the selected set no longer requires the player to close GTA first. Neon queues the connection, unloads the active native content, returns the process to a clean state, and admits the new audited set. If that safe drain cannot be proved, it uses an exact-readback restart fallback instead of mixing two native-world sessions.
 
 ## Narrow compatibility fixes
 

@@ -13,7 +13,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 
 | Goal | Start here | Current scope |
 | --- | --- | --- |
-| Populate the world with synchronized GTA NPCs | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared civilians, native gang groups, gang combat, motorcycle carjacks, dealers, city cops, and civilian couples use GTA's population/task systems with server ownership and client handoff. Ambient vehicles and other population families remain open. |
+| Populate the world with synchronized GTA NPCs and traffic | [Synchronized NPCs and traffic](/neon/synchronized-ai) | Shared civilians, native gang groups, gang combat, motorcycle carjacks, dealers, city cops, civilian couples, and civilian road traffic use GTA's population, path, and task systems with server ownership and client handoff. |
 | Script San Andreas' own physics props | [Scriptable dynamic objects](/neon/world-objects) | GTA-owned dynamic objects appear as client `worldobject` elements with live transforms plus damage and break events. GTA keeps physics ownership. |
 | Build collision shapes from script | [Runtime collision generation](/neon/runtime-collision) | Describe collision as a Lua table of spheres, boxes and meshes instead of shipping a `.col`, and rebuild it live on models already in the world. |
 | Grow vegetation anywhere | [Custom foliage](/neon/foliage) | Hand GTA's native plant manager a triangle, a surface and a density, and it grows its own grass there with normal rendering and wind. |
@@ -30,7 +30,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Add verified community identity | [Neon Identity](/neon/identity) | Servers can choose disabled, optional, or required Neon/Discord identity and use verified IDs in resources and bans. |
 | Give custom vehicles their own sound | [Custom vehicle audio](/neon/vehicle-audio) | One client resource owns a configuration lease and presents opted-in vehicles through the packaged FMOD runtime. |
 | Use more of the world | [Extended world](/neon/extended-world) | A 20 km XY domain with matching sectors, water, radar, map, pickup, and network work. |
-| Load static worlds through GTA | [Native world packs](/neon/native-world) | A server can select an ordered set from the reviewed city packs. One imported city is resident at a time; changing the selected set requires the documented lifecycle. |
+| Load custom maps through GTA | [Native world packs](/neon/native-world) | Give the server a supported static-world pack and GTA loads and streams it as native world content. A set can contain up to eight packs, and a clean runtime teardown can admit a different server or set without restarting GTA. |
 | Give resources stable custom model IDs | [Custom models](/neon/models-and-streaming) | Server identities map to local GTA slots with native-parent fallback and cleanup. |
 | Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native tasks, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
 | See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Tagging Up Turf and Drive-Thru have substantial in-game coverage; Nines and AK's remains partially exercised. |
@@ -56,8 +56,8 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | MTA object streaming split | Fixed 500 normal / 500 low-LOD | Same 1000-slot hard budget, resource-adjustable split including 1000/0 |
 | SA-MP map exports | Conversion normally required | Native Texture Studio/Pawn parser, custom-object loader, removals, worlds/interiors, and the `SetDynamicObjectMaterial` slots a retextured map depends on |
 | Large IMG-backed cities | Basic client IMG links | Bounded resource-managed residency and safe city switching |
-| Native world packs | Not available | Legacy single-pack formats plus format-3 multi-IMG child packs, an audited selected-set coordinator, immutable cache, and owner-server isolation |
-| Reviewed native-world catalog | Not available | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |
+| Native world packs | Not available | Generic format-3 static-world packs loaded through GTA's own world loader and streaming system, with strict auditing, immutable cache, server isolation, and safe runtime replacement |
+| Reviewed native-world proof packs | Not available | Bullworth, Vice City, Liberty City, and Carcer City; automatic spatial residency with one imported city active at a time |
 
 ## Rendering and native pools
 
@@ -91,7 +91,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Supported server model types | Not available | Objects, vehicles, and peds with native-parent fallback |
 | SA-MP custom-object identity | Not integrated | Original SA-MP IDs resolved to resource-owned Neon runtime models by the reference loader |
 | Model-native ped locomotion | No synchronized explicit mode | Shared Lua policy that follows skin changes and recreation |
-| Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, dealers, and city cops proposed from GTA's popcycle/model/path rules with owner epochs and cleanup |
+| Ambient pedestrian population | Local GTA population remains disabled | Server-owned civilians, native gang groups, dealers, city cops, and civilian couples proposed from GTA's population and path rules with owner epochs and cleanup |
 | Ambient gang behavior | Local-only single-player logic | Owner-only native groups with leader/follower movement, fight/flee decisions, gang weapons, synchronized damage admission, and bike-jack handoff |
 | Ambient city cops | Local-only, and the retail cop task is unsafe on an MTA ped | A safe ambient-cop wander task on GTA's verified base locomotion: real path nodes, pauses, and road crossing with wanted, pursuit, and arrest unreachable by construction |
 | Ambient couples | Local-only single-player logic | Atomic two-ped native couple leases with GTA-owned walk side, hand holding, look-at, and give-up distance, plus a separate observer presentation lease |
@@ -106,7 +106,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Ropes | Only the legacy `createSWATRope` call | All eight native rope types as synchronized elements, with holder tracking, cargo attachment and eight native slots leased across more logical ropes |
 | Native ped story tasks | No direct reusable surface | Reusable movement, driving, combat, dialogue, sequence, and actor-policy primitives |
 | Native AI on non-syncers | Ordinary synchronized element state | Reusable locomotion, rotation, ordered animation, fight/chat, weapon audiovisual, and selected physical/group presentation without competing AI or duplicate damage |
-| Ambient vehicle traffic | Local GTA population remains disabled | Not implemented yet; native vehicle tasks are available for server-authored missions, convoys, escorts, and scripted traffic |
+| Ambient vehicle traffic | Local GTA population remains disabled | Server-owned civilian cars, vans, trucks, motorcycles, BMX bicycles, and quads use GTA's vehicle choice, road placement, occupants, and `DriveWander` AI in world 0; boats, aircraft, trailers, parked cars, mission routes, and emergency services remain separate work |
 | Native route continuity | Stream range normally ends native simulation | Resource-owned streaming leases plus a server-owned route harness with owner epochs and syncer reconstruction |
 | Story actor and vehicle policy | General MTA abstractions | Persistent native actor flags, event-profile leases, raw door locks, tyre policy, vehicle proofs, and mission collision loading |
 | Native script camera | Standard MTA camera setters | Resource-exclusive generation-token lease over GTA primitives |

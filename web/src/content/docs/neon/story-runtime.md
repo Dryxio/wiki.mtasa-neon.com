@@ -19,17 +19,17 @@ The high-level model is one native simulator, server-owned state, and presentati
 
 The setting is synchronized, follows model changes and native recreation, and retains jetpack priority. Numeric `setPedWalkingStyle` calls still work; whichever walking-style API writes last determines the active policy.
 
-## Synchronized ambient pedestrians
+## Synchronized ambient population
 
-Neon keeps GTA's unmanaged `CPopulation::AddToPopulation` loop disabled. Instead, three [client-side population primitives](/neon/functions#population) expose GTA's civilian-model residency and pedestrian path-placement rules without creating a local-only ped. A multiplayer resource can validate the proposal on the server, create one real MTA ped, and choose exactly one client to run `CTaskComplexWanderStandard`.
+Neon keeps GTA's unmanaged local population loops disabled. Instead, the [client-side population primitives](/neon/functions#population) ask GTA for pedestrian families, models, path placements, road vehicles, lanes, driving parameters, and suitable occupants without creating local-only actors. A multiplayer resource validates each proposal on the server, creates the real MTA elements, and chooses exactly one client to run the native AI.
 
-The [`native-ped-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/native-ped-traffic) reference resource demonstrates that full layer: conservative global, per-player, cell, separation, and ped-pool limits; one streaming lease and native Wander task on the current syncer; monotonically increasing owner epochs; acknowledged or timed-out handoffs; corpse cleanup; and destruction of every owned ped on shutdown.
+Two reference resources demonstrate that complete authority layer. [`native-ped-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/native-ped-traffic) covers civilians, native gang groups, gang combat, motorcycle carjacks, dealers, safe city cops, and civilian couples. [`native-vehicle-traffic`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/native-vehicle-traffic) covers civilian road cars, vans, trucks, motorcycles, BMX bicycles, and quads with native placement, drivers, optional passengers, `DriveWander`, owner handoff, stuck recovery, destruction, and cleanup.
 
-The engine calls are deliberately lower-level than a complete population manager. [`updateAmbientPedPopulationModels`](/neon/functions/updateAmbientPedPopulationModels) retains GTA's eight zone-model slots until [`resetAmbientPedPopulationModels`](/neon/functions/resetAmbientPedPopulationModels) is called. [`getAmbientPedSpawnCandidate`](/neon/functions/getAmbientPedSpawnCandidate) proposes one model and position but does not establish network ownership, validate it against other players, create an element, or clean anything up.
+The engine calls are deliberately lower-level than a complete population manager. [`updateAmbientPedPopulationModels`](/neon/functions/updateAmbientPedPopulationModels) retains GTA's eight zone-model slots until [`resetAmbientPedPopulationModels`](/neon/functions/resetAmbientPedPopulationModels) is called. Pedestrian and vehicle candidate queries propose native choices but do not establish network ownership, validate the result against other players, create elements, or clean anything up.
 
 The `ambient-wander` profile adds GTA's stock pedestrian and parked-vehicle avoidance plus civilian threat and damage decisions on the current owner. A server-validated aim transition can reach that owner through [`addPedNativeGunAimedAtEvent`](/neon/functions/addPedNativeGunAimedAtEvent). When MTA's normal synchronized hit did not create the native response there, [`addPedNativeDamageResponseEvent`](/neon/functions/addPedNativeDamageResponseEvent) can replay only the behavior decision, never the physical damage.
 
-The V1 reference resource is limited to civilians outdoors in dimension and interior zero. Autonomous ambient vehicles, police, gangs, dealers, couples, attractors, conversations, and simulation without an eligible client remain open work. Two-client runs in Los Santos and Las Venturas checked 23 owner-epoch changes with zero task failures; the observing client showed no freeze, teleport, disappearance, or walk-to-run transition during the final handoff run. A later two-client behavior pass covered cross-owner aim, non-lethal damage, hands-up interruption, physical reaction, recovery, flee, parked-vehicle avoidance, surrounding panic, handoff, and cleanup. Complex local collision turns can still diverge by roughly one to two metres before reconverging.
+The completed ambient slice remains focused on outdoor world-zero simulation. Attractors, conversations, arbitrary interiors, boats, aircraft, trailers, parked-car generation, emergency-service behavior, and simulation without an eligible client remain open. Two-client runs cover pedestrian density and behavior, group and couple handoff, gang combat, motorcycle carjacks, dealers, cops, civilian vehicle creation, native driving, passenger entry, ownership changes, stuck recovery, destruction, and deterministic cleanup. Complex local collision turns can still diverge briefly before authoritative state reconverges. See [Synchronized NPCs and traffic](/neon/synchronized-ai) for the current families, production limits, and evidence.
 
 ## Native ped tasks
 
@@ -253,7 +253,7 @@ Native subtitles have not yet been proved across the supported file-cutscene pat
 
 `Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's` are runnable regression resources that combine these primitives. They are examples and validation checkpoints, not a finished campaign runtime.
 
-Their implemented paths, strongest evidence, and remaining gaps are tracked on [Mission checkpoints](/neon/mission-checkpoints). The resources are designed around server-owned mission state and multiple participants, but current in-game evidence is stronger for their single-client paths than for complete co-op execution.
+Their implemented paths, strongest evidence, and remaining gaps are tracked on [Mission checkpoints](/neon/mission-checkpoints). `Tagging Up Turf` has a complete two-client success path, while `Drive-Thru` has a complete single-client route plus a two-client pursuit and `Nines and AK's` remains only partially exercised. A complete co-op branch and cleanup matrix is still open across the checkpoint set.
 
 ## Safe stock entry-exit transitions
 
@@ -316,7 +316,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 - Remote native-task presentation covers the checked locomotion, ordered animation, fight/chat, weapon audiovisual, and selected physical-response channels, not every GTA task or transition.
 - Client-local actor and vehicle policies must be replicated and cleared by the resource.
 - File cutscenes, camera state, audio, and text are local presentation systems coordinated by server barriers.
-- Complete multi-participant cutscene and mission checkpoint validation remains open.
+- `Tagging Up Turf` has a complete two-client success path, but complete multi-participant branch, failure, restart, and cleanup validation remains open across the checkpoint set.
 - Campaign counters, save statistics, shops, progression, and a general SCM interpreter are outside these resources.
 
 See [Mission checkpoints](/neon/mission-checkpoints) for current resource coverage and [Tooling and verification](/neon/tooling-and-verification) for the evidence levels used throughout the wiki.

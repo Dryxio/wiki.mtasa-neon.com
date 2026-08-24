@@ -75,7 +75,7 @@ The switch works like this:
 
 Resident cities switch between finite sets of runtime slots while GTA is already running. Their model allocations may use the [custom model registry](/neon/models-and-streaming), but the resource still owns the archives, preload barrier, and teardown sequence.
 
-This is separate from [native world packs](/neon/native-world). Native packs register audited IDE/IMG/COL/IPL data through GTA's startup spatial-streaming path and keep an active selected-set trust boundary for the session. The current v3 runtime can move between reviewed cities inside that selected set, while keeping only one imported city resident at a time, then drain and detach the generation during session shutdown.
+This is separate from [native world packs](/neon/native-world). Native packs register audited IDE/IMG/COL/IPL data through GTA's own world loader and spatial-streaming path and keep an active selected-set trust boundary for the session. The current v3 runtime can move between compatible packs inside that selected set while keeping only one imported city resident at a time. It can then drain and detach the generation before admitting a different server or set in the same GTA process.
 
 ## Test maps are not bundled worlds
 
@@ -85,7 +85,7 @@ Perry Island, Liberty City, Vice City, Carcer City, and Bullworth are test cases
 
 - Extended coordinates do not automatically provide radar, paths, population, zones, audio, interiors, or environment data.
 - Project2DFX searchlights, distant cars, and static shadows are not implemented.
-- Native World v3 supports an ordered set of reviewed packs, automatic spatial city residency, and generation-fenced teardown. The supported path to a different selected set still needs a new startup ticket and clean restart because same-process readmission remains incomplete; arbitrary third-party worlds are not accepted.
+- Native World v3 accepts one to eight compatible custom static-world packs after they pass the closed format and content audits. It can admit a different server or selected set in the same GTA process after a safe drain; if that clean state cannot be proved, Neon uses a verified restart fallback.
 - Ordinary draw distances remain unchanged unless a server or resource changes them.
 
 ## Implementation note
