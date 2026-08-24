@@ -1441,10 +1441,10 @@ export const neonFunctions: NeonFunction[] = [
   {
     name: "enginePlayVehicleAudioBackfire", category: "vehicleAudio", side: "client",
     signature: "bool enginePlayVehicleAudioBackfire(vehicle theVehicle, int mode)",
-    summary: "Plays a normal or high custom backfire on a vehicle already active in the owned audio system.",
+    summary: "Make an active custom-audio vehicle backfire on demand. Neon plays the configured pop and, in full/flames mode, fires a normal or stronger burst from the exhaust.",
     arguments: [arg("theVehicle", "vehicle", "Streamed vehicle with an enabled audio mode, matching model definition, and acquired bank."), arg("mode", "int", "Backfire strength: 1 for normal or 2 for high.")],
     returns: "true when the owning resource played the requested backfire; false for another caller, an inactive vehicle, missing audio state, or a mode other than 1 or 2.",
-    notes: ["Loading the configuration alone is insufficient; the vehicle must already be active in the sound manager.", "The implementation emits a backfire name internally but does not register it as a built-in client event, so no public event is documented."],
+    notes: ["Loading the configuration alone is insufficient; the vehicle must already be active in the sound manager.", "This is a client-side call. A resource can relay the trigger to nearby clients when every player should hear and see the same backfire.", "The implementation emits a backfire name internally but does not register it as a built-in client event, so no public event is documented."],
     source: "Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp", commit: "0418bcea7", test: null,
   },
 

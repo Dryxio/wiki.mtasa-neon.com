@@ -1,13 +1,25 @@
 ---
 title: Custom vehicle audio
-description: Give selected vehicle models custom engine sounds and backfires, then restore GTA audio automatically when the system stops.
+description: Give chosen cars high-quality engine sounds that react to driving, plus backfire sounds and exhaust flames.
 ---
 
-Give selected vehicle models custom engine sounds and backfires from a resource. The server can choose which vehicles use them, every client hears the same configured sound set, and GTA audio returns automatically when the system stops.
+Give a chosen car its own high-quality engine sound. Neon makes it rise and fall with the engine RPM, throttle and gear changes. It can also play backfire pops and shoot matching flames from the exhaust.
 
-This is useful beyond racing: custom cars, mission vehicles, convoys, roleplay fleets, cinematics, and scripted events can all share the same audio layer.
+Adding another car sound is mostly a content step, not a new audio script. Convert a vehicle sound set—an Assetto Corsa engine pack, for example—to the expected FMOD banks, map its event names and basic RPM settings once, then assign it to a model. Neon adapts the sound while the car drives; the resource does not have to change pitch or switch samples every frame.
 
-<!-- MEDIA PLACEHOLDER: Custom vehicle audio demonstration. Prefer a captioned video with sound, plus a still thumbnail at /neon-media/vehicle-audio.webp. Show an ordinary vehicle and a configured vehicle at similar RPM, then a mode-2 backfire. -->
+Other players hear the custom engines of configured cars around them too. A resource can also relay a scripted backfire to nearby clients, so everyone hears the pop and sees the exhaust burst at the same moment.
+
+<video controls playsinline preload="metadata"
+       poster="/neon-media/vehicle-audio-poster.jpg"
+       style="display:block;width:100%;max-width:45rem;height:auto;margin-inline:auto;border-radius:.5rem;">
+  <source src="/neon-media/vehicle-audio-showcase.mp4" type="video/mp4" />
+  Your browser cannot play this clip. It shows a car using a custom engine sound
+  while Neon fires visible backflames from both exhausts.
+</video>
+
+**Turn the sound on.** This BUST race uses a resource-provided HD engine bank. The resource supplies the sounds and chooses the car; Neon handles the live engine mix, automatic backfires and exhaust flames. The backfire is part of Neon, not a video-only server effect, and Lua can also trigger it on demand with [`enginePlayVehicleAudioBackfire`](/neon/functions/enginePlayVehicleAudioBackfire).
+
+This is useful beyond racing: custom cars, mission vehicles, convoys, roleplay fleets, cinematics, and scripted events can all share the same audio layer. GTA audio returns automatically when the system stops.
 
 ## Resource flow
 
@@ -45,7 +57,28 @@ Set the synchronized `neon:vehicleAudio` element data on vehicles that should us
 
 Unknown or absent values leave the vehicle on the ordinary path. The separate `neon:vehicleAudioCompetitive` flag is used by a specific showcase mix and should not be treated as the general public activation contract.
 
-The owner resource can call [`enginePlayVehicleAudioBackfire`](/neon/functions/enginePlayVehicleAudioBackfire) with mode `1` or `2` for a vehicle already active in its configuration. Other modes, a foreign owner, or an inactive vehicle return `false`.
+The owner resource can call [`enginePlayVehicleAudioBackfire`](/neon/functions/enginePlayVehicleAudioBackfire) with mode `1` or `2` for a vehicle already active in its configuration. That immediately plays the configured pop and, in a full/flames audio mode, creates a normal or stronger burst at the exhaust. The function is client-side: relay the trigger to the relevant clients when other players should hear and see the same backfire. Other modes, a foreign owner, or an inactive vehicle return `false`.
+
+For example, the server can tell every client to render the same scripted backfire:
+
+```lua
+-- server.lua
+function playBackfireForEveryone(vehicle, mode)
+    triggerClientEvent(root, "garage:playBackfire", resourceRoot, vehicle, mode)
+end
+```
+
+```lua
+-- client.lua, in the resource that owns the vehicle-audio configuration
+addEvent("garage:playBackfire", true)
+addEventHandler("garage:playBackfire", resourceRoot, function(vehicle, mode)
+    if isElement(vehicle) then
+        enginePlayVehicleAudioBackfire(vehicle, mode)
+    end
+end)
+```
+
+The server decides when the backfire happens; each client nearby can then render the configured sound and exhaust effect locally. In a production resource, send the event only to players close enough to see or hear the vehicle.
 
 ## Lifecycle and current limits
 
