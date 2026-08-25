@@ -2,153 +2,179 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { neonFunctions, neonCategories, neonTaskGroups } from '@src/data/neon-functions';
 
-const journeys = [
-  {
-    title: 'Build a story mission',
-    description: 'Native actors, task sequences, cameras, cutscenes, mission text, and audio.',
-    guide: '/neon/story-runtime',
-    functions: ['setPedTaskSequence', 'acquireScriptCamera', 'acquireMissionText'],
-  },
-  {
-    title: 'Extend the world',
-    description: 'Add models, radar tiles, water boundaries, and native world behavior.',
-    guide: '/neon/extended-world',
-    functions: ['engineRequestModel', 'engineSetRadarMapTile', 'engineCreateCullZone'],
-  },
-  {
-    title: 'Diagnose limits',
-    description: 'Inspect renderer budgets, distant lights, markers, and runtime capacity.',
-    guide: '/neon/rendering-and-limits',
-    functions: ['engineGetRendererStats', 'engineGetDistantLightStats', 'getMarkerLimitStats'],
-  },
-  {
-    title: 'Customize vehicle audio',
-    description: 'Own one client configuration, reload it safely, and trigger configured backfires.',
-    guide: '/neon/vehicle-audio',
-    functions: ['engineLoadVehicleAudioConfig', 'engineReloadVehicleAudioConfig', 'enginePlayVehicleAudioBackfire'],
-  },
-  {
-    title: 'Use verified identity',
-    description: 'Read verified player IDs and make server bans aware of Neon and Discord identities.',
-    guide: '/neon/identity',
-    functions: ['isPlayerNeonAuthenticated', 'getPlayerNeonID', 'addBan'],
-  },
-  {
-    title: 'Synchronize native AI',
-    description: 'Run GTA pedestrian and road-traffic behavior on one owner and synchronize the result for other players.',
-    guide: '/neon/synchronized-ai',
-    functions: ['setPedWander', 'getAmbientVehicleSpawnCandidate', 'acquirePedNativeEventProfile'],
-  },
+const categoryPresentation: Record<string, { title: string; description: string }> = {
+  radar: { title: 'Custom radar tiles', description: 'Replace individual radar and F11 map tiles with resource-provided textures.' },
+  models: { title: 'Custom models', description: 'Allocate stable custom model IDs and resolve the GTA slots used by each client.' },
+  rendering: { title: 'Rendering limits and distant lights', description: 'Inspect expanded renderer capacity and control distant world lights.' },
+  cull: { title: 'World environment zones (CULL)', description: 'Read, create, change, disable, and restore GTA environment zones.' },
+  markers: { title: 'Mission markers and marker limits', description: 'Inspect marker capacity and draw GTA’s pulsing mission-area marker.' },
+  seabed: { title: 'Ocean and seabed boundaries', description: 'Move or restore the outer boundary of GTA’s procedural seabed.' },
+  walking: { title: 'NPC walking styles', description: 'Make an NPC use the natural movement style of its current character model.' },
+  population: { title: 'Ambient NPCs and road traffic', description: 'Ask GTA for suitable NPCs, vehicles, spawn points, groups, and ambient behavior.' },
+  ropes: { title: 'Ropes', description: 'Create and control GTA ropes, holders, carried objects, length, movement, and physics.' },
+  physics: { title: 'Dynamic object physics', description: 'Let synchronized objects use GTA’s native physical movement.' },
+  fracture: { title: 'Breakable objects', description: 'Break object models into physical fragments and control their durability.' },
+  effects: { title: 'Model lights and effects (2DFX)', description: 'Add, remove, inspect, and change lights and other effects stored on a model.' },
+  birds: { title: 'Birds', description: 'Create birds and control their flight, appearance, visibility, and reactions to shots.' },
+  fire: { title: 'Fire', description: 'Create synchronized fires and control their lifetime, damage, spread, source, and target.' },
+  foliage: { title: 'Grass and foliage', description: 'Create custom foliage patches from Lua-controlled ground triangles.' },
+  collision: { title: 'Lua-generated collision', description: 'Build collision data at runtime and apply it to models.' },
+  streaming: { title: 'Streaming control', description: 'Keep important elements streamed while a resource needs their native GTA state.' },
+  tasks: { title: 'NPC actions and mission behavior', description: 'Give NPCs native movement, driving, combat, interaction, and action sequences, and control gang-tag progress.' },
+  vehicle: { title: 'Mission vehicle behavior', description: 'Control locks, tyres, physical protection, collision loading, and mission vehicle checks.' },
+  scene: { title: 'Scene loading and vehicle helpers', description: 'Prepare a world area and use small GTA mission vehicle primitives.' },
+  camera: { title: 'Scripted cameras', description: 'Own and control GTA cameras, movement, tracking, fades, widescreen, and near clip.' },
+  cutscene: { title: 'Original GTA cutscenes', description: 'Load, play, fade, skip, and release GTA’s original file-based cutscenes.' },
+  audio: { title: 'Mission sounds and completion music', description: 'Load and play GTA mission audio and the original mission-complete tunes.' },
+  vehicleAudio: { title: 'Custom vehicle sounds', description: 'Load custom engine banks and trigger configured backfire sounds and flames.' },
+  text: { title: 'Mission text and HUD messages', description: 'Show GTA mission text, help prompts, and large on-screen messages.' },
+  recording: { title: 'Recorded vehicle routes', description: 'Load and play GTA vehicle recordings for scripted driving scenes.' },
+  identity: { title: 'Player identity and bans', description: 'Read verified Neon and Discord identities and use them in server bans.' },
+  compatibility: { title: 'Weapon glitch settings', description: 'Use the weapon-glitch options that Neon adds to existing MTA functions.' },
+  mapping: { title: 'SA-MP maps and object materials', description: 'Parse SA-MP map source and control object materials and streaming limits.' },
+  radio: { title: 'GTA radio playback', description: 'Read and restore the current GTA radio station, track, queue, and playback position.' },
+  visuals: { title: 'Neon visual settings', description: 'Read, change, and reset client visual options exposed by Neon.' },
+  browser: { title: 'Open web links', description: 'Open an allowed HTTPS page in the player’s external browser.' },
+};
+
+const familyDefinitions = [
+  { key: 'npcs-gameplay', title: 'NPCs and gameplay AI', description: 'Walking styles, ambient populations, traffic, and actions driven by GTA’s original AI.', categories: ['walking', 'population', 'tasks'] },
+  { key: 'story-missions', title: 'Story and mission tools', description: 'Streaming, mission vehicles, scene loading, cameras, cutscenes, audio, text, and recorded routes.', categories: ['streaming', 'vehicle', 'scene', 'camera', 'cutscene', 'audio', 'text', 'recording'] },
+  { key: 'world-models', title: 'World, maps and models', description: 'Custom models, imported maps, radar tiles, environment zones, seabed, and runtime collision.', categories: ['models', 'mapping', 'radar', 'seabed', 'cull', 'collision'] },
+  { key: 'objects-effects', title: 'Objects, environment and effects', description: 'Physics, breakable objects, ropes, fire, birds, foliage, and model lights or effects.', categories: ['physics', 'fracture', 'ropes', 'fire', 'birds', 'foliage', 'effects'] },
+  { key: 'rendering-client', title: 'Rendering, audio and client', description: 'Renderer diagnostics, markers, vehicle sound, GTA radio, visual settings, and web links.', categories: ['rendering', 'markers', 'vehicleAudio', 'radio', 'visuals', 'browser'] },
+  { key: 'server-compatibility', title: 'Server and compatibility', description: 'Verified player identity, bans, and extensions to existing MTA settings.', categories: ['identity', 'compatibility'] },
 ] as const;
+
+const taskGroupPresentation = {
+  ...neonTaskGroups,
+  policies: 'NPC rules',
+  sequences: 'Action sequences',
+};
 
 const categoryEntries = Object.entries(neonCategories).map(([key, category]) => ({
   key,
   category,
+  presentation: categoryPresentation[key] ?? { title: category.title, description: '' },
   entries: neonFunctions.filter((entry) => entry.category === key),
 }));
+const categoryByKey = new Map(categoryEntries.map((entry) => [entry.key, entry]));
+const apiFamilies = familyDefinitions.map((family) => ({
+  ...family,
+  categories: family.categories.map((key) => categoryByKey.get(key)).filter((entry) => entry && entry.entries.length > 0),
+}));
 
-const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: string) => [
-  entry.name,
-  entry.signature,
-  entry.summary,
-  categoryTitle,
-  entry.nativeTask?.tasks?.join(' '),
-  entry.nativeTask?.command,
-  entry.nativeTask?.opcode,
-].filter(Boolean).join(' ').toLowerCase();
+const documentedCategoryKeys = categoryEntries.filter(({ entries }) => entries.length > 0).map(({ key }) => key).sort();
+const assignedCategoryKeys = familyDefinitions.flatMap(({ categories }) => [...categories]).sort();
+if (JSON.stringify(documentedCategoryKeys) !== JSON.stringify(assignedCategoryKeys)) {
+  throw new Error('Every documented Neon API category must appear exactly once in the public family directory.');
+}
+
+const sideLabel = (side: string) => side === 'shared' ? 'client + server' : side;
 ---
 
-<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Functions added or extended by MTA:SA Neon.', tableOfContents: false }}>
+<StarlightPage frontmatter={{ template: 'doc', title: 'Neon Lua API', description: 'Every Lua function added or extended by MTA:SA Neon.', tableOfContents: false }}>
   <div class="neon-api-intro">
-    <span>NEON-ONLY REFERENCE</span>
-    <h2>{neonFunctions.length} documented API entries</h2>
-    <p>Search the functions registered by Neon, browse them by system, or follow a practical path into the engine.</p>
+    <span>COMPLETE NEON REFERENCE</span>
+    <h2>{neonFunctions.length} APIs added or extended by Neon</h2>
+    <p>Every public Lua function added or extended by Neon is listed below. Browse the six areas, filter by where an API runs, or enter part of a function name.</p>
   </div>
 
-  <section class="journeys" aria-labelledby="journeys-title">
-    <div class="section-heading">
-      <p>START WITH A GOAL</p>
-      <h2 id="journeys-title">Choose a path</h2>
-    </div>
-    <div class="journey-grid">
-      {journeys.map((journey) => <article>
-        <h3><a href={journey.guide}>{journey.title} →</a></h3>
-        <p>{journey.description}</p>
-        <ul>{journey.functions.map((name) => <li><a href={`/neon/functions/${name}`}><code>{name}</code></a></li>)}</ul>
-      </article>)}
-    </div>
-  </section>
-
   <div class="api-explorer" data-api-explorer>
-    <div class="explorer-controls" data-explorer-controls hidden>
-      <div class="search-row">
-        <div class="search-field">
-          <label for="api-search">Search the Neon API</label>
-          <div><input id="api-search" type="search" autocomplete="off" placeholder="Function, CTask, command, opcode…" data-api-search /><button type="button" data-clear-search hidden>Clear</button></div>
-        </div>
-        <p class="result-count" aria-live="polite" data-result-count>{neonFunctions.length} APIs</p>
-        <button class="reset-button" type="button" data-reset-filters hidden>Reset filters</button>
+    <section class="explorer-controls" aria-label="Filter Neon APIs" data-explorer-controls hidden>
+      <div class="filter-name">
+        <label for="api-name-filter">Filter by function name</label>
+        <div><input id="api-name-filter" type="search" autocomplete="off" placeholder="setPedGoTo" aria-describedby="api-name-help" data-api-search /><button type="button" data-clear-search hidden>Clear</button></div>
+        <small id="api-name-help">Enter all or part of an API name.</small>
       </div>
-      <div class="filter-row">
-        <fieldset>
-          <legend>Side</legend>
-          {['all', 'client', 'server', 'shared'].map((value) => <button type="button" data-filter-group="side" data-filter-value={value} aria-pressed={value === 'all' ? 'true' : 'false'}>{value === 'all' ? 'All sides' : value}</button>)}
-        </fieldset>
-        <fieldset>
-          <legend>API type</legend>
-          {[['all', 'All APIs'], ['neon', 'Neon'], ['extension', 'MTA extension']].map(([value, label]) => <button type="button" data-filter-group="kind" data-filter-value={value} aria-pressed={value === 'all' ? 'true' : 'false'}>{label}</button>)}
-        </fieldset>
-        <div class="toggle-filters" aria-label="Native mapping filters">
-          <button type="button" data-toggle-filter="mapping" aria-pressed="false">GTA mapping</button>
-          <button type="button" data-toggle-filter="opcode" aria-pressed="false">SCM opcode</button>
-        </div>
-      </div>
-    </div>
 
-    <nav class="category-directory" aria-labelledby="categories-title">
-      <div class="section-heading">
-        <p>BROWSE THE SYSTEMS</p>
-        <h2 id="categories-title">Jump to a category</h2>
+      <div class="primary-filters">
+        <label><span>System</span><select data-system-filter>
+          <option value="all">All systems</option>
+          {apiFamilies.map((family) => <optgroup label={family.title}>
+            {family.categories.map((category) => <option value={category.key}>{category.presentation.title}</option>)}
+          </optgroup>)}
+        </select></label>
+        <label><span>Runs on</span><select data-side-filter>
+          <option value="all">Client or server</option>
+          <option value="client">Client</option>
+          <option value="server">Server</option>
+          <option value="shared">Client + server only</option>
+        </select></label>
+        <details class="advanced-filters">
+          <summary>Advanced filters</summary>
+          <div>
+            <label><span>API type</span><select data-kind-filter>
+              <option value="all">New and extended APIs</option>
+              <option value="neon">New Neon functions</option>
+              <option value="extension">Existing functions extended by Neon</option>
+            </select></label>
+            <label class="check-filter"><input type="checkbox" data-mapping-filter /> Has a GTA task mapping</label>
+            <label class="check-filter"><input type="checkbox" data-opcode-filter /> Has an SCM opcode</label>
+          </div>
+        </details>
       </div>
-      <div class="category-links">
-        {categoryEntries.map(({ key, category, entries }) => entries.length > 0 && <a href={`#${key}`} data-category-link={key}>
-          <span>{category.title}</span><strong data-category-count>{entries.length}</strong>
-        </a>)}
+
+      <div class="filter-status">
+        <p aria-live="polite" data-result-count>{neonFunctions.length} of {neonFunctions.length} APIs shown</p>
+        <button type="button" data-reset-filters hidden>Clear filters</button>
+      </div>
+    </section>
+
+    <nav class="family-directory" aria-labelledby="families-title">
+      <div class="section-heading"><p>ALL NEON SYSTEMS</p><h2 id="families-title">Browse by area</h2></div>
+      <div class="family-links">
+        {apiFamilies.map((family) => {
+          const count = family.categories.reduce((total, category) => total + category.entries.length, 0);
+          return <a href={`#${family.key}`} data-family-link={family.key}><span>{family.title}</span><strong data-family-link-count>{count}</strong></a>;
+        })}
       </div>
     </nav>
 
     <div class="no-results" data-no-results hidden>
-      <strong>No matching APIs.</strong>
-      <span>Try a broader search or clear the active filters.</span>
-      <button type="button" data-reset-filters>Show all APIs</button>
+      <strong>No Neon APIs match these filters.</strong>
+      <span>Change the function name, system, or side to see more APIs.</span>
+      <button type="button" data-reset-filters>Show all Neon APIs</button>
     </div>
 
-    {categoryEntries.map(({ key, category, entries }) => {
-      if (entries.length === 0) return null;
-      const groups = key === 'tasks'
-        ? Object.entries(neonTaskGroups).map(([groupKey, label]) => ({ groupKey, label, entries: entries.filter((entry) => entry.group === groupKey) }))
-        : [{ groupKey: '', label: '', entries }];
+    {apiFamilies.map((family) => {
+      const familyCount = family.categories.reduce((total, category) => total + category.entries.length, 0);
+      return <section class="api-family" id={family.key} data-api-family={family.key}>
+        <header class="family-heading">
+          <div><p><span data-family-count>{familyCount}</span> APIs</p><h2>{family.title}</h2></div>
+          <p>{family.description}</p>
+        </header>
 
-      return <section class="api-category" id={key} data-api-category={key}>
-        <div class="category-heading"><div><p><span data-section-count>{entries.length}</span> ENTRIES</p><h2>{category.title}</h2></div><a href={category.guide}>System guide →</a></div>
-        {groups.map((group) => group.entries.length > 0 && <div class="api-subgroup" data-api-group={group.groupKey || undefined}>
-          {group.label && <div class="subgroup-heading"><h3>{group.label}</h3><span><span data-group-count>{group.entries.length}</span> APIs</span></div>}
-          <div class="api-table">
-            {group.entries.map((entry) => <a
-              href={`/neon/functions/${entry.name}`}
-              data-api-entry
-              data-search={searchableText(entry, category.title)}
-              data-side={entry.side}
-              data-kind={entry.extension ? 'extension' : 'neon'}
-              data-mapping={entry.nativeTask ? 'true' : 'false'}
-              data-opcode={entry.nativeTask?.opcode ? 'true' : 'false'}
-            >
-              <div><code>{entry.name}</code>{entry.extension && <span class="extension">EXTENSION</span>}</div>
-              <p>{entry.summary}</p>
-              <span class={`side side-${entry.side}`}>{entry.side === 'shared' ? 'client + server' : entry.side}</span>
-            </a>)}
-          </div>
-        </div>)}
+        {family.categories.map(({ key, category, presentation, entries }) => {
+          const groups = key === 'tasks'
+            ? Object.entries(taskGroupPresentation).map(([groupKey, label]) => ({ groupKey, label, entries: entries.filter((entry) => entry.group === groupKey) }))
+            : [{ groupKey: '', label: '', entries }];
+
+          return <section class="api-category" id={key} data-api-category={key}>
+            <div class="category-heading">
+              <div><p><span data-section-count>{entries.length}</span> APIs</p><h3>{presentation.title}</h3><span>{presentation.description}</span></div>
+              <a href={category.guide}>System guide →</a>
+            </div>
+            {groups.map((group) => group.entries.length > 0 && <div class="api-subgroup" data-api-group={group.groupKey || undefined}>
+              {group.label && <div class="subgroup-heading"><h4>{group.label}</h4><span><span data-group-count>{group.entries.length}</span> APIs</span></div>}
+              <div class="api-table">
+                {group.entries.map((entry) => <a
+                  href={`/neon/functions/${entry.name}`}
+                  data-api-entry
+                  data-name={entry.name}
+                  data-side={entry.side}
+                  data-kind={entry.extension ? 'extension' : 'neon'}
+                  data-mapping={entry.nativeTask ? 'true' : 'false'}
+                  data-opcode={entry.nativeTask?.opcode ? 'true' : 'false'}
+                >
+                  <div><code>{entry.name}</code>{entry.extension && <span class="extension">EXTENSION</span>}</div>
+                  <p>{entry.summary}</p>
+                  <span class={`side side-${entry.side}`}>{sideLabel(entry.side)}</span>
+                </a>)}
+              </div>
+            </div>)}
+          </section>;
+        })}
       </section>;
     })}
   </div>
@@ -160,153 +186,164 @@ const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: st
   if (explorer instanceof HTMLElement) {
     const controls = explorer.querySelector('[data-explorer-controls]');
     const search = explorer.querySelector('[data-api-search]');
+    const systemFilter = explorer.querySelector('[data-system-filter]');
+    const sideFilter = explorer.querySelector('[data-side-filter]');
+    const kindFilter = explorer.querySelector('[data-kind-filter]');
+    const mappingFilter = explorer.querySelector('[data-mapping-filter]');
+    const opcodeFilter = explorer.querySelector('[data-opcode-filter]');
     const entries = [...explorer.querySelectorAll('[data-api-entry]')];
-    const sections = [...explorer.querySelectorAll('[data-api-category]')];
+    const categories = [...explorer.querySelectorAll('[data-api-category]')];
+    const families = [...explorer.querySelectorAll('[data-api-family]')];
     const resultCount = explorer.querySelector('[data-result-count]');
     const noResults = explorer.querySelector('[data-no-results]');
     const clearSearch = explorer.querySelector('[data-clear-search]');
     const resetButtons = [...explorer.querySelectorAll('[data-reset-filters]')];
-    const filterButtons = [...explorer.querySelectorAll('[data-filter-group]')];
-    const toggleButtons = [...explorer.querySelectorAll('[data-toggle-filter]')];
+    const validSystems = ['all', ...categories.map((category) => category.getAttribute('data-api-category'))];
     const validSides = ['all', 'client', 'server', 'shared'];
     const validKinds = ['all', 'neon', 'extension'];
     const params = new URLSearchParams(window.location.search);
+    const requestedSystem = params.get('system') || 'all';
+    const requestedSide = params.get('runsOn') || params.get('side') || 'all';
+    const requestedKind = params.get('type') || 'all';
     const state = {
       query: params.get('q') || '',
-      side: validSides.includes(params.get('side') || '') ? params.get('side') : 'all',
-      kind: validKinds.includes(params.get('type') || '') ? params.get('type') : 'all',
+      system: validSystems.includes(requestedSystem) ? requestedSystem : 'all',
+      side: validSides.includes(requestedSide) ? requestedSide : 'all',
+      kind: validKinds.includes(requestedKind) ? requestedKind : 'all',
       mapping: params.get('gta') === '1',
       opcode: params.get('scm') === '1',
     };
-
-    const isActive = () => Boolean(state.query || state.side !== 'all' || state.kind !== 'all' || state.mapping || state.opcode);
-
+    const isActive = () => Boolean(state.query || state.system !== 'all' || state.side !== 'all' || state.kind !== 'all' || state.mapping || state.opcode);
+    const compactName = (value) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const matchesSide = (entrySide) => {
+      if (state.side === 'client') return entrySide === 'client' || entrySide === 'shared';
+      if (state.side === 'server') return entrySide === 'server' || entrySide === 'shared';
+      if (state.side === 'shared') return entrySide === 'shared';
+      return true;
+    };
     const syncUrl = () => {
       const url = new URL(window.location.href);
       const setOrDelete = (key, value, fallback = '') => value && value !== fallback ? url.searchParams.set(key, value) : url.searchParams.delete(key);
       setOrDelete('q', state.query);
-      setOrDelete('side', state.side, 'all');
+      setOrDelete('system', state.system, 'all');
+      setOrDelete('runsOn', state.side, 'all');
       setOrDelete('type', state.kind, 'all');
       setOrDelete('gta', state.mapping ? '1' : '');
       setOrDelete('scm', state.opcode ? '1' : '');
+      url.searchParams.delete('side');
       window.history.replaceState(window.history.state, '', url);
     };
-
     const applyFilters = () => {
-      const query = state.query.trim().toLowerCase();
+      const query = compactName(state.query.trim());
       let visibleTotal = 0;
-
       entries.forEach((entry) => {
-        const matches = (!query || entry.getAttribute('data-search')?.includes(query))
-          && (state.side === 'all' || entry.getAttribute('data-side') === state.side)
+        const category = entry.closest('[data-api-category]')?.getAttribute('data-api-category');
+        const matches = (!query || compactName(entry.getAttribute('data-name') || '').includes(query))
+          && (state.system === 'all' || category === state.system)
+          && matchesSide(entry.getAttribute('data-side'))
           && (state.kind === 'all' || entry.getAttribute('data-kind') === state.kind)
           && (!state.mapping || entry.getAttribute('data-mapping') === 'true')
           && (!state.opcode || entry.getAttribute('data-opcode') === 'true');
         entry.toggleAttribute('hidden', !matches);
         if (matches) visibleTotal += 1;
       });
-
-      sections.forEach((section) => {
-        const category = section.getAttribute('data-api-category');
-        const visible = section.querySelectorAll('[data-api-entry]:not([hidden])').length;
-        section.toggleAttribute('hidden', visible === 0);
-        const sectionCount = section.querySelector('[data-section-count]');
-        if (sectionCount) sectionCount.textContent = String(visible);
-        section.querySelectorAll('[data-api-group]').forEach((group) => {
+      categories.forEach((category) => {
+        const visible = category.querySelectorAll('[data-api-entry]:not([hidden])').length;
+        category.toggleAttribute('hidden', visible === 0);
+        const count = category.querySelector('[data-section-count]');
+        if (count) count.textContent = String(visible);
+        category.querySelectorAll('[data-api-group]').forEach((group) => {
           const groupVisible = group.querySelectorAll('[data-api-entry]:not([hidden])').length;
           group.toggleAttribute('hidden', groupVisible === 0);
           const groupCount = group.querySelector('[data-group-count]');
           if (groupCount) groupCount.textContent = String(groupVisible);
         });
-        const categoryLink = document.querySelector(`[data-category-link="${category}"]`);
-        categoryLink?.toggleAttribute('hidden', visible === 0);
-        const categoryCount = categoryLink?.querySelector('[data-category-count]');
-        if (categoryCount) categoryCount.textContent = String(visible);
       });
-
-      if (resultCount) resultCount.textContent = `${visibleTotal} ${visibleTotal === 1 ? 'API' : 'APIs'}`;
+      families.forEach((family) => {
+        const key = family.getAttribute('data-api-family');
+        const visible = family.querySelectorAll('[data-api-entry]:not([hidden])').length;
+        family.toggleAttribute('hidden', visible === 0);
+        const count = family.querySelector('[data-family-count]');
+        if (count) count.textContent = String(visible);
+        const link = explorer.querySelector(`[data-family-link="${key}"]`);
+        link?.toggleAttribute('hidden', visible === 0);
+        const linkCount = link?.querySelector('[data-family-link-count]');
+        if (linkCount) linkCount.textContent = String(visible);
+      });
+      if (resultCount) resultCount.textContent = `${visibleTotal} of ${entries.length} ${visibleTotal === 1 ? 'API' : 'APIs'} shown`;
       noResults?.toggleAttribute('hidden', visibleTotal !== 0);
       clearSearch?.toggleAttribute('hidden', !state.query);
       resetButtons.forEach((button) => button.toggleAttribute('hidden', !isActive()));
-      filterButtons.forEach((button) => button.setAttribute('aria-pressed', String(state[button.getAttribute('data-filter-group')] === button.getAttribute('data-filter-value'))));
-      toggleButtons.forEach((button) => button.setAttribute('aria-pressed', String(Boolean(state[button.getAttribute('data-toggle-filter')]))));
       syncUrl();
     };
 
-    if (controls instanceof HTMLElement && search instanceof HTMLInputElement) {
+    if (controls instanceof HTMLElement && search instanceof HTMLInputElement && systemFilter instanceof HTMLSelectElement && sideFilter instanceof HTMLSelectElement && kindFilter instanceof HTMLSelectElement && mappingFilter instanceof HTMLInputElement && opcodeFilter instanceof HTMLInputElement) {
       controls.hidden = false;
       search.value = state.query;
+      systemFilter.value = state.system;
+      sideFilter.value = state.side;
+      kindFilter.value = state.kind;
+      mappingFilter.checked = state.mapping;
+      opcodeFilter.checked = state.opcode;
       search.addEventListener('input', () => { state.query = search.value; applyFilters(); });
-      search.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && state.query) { state.query = ''; search.value = ''; applyFilters(); }
-      });
-      clearSearch?.addEventListener('click', () => { state.query = ''; search.value = ''; search.focus(); applyFilters(); });
-      filterButtons.forEach((button) => button.addEventListener('click', () => {
-        state[button.getAttribute('data-filter-group')] = button.getAttribute('data-filter-value');
-        applyFilters();
-      }));
-      toggleButtons.forEach((button) => button.addEventListener('click', () => {
-        const key = button.getAttribute('data-toggle-filter');
-        state[key] = !state[key];
-        applyFilters();
-      }));
+      search.addEventListener('keydown', (event) => { if (event.key === 'Escape' && state.query) { state.query = ''; search.value = ''; applyFilters(); } });
+      clearSearch?.addEventListener('click', () => { state.query = ''; search.value = ''; applyFilters(); search.focus(); });
+      systemFilter.addEventListener('change', () => { state.system = systemFilter.value; applyFilters(); });
+      sideFilter.addEventListener('change', () => { state.side = sideFilter.value; applyFilters(); });
+      kindFilter.addEventListener('change', () => { state.kind = kindFilter.value; applyFilters(); });
+      mappingFilter.addEventListener('change', () => { state.mapping = mappingFilter.checked; applyFilters(); });
+      opcodeFilter.addEventListener('change', () => { state.opcode = opcodeFilter.checked; applyFilters(); });
       resetButtons.forEach((button) => button.addEventListener('click', () => {
-        state.query = ''; state.side = 'all'; state.kind = 'all'; state.mapping = false; state.opcode = false; search.value = ''; applyFilters(); search.focus();
+        Object.assign(state, { query: '', system: 'all', side: 'all', kind: 'all', mapping: false, opcode: false });
+        search.value = ''; systemFilter.value = 'all'; sideFilter.value = 'all'; kindFilter.value = 'all'; mappingFilter.checked = false; opcodeFilter.checked = false;
+        applyFilters(); search.focus();
       }));
       applyFilters();
       const initialHash = window.location.hash.slice(1);
-      if (initialHash) {
-        window.requestAnimationFrame(() => document.getElementById(decodeURIComponent(initialHash))?.scrollIntoView());
-      }
+      if (initialHash) window.requestAnimationFrame(() => document.getElementById(decodeURIComponent(initialHash))?.scrollIntoView());
     }
   }
 </script>
 
 <style>
   .neon-api-intro { padding: 1.5rem; border: 1px solid rgba(242,140,24,.38); border-radius: .5rem; background: linear-gradient(135deg, rgba(242,140,24,.11), transparent); box-shadow: .35rem .35rem 0 rgba(91,42,6,.18); }
-  .neon-api-intro > span, .section-heading > p, .category-heading p { margin: 0; color: #f28c18; font-size: .7rem; font-weight: 900; letter-spacing: .15em; }
+  .neon-api-intro > span, .section-heading > p, .family-heading > div > p, .category-heading > div > p { margin: 0; color: #f28c18; font-size: .7rem; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
   .neon-api-intro h2 { margin: .5rem 0; }
   .neon-api-intro p { margin-bottom: 0; color: var(--sl-color-gray-2); }
-  .journeys, .category-directory { margin: 3rem 0; }
+  .explorer-controls { z-index: 5; margin: 2rem 0 1.5rem; padding: 1rem; border: 1px solid rgba(242,140,24,.38); border-radius: .7rem; background: rgba(15,13,11,.97); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.25); }
+  .filter-name label, .primary-filters label > span { display: block; margin-bottom: .3rem; color: var(--sl-color-gray-2); font-size: .76rem; font-weight: 800; }
+  .filter-name > div { display: flex; }
+  .filter-name input { width: 100%; min-width: 0; padding: .62rem .75rem; color: var(--sl-color-white); background: var(--sl-color-black); border: 1px solid var(--sl-color-gray-4); border-radius: .4rem 0 0 .4rem; }
+  .filter-name button { padding: .55rem .7rem; color: #ffbd5c; background: var(--sl-color-bg-nav); border: 1px solid var(--sl-color-gray-4); border-left: 0; border-radius: 0 .4rem .4rem 0; }
+  .filter-name small { display: block; margin-top: .3rem; color: var(--sl-color-gray-3); }
+  .primary-filters { display: grid; grid-template-columns: minmax(14rem, 1.2fr) minmax(11rem, .8fr) auto; align-items: end; gap: .75rem; margin-top: .8rem; }
+  .primary-filters select { width: 100%; min-height: 2.35rem; padding: .4rem .55rem; color: var(--sl-color-white); background: var(--sl-color-black); border: 1px solid var(--sl-color-gray-4); border-radius: .4rem; }
+  .advanced-filters summary { min-height: 2.35rem; padding: .45rem .6rem; color: #ffbd5c; border: 1px solid var(--sl-color-gray-5); border-radius: .4rem; cursor: pointer; font-size: .76rem; font-weight: 800; }
+  .advanced-filters > div { display: grid; gap: .65rem; margin-top: .65rem; padding: .75rem; border: 1px solid var(--sl-color-gray-5); border-radius: .4rem; }
+  .check-filter { display: flex; align-items: center; gap: .45rem; color: var(--sl-color-gray-2); font-size: .76rem; }
+  .filter-status { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .75rem; padding-top: .65rem; border-top: 1px solid var(--sl-color-gray-5); }
+  .filter-status p { margin: 0; color: #ffbd5c; font-size: .78rem; font-weight: 850; }
+  .filter-status button, .no-results button { padding: .38rem .55rem; color: #ffad35; background: transparent; border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; font-size: .72rem; font-weight: 800; }
+  .family-directory { margin: 2.5rem 0 3rem; }
   .section-heading h2 { margin: .3rem 0 1rem; }
-  .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: .8rem; }
-  .journey-grid article { min-width: 0; margin-top: 0; padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; background: rgba(242,140,24,.035); }
-  .journey-grid h3 { margin: 0; font-size: 1.05rem; }
-  .journey-grid h3 a { color: #ffad35; text-decoration: none; }
-  .journey-grid p { margin: .6rem 0 .8rem; color: var(--sl-color-gray-3); font-size: .85rem; }
-  .journey-grid ul { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
-  .journey-grid li { min-width: 0; }
-  .journey-grid li a { text-decoration: none; }
-  .journey-grid code { overflow-wrap: anywhere; font-size: .72rem; }
-  .category-links { display: flex; flex-wrap: wrap; gap: .45rem; }
-  .category-links a { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .65rem; color: var(--sl-color-gray-2); text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: 999px; font-size: .76rem; }
-  .category-links a:hover { color: #ffad35; border-color: rgba(242,140,24,.7); }
-  .category-links strong { display: grid; place-items: center; min-width: 1.35rem; height: 1.35rem; color: #ffbd5c; background: rgba(242,140,24,.1); border-radius: 999px; font-size: .65rem; }
-  .explorer-controls { z-index: 5; margin: 2.5rem 0 1rem; padding: .85rem; border: 1px solid rgba(242,140,24,.38); border-radius: .7rem; background: rgba(15,13,11,.97); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.25); }
-  .search-row { display: grid; grid-template-columns: minmax(15rem, 1fr) auto auto; align-items: end; gap: .65rem; }
-  .search-field label { display: block; margin-bottom: .35rem; color: var(--sl-color-gray-2); font-size: .76rem; font-weight: 800; }
-  .search-field > div { display: flex; }
-  .search-field input { width: 100%; min-width: 0; padding: .62rem .75rem; color: var(--sl-color-white); background: var(--sl-color-black); border: 1px solid var(--sl-color-gray-4); border-radius: .4rem 0 0 .4rem; }
-  .search-field button { padding: .55rem .7rem; color: #ffbd5c; background: var(--sl-color-bg-nav); border: 1px solid var(--sl-color-gray-4); border-left: 0; border-radius: 0 .4rem .4rem 0; }
-  .result-count { margin: 0 0 .55rem; color: #ffbd5c; font-size: .8rem; font-weight: 800; white-space: nowrap; }
-  .reset-button { margin-bottom: .3rem; }
-  .filter-row { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem 1rem; margin-top: .7rem; }
-  .filter-row fieldset { display: flex; gap: .3rem; margin: 0; padding: 0; border: 0; }
-  .filter-row legend { float: left; margin-right: .4rem; padding-top: .35rem; color: var(--sl-color-gray-3); font-size: .7rem; font-weight: 800; }
-  .filter-row button, .reset-button, .no-results button { padding: .38rem .55rem; color: var(--sl-color-gray-2); background: transparent; border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; font-size: .7rem; font-weight: 750; }
-  .filter-row button[aria-pressed="true"] { color: #0a0806; background: #f28c18; border-color: #f28c18; }
-  .toggle-filters { display: flex; gap: .3rem; }
-  .toggle-filters button { margin-top: 0; }
-  .reset-button, .no-results button { color: #ffad35; }
+  .family-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+  .family-links a { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; padding: .7rem .8rem; color: var(--sl-color-gray-2); text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .55rem; }
+  .family-links a:hover { color: #ffad35; border-color: rgba(242,140,24,.7); }
+  .family-links strong { display: grid; flex: 0 0 auto; place-items: center; min-width: 1.65rem; height: 1.65rem; color: #ffbd5c; background: rgba(242,140,24,.1); border-radius: 999px; font-size: .68rem; }
   .no-results { margin: 2rem 0; padding: 1.2rem; border: 1px dashed var(--sl-color-gray-4); border-radius: .7rem; text-align: center; }
   .no-results span { display: block; margin: .25rem 0 .8rem; color: var(--sl-color-gray-3); }
-  .api-category { margin: 4rem 0; content-visibility: auto; contain-intrinsic-size: auto 40rem; scroll-margin-top: 5rem; }
+  .api-family { margin: 4rem 0 5rem; scroll-margin-top: 5rem; }
+  .family-heading { display: grid; grid-template-columns: minmax(15rem, .8fr) 1.2fr; align-items: end; gap: 2rem; margin-bottom: 2rem; padding: 1rem 0; border-top: 2px solid #f28c18; border-bottom: 1px solid var(--sl-color-gray-5); }
+  .family-heading h2 { margin: .3rem 0 0; }
+  .family-heading > p { margin: 0; color: var(--sl-color-gray-3); }
+  .api-category { margin: 3rem 0; scroll-margin-top: 5rem; }
   .category-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-  .category-heading h2 { margin: .3rem 0 0; }
-  .category-heading a { color: #ffad35; font-size: .85rem; }
+  .category-heading h3 { margin: .3rem 0 .2rem; font-size: 1.35rem; }
+  .category-heading > div > span { color: var(--sl-color-gray-3); font-size: .88rem; }
+  .category-heading > a { flex: 0 0 auto; color: #ffad35; font-size: .85rem; }
   .api-subgroup + .api-subgroup { margin-top: 2rem; }
   .subgroup-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; padding-bottom: .4rem; border-bottom: 1px solid var(--sl-color-gray-5); }
-  .subgroup-heading h3 { margin: 0; font-size: 1rem; }
+  .subgroup-heading h4 { margin: 0; font-size: 1rem; }
   .subgroup-heading > span { color: var(--sl-color-gray-3); font-size: .68rem; font-weight: 800; }
   .api-table { display: grid; gap: .55rem; }
   .api-table > a { display: grid; grid-template-columns: minmax(14rem, .75fr) 1.5fr auto; align-items: center; gap: 1rem; padding: .85rem 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; }
@@ -319,9 +356,8 @@ const searchableText = (entry: (typeof neonFunctions)[number], categoryTitle: st
   .side-client { color: #ff9191; background: rgba(221,91,91,.12); }
   .side-server { color: #f6a11a; background: rgba(246,161,26,.12); }
   .side-shared { color: #d5cec5; background: rgba(213,206,197,.1); }
-  :is(.category-links a, .journey-grid a, .explorer-controls button, .explorer-controls input, .no-results button, .api-table > a):focus-visible { outline: 2px solid #ffad35; outline-offset: 3px; }
-  @media (min-width: 1000px) and (min-height: 700px) { .explorer-controls { position: sticky; top: 4.5rem; } .api-category { scroll-margin-top: 18rem; } }
-  @media (max-width: 900px) { .journey-grid { grid-template-columns: 1fr; } .explorer-controls { position: static; } }
-  @media (max-width: 820px) { .api-table > a { grid-template-columns: 1fr auto; } .api-table p { grid-column: 1 / -1; grid-row: 2; } }
-  @media (max-width: 620px) { .search-row { grid-template-columns: 1fr auto; } .search-field { grid-column: 1 / -1; } .filter-row { display: grid; } .filter-row fieldset { flex-wrap: wrap; } .filter-row legend { width: 100%; } .category-heading { align-items: start; flex-direction: column; } }
+  :is(.family-links a, .explorer-controls button, .explorer-controls input, .explorer-controls select, .advanced-filters summary, .no-results button, .api-table > a):focus-visible { outline: 2px solid #ffad35; outline-offset: 3px; }
+  @media (max-width: 900px) { .primary-filters { grid-template-columns: 1fr 1fr; } .advanced-filters { grid-column: 1 / -1; } .family-links { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 820px) { .api-table > a { grid-template-columns: 1fr auto; } .api-table p { grid-column: 1 / -1; grid-row: 2; } .family-heading { grid-template-columns: 1fr; gap: .5rem; } }
+  @media (max-width: 620px) { .primary-filters, .family-links { grid-template-columns: 1fr; } .advanced-filters { grid-column: auto; } .category-heading { align-items: start; flex-direction: column; } .filter-status { align-items: start; } }
 </style>
