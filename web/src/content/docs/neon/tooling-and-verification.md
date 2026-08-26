@@ -7,6 +7,30 @@ sidebar:
 
 Deep GTA changes need more than a successful build. Neon combines executable guards, static checks, focused harnesses, matching client/server builds, and in-game passes so the documentation can state exactly what was exercised and what remains open.
 
+## Find Lua errors with DebugScript 4
+
+Run `debugscript 4` to open a full-screen Lua diagnostics view instead of reading mixed errors line by line in chat. It collects client and server messages in one place and shows what failed, which resource emitted it, whether it came from the client or server, and the source file and line when available.
+
+Use the search box and the severity, side, or resource filters to isolate the problem. Repeated messages are grouped with a count, history can be frozen while you inspect it, and a capture can include the previous 30 seconds and continue for up to two minutes. Export the visible result as TXT for a quick report or JSON for tooling.
+
+Press `Ctrl+Shift+I` or use `devtools` to toggle the view; `Escape` closes it. The original `debugscript` levels still work. The packaged frontend, store logic, and affected client/server projects were tested and built; a final post-build visual replay is not recorded as complete.
+
+## Check a resource with the Neon CLI
+
+Developers working from a Neon source checkout can run the repository's `neon` command with Python 3.10 or newer. Daily checks need no third-party Python packages:
+
+```sh
+./neon check --json
+./neon api search "npc pathfinding" --side client --json
+./neon api get setPedNavigateTo --json
+./neon generate project --json
+./neon context verify --json
+```
+
+`check` catches invalid project files, missing resource metadata or dependencies, and API or event calls used on the wrong side. The local API commands cover the complete effective MTA + Neon catalogue for source development. `generate project` writes deterministic project context, a side-aware Lua language-server setup, and the API index so editors and coding agents use the same contracts.
+
+Scenarios and the runtime supervisor are advanced tools. They are read-only by default, bind to loopback, and expire. Runtime start/stop/restart actions require explicit opt-in and apply only to declared resources; a submitted command is not by itself proof that the resource reached the requested state. The CLI never turns a static result into gameplay evidence.
+
 ## Evidence levels
 
 The wiki uses these terms deliberately:
@@ -74,7 +98,7 @@ Representative resources include:
 | Model 2DFX effects | `2dfx-test` for resource-stop cleanup, malformed-input rejection, custom add/get/set/reset, native effect editing and restore, and explicit global-restream stress up to 50 cycles; `2dfx-showcase` for the cinematic |
 | Object fracture | `break-test` for fracture creation from streamed geometry, element identity, fragment and triangle introspection, pause state, deterministic cache reuse, durability profiles, invalid arguments and simultaneous effects; `break-showcase` for the runway sequence and interactive playground; `break-explosion-test` for explosion-driven damage using real `createExplosion` calls, radial falloff, weak-rocket scaling and the zero-health transition |
 | Story primitives | focused go-to, enter, exit, drive-wander, route, drive-by, mission-ped, gang-tag, camera, cutscene, braking, audio, and recording resources |
-| Mission checkpoints | `tagging-up-turf`, `drive-thru`, `nines-and-aks`, `story-entry-exit-runtime`, and `story-entry-exit-test` |
+| Mission checkpoints | `sweet-and-kendl`, `og-loc`, `tagging-up-turf`, `drive-thru`, `nines-and-aks`, `story-entry-exit-runtime`, and `story-entry-exit-test` |
 | Compatibility | `fastweaponstrafe-toggle`, `world-sync-regression-test`, packet capability tests, and mixed-recipient serialization cases |
 | Native world | legacy transport/startup resources plus format-3 child-pack, selected-set, aggregate planner, cache, registrar, and generation-fence harnesses |
 | Multi-client development | isolated `-cl2` client state and the `MTA Neon Duo` launcher described in [`MULTI_CLIENT.md`](https://github.com/Dryxio/mtasa-neon/blob/master/MULTI_CLIENT.md) |
@@ -91,7 +115,7 @@ An API page labels an explicitly assigned resource as **Test resource**. When it
 | Renderer and native pools | Focused stress resources exceeded historical ceilings; the 20,363-light startup catalogue and private 25,000-entry Project2DFX queue were checked in game | Every capacity under one production workload, broad distant-light performance, and the post-fix headlight/shader visual pass |
 | SkyGFX | Affected projects built; selected color/radiosity and later YCbCr paths were checked in game | Full SkyGFX or PS2 parity, every weather/resolution/mod combination, and a broad performance matrix |
 | Neon client and server browser | Startup, navigation, joining, localization, artwork, and cache paths received targeted implementation/runtime work | One exhaustive clean-install, DPI, aspect-ratio, offline, password, cache, and language matrix |
-| Neon Identity | Service tests and development OAuth/ticket/required-auth flows; Lua registrations traced in final code | A checked-in MTA resource asserting all getters and identity-aware ban paths, key-rotation overlap, and a general owner portal |
+| Neon Identity | Service tests and development OAuth/ticket/required-auth flows; two real server restarts verified automatic key creation and stable identity; `neon-identity-connect-test` checks the connection-event values, getter agreement, and pre-join cancellation | One checked-in MTA pass covering every getter and identity-aware ban path, key-rotation overlap, and a general owner portal |
 | Custom vehicle audio | Client build plus manual AE86/Soundize-bank and BUST gameplay runs | A public reproducible config/bank resource and a focused automated or multiplayer playback matrix |
 | Custom model registry | Server/client registry harnesses plus spawn, replacement, free, and parent-fallback runtime checks | Universal behavior for arbitrary resource combinations and legacy fallback expectations |
 | Native world packs | Format-3 multi-IMG transport, exact selected-set audit, four-city generations 2–29, direct switching, bank reuse, reconnect, resource/server restart, non-contiguous selection, ten same-process server switches, a different four-pack to three-pack switch, and the forced restart fallback | Every possible custom pack or one-to-eight-pack combination, optional GTA subsystems, and a true D3D device reset |
@@ -108,7 +132,7 @@ An API page labels an explicitly assigned resource as **Test resource**. When it
 | Model 2DFX effects | A pass/fail harness covering cleanup across resource restarts, rejection of malformed properties and oversized names, custom and native effect editing, count semantics, and repeated global restreams | Every effect type under a production workload, and the streaming cost of large numbers of custom effects |
 | Object fracture | A pass/fail harness covering fracture from live geometry, introspection, cache reuse, durability profiles including the zero-health transition, invalid arguments and multiple simultaneous effects | Fracture cost on high-triangle models, and how many simultaneous effects a production scene can sustain |
 | Story primitives | Focused task, lease, camera, cutscene, audio, text, recording, gang-tag, and route checks; reusable two-client channels cover locomotion, ordered animation, fight/chat, weapon audiovisuals, and selected physical responses | General task completion events, arbitrary syncer reconstruction, universal task presentation, and frozen-owner heartbeat recovery |
-| Mission checkpoints | Tagging Up Turf has a complete two-client success path; Drive-Thru has two-client pursuit and weapon-presentation coverage plus a complete single-client return path; Nines has partial runtime coverage | The remaining per-resource branches and a complete two-client matrix for Drive-Thru and Nines; see [Mission checkpoints](/neon/mission-checkpoints) |
+| Mission checkpoints | Sweet & Kendl and OG Loc each completed two consecutive two-client headless passes; Tagging Up Turf has a complete two-client success path; Drive-Thru has two-client pursuit coverage plus a complete single-client return; Nines has partial runtime coverage | Complete natural visual/audio replay for the two newest missions, remaining branches, and the incomplete Drive-Thru and Nines multiplayer matrix; see [Mission checkpoints](/neon/mission-checkpoints) |
 | Compatibility and packaging | Capability-gated ordinary layouts, exact Neon native-world protocol rejection, installer/package checks, localhost connection, packaged Windows and Linux x64 server startup smoke tests, and Linux ARM64 package inspection | Linux ARM64 startup, runtime validation of `fastweaponstrafe`, and every experimental feature in the public package |
 
 This matrix is intentionally scoped. Exact timings, temporary ticket IDs, build-log excerpts, and one-off debugging observations belong in commits or test records rather than the evergreen guide.

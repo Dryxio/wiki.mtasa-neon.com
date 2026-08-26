@@ -1,27 +1,45 @@
 ---
 title: Mission checkpoints
-description: Explore three GTA mission recreations built from the public Lua APIs documented here.
+description: Explore five GTA mission recreations built from the public Lua APIs documented here.
 sidebar:
   order: 7
 ---
 
-Explore and inspect three GTA mission recreations—`Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's`—built from the public Lua APIs documented here.
+Explore and inspect five GTA mission recreations—`Sweet & Kendl`, `OG Loc`, `Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's`—built from the public Lua APIs documented here.
 
 They are useful for two reasons. Players can explore recognizable mission paths, and resource authors can inspect working combinations of native tasks, file cutscenes, cameras, mission audio and text, gang tags, route handoffs, actor policies, and cleanup.
 
 These are regression checkpoints, not a finished campaign runtime. “Implemented” means the resource contains the path. “Exercised” means that exact path was observed in game. Static checks or successful builds alone are not presented as gameplay validation.
 
-<!-- MEDIA PLACEHOLDER: Mission checkpoint gallery. Suggested files: /neon-media/tagging-up-turf.webp, /neon-media/drive-thru.webp, and /neon-media/nines-and-aks.webp. Link each still to a captioned gameplay video and keep the evidence label consistent with the status table below. -->
+<!-- MEDIA PLACEHOLDER: Mission checkpoint gallery. Add Sweet & Kendl and OG Loc to the existing Tagging Up Turf, Drive-Thru, and Nines and AK's set. Link each still to a captioned gameplay video and keep the evidence label consistent with the status table below. -->
 
 ## Current status
 
 | Resource | What is currently available | Strongest evidence | Still open |
 | --- | --- | --- | --- |
+| `sweet-and-kendl` | Both stock `INTRO1` cutscenes, Smoke's in-world scene, funeral drive-by, co-op BMX ride, Ballas chase, split and return, recorded-car finale, save-house tutorial, failures, reward, and cleanup | Two consecutive two-client headless passes covered the complete graph, both native-task ownership phases, handoff, synchronized results, and teardown; a natural two-client run also reached the Smoke scene through real cutscene start and skip | Complete human review of natural cameras, audio, dialogue timing, combat presentation, and every failure/restart path |
+| `og-loc` | Both stock `SMOKE1` cutscenes, Grove/police/Freddy's-house scenes, recordings 30–40, ten obstacle vehicles, distance-based chase speed, basketball-court fight, Burger Shot return, failures, reward, and cleanup | Two consecutive two-client headless passes covered the complete mission graph, every chase recording, native ownership, combat result, return, reward, and teardown | Complete natural two-client replay after the latest transition fixes; full human review of cameras, audio, chase, combat, death scene, and failures |
 | `tagging-up-turf` | Native `SWEET1A`, the following world intro, gang-tag objectives, Ballas encounter, Grove Street finale, reward, and cleanup | A complete two-client success path covered synchronized cutscene start/skip, locomotion, spray FX, both Ballas tags, chat and melee presentation, return, finale, reward, cleanup, and CJ appearance restoration | Failure, abort, resource-stop restoration, native file-cutscene subtitles, and remaining adapted or uncertain SCM branches |
 | `drive-thru` | Native `SWEET2A` and `SWEET2B`, authoritative seating, Cluckin' Bell gate, Ballas chase, vehicle-to-foot combat, return scenes, reward, and an off-stream failure simulation | Complete single-client route plus a two-client pursuit covering vehicle and on-foot weapon presentation, authoritative damage, both Ballas deaths, and stale-presentation cleanup | Low-health branches, every reminder variant, native subtitles, frozen-owner reassignment, the intermittent restaurant reconstruction timeout, and a complete two-client return path |
 | `nines-and-aks` | Both stock cutscenes, Emmet range, bottle rounds, Tampa objective, return drive, phone and Binco path, entry-exit transaction, pass/fail, and cleanup logic | Static/resource checks plus partial in-game progress through the Emmet range and automatic Binco transition | Fresh end-to-end bottle, Tampa, departure, Binco exit, alternate failure and cleanup matrix; complete multiplayer pass |
 
 The resources use server-owned mission state and are structured for multiple participants. That architecture is not the same as a completed in-game multiplayer validation. Until the open barriers above are exercised together, the wiki describes multiplayer support as experimental.
+
+## Sweet & Kendl
+
+`test-resources/sweet-and-kendl` rebuilds the first San Andreas mission as a co-op checkpoint. Every connected player rides a separate BMX while one client runs the native gang and Ballas AI. The server owns the route, objectives, pass/fail state, rewards, and cleanup.
+
+The resource keeps the recognizable mission flow: `INTRO1A` and `INTRO1B`, Smoke's Peren scene, the funeral drive-by, the first bike ride, Ballas pursuit, split and return, recordings `201`, `205`, and `206`, the save-house tutorial, and the three-respect reward. `/sweetandkendl` starts the presentation path; the headless command exercises the same mission graph with bounded automatic gates.
+
+Two consecutive two-client headless runs ended in `PASS`, including both task-cohort ownership phases and cleanup. A natural two-client run also loaded and skipped the real opening cutscene and entered Smoke's world scene. That is strong multiplayer logic evidence, but it is not a complete human review of every camera, sound, line, fight, failure, restart, or resource-stop transition.
+
+## OG Loc
+
+`test-resources/og-loc` rebuilds the OG Loc mission as a synchronized co-op checkpoint. Every player participates in the ride; one client owns Freddy, his PCJ-600, and the native recorded paths while the server owns mission progress and validates the result.
+
+The path includes `SMOKE1A` and `SMOKE1B`, the Grove, police, and Freddy's-house scenes, chase recordings `30` through `40`, ten recorded obstacle vehicles, GTA's distance-based playback speed, the basketball-court fight, Burger Shot return, failure labels, five-respect reward, and cleanup.
+
+Two consecutive two-client headless runs completed the full graph, every chase recording, combat result, return, reward, and teardown. A natural run reached the stock opening, synchronized skip, Grove sequence, and delayed travel audio before the test's participant-death guard stopped it. Later world-transition and cutscene-barrier fixes still need a fresh natural replay, so the full visual, camera, audio, chase, and combat presentation remains open.
 
 ## Tagging Up Turf
 

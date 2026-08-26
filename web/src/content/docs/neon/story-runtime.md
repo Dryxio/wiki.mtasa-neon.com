@@ -34,18 +34,17 @@ The completed ambient slice remains focused on outdoor world-zero simulation. At
 ## Native ped tasks
 
 These are not animation helpers or a new Lua movement solver. Neon exposes the
-**original GTA:SA task system**, previously unavailable to Lua resources. Give
-an NPC a destination and GTA's pedestrian AI takes over: it follows the native
-path network, navigates around obstacles, moves naturally, slows down, and stops
-at the target. Put an NPC behind the wheel and GTA's driving AI can do the same
-on the road network. Lua chooses the intent while the game performs the movement.
+**original GTA:SA task system**. Lua gives an NPC an intent; GTA performs the
+movement, steering, animations, slowdown, and stopping.
 
 That unlocks several high-level behaviors without simulating controls or writing
 a pathfinder in the resource:
 
-- [`setPedGoTo`](/neon/functions/setPedGoTo) sends an NPC to one coordinate using
-  GTA's pedestrian pathfinding, including native obstacle steering, slowdown,
-  and arrival.
+- [`setPedGoTo`](/neon/functions/setPedGoTo) sends an NPC straight toward a nearby
+  coordinate and handles its natural walk or run, slowdown, and arrival.
+- [`setPedNavigateTo`](/neon/functions/setPedNavigateTo) gives GTA a destination
+  and lets its pedestrian pathfinder choose a route through the native node
+  network and around buildings.
 - [`setPedWander`](/neon/functions/setPedWander) lets an NPC choose successive
   pedestrian path nodes on its own, which is useful for ambient street life.
 - [`setPedDriveWander`](/neon/functions/setPedDriveWander) starts GTA's continuous
@@ -54,12 +53,12 @@ a pathfinder in the resource:
   world destination, as in a single-player mission.
 
 ```lua
--- client.lua: no waypoint loop and no simulated movement controls
+-- client.lua: GTA chooses and follows the pedestrian route
 local npc = createPed(270, 2495.2, -1687.4, 13.5)
 local destination = Vector3(2520.0, -1672.0, 13.8)
 
 if npc then
-    setPedGoTo(npc, destination, "run", 0.75, 3.0)
+    assert(setPedNavigateTo(npc, destination, "run"))
 end
 ```
 
@@ -78,6 +77,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | Neon API | Original GTA C++ task or state | SCM opcode / command |
 | --- | --- | --- |
 | [`setPedGoTo`](/neon/functions/setPedGoTo) | `CTaskComplexGoToPointAndStandStill` or timed variant | `05D3 TASK_GO_STRAIGHT_TO_COORD` |
+| [`setPedNavigateTo`](/neon/functions/setPedNavigateTo) | `CTaskComplexFollowNodeRoute` | Task type 906; no numeric SCM opcode claimed |
 | [`setPedChatWith`](/neon/functions/setPedChatWith) | `CTaskComplexPartnerChat` | `0677 TASK_CHAT_WITH_CHAR` |
 | [`setPedStandStill`](/neon/functions/setPedStandStill) | `CTaskSimpleStandStill` | `05BA TASK_STAND_STILL` |
 | [`setPedGoToOffset`](/neon/functions/setPedGoToOffset) | `CTaskComplexSeekEntityRadiusAngleOffset`, optionally through `CTaskComplexUseSequence` | `06A8 TASK_GOTO_CHAR_OFFSET` |
@@ -89,6 +89,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedExitVehicle`](/neon/functions/setPedExitVehicle) | `CTaskComplexLeaveCar` | `05CD TASK_LEAVE_CAR` |
 | [`setPedDriveWander`](/neon/functions/setPedDriveWander) | `CTaskComplexCarDriveWander` | `05D2 TASK_CAR_DRIVE_WANDER` |
 | [`setPedDriveTo`](/neon/functions/setPedDriveTo) | `CTaskComplexCarDriveToPoint` | `05D1 TASK_CAR_DRIVE_TO_COORD` |
+| [`setPedDriveMission`](/neon/functions/setPedDriveMission) | `CTaskComplexCarDriveMission` | `MISSION_ESCORT_LEFT` / mission ID 29 |
 | [`setPedShootAt`](/neon/functions/setPedShootAt) | `CTaskSimpleGunControl`, which creates its own `CTaskSimpleUseGun` subtask | `0668 TASK_SHOOT_AT_COORD` |
 | [`setPedDriveBy`](/neon/functions/setPedDriveBy) | `CTaskSimpleGangDriveBy` | `0713 TASK_DRIVE_BY` |
 | [`setPedFacialTalk`](/neon/functions/setPedFacialTalk) / [`stopPedFacialTalk`](/neon/functions/stopPedFacialTalk) | Persistent `CTaskComplexFacial` controller | `0967 / 0968` |
@@ -102,6 +103,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) / [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) | Persistent inverse no-critical-hits bit | `0446 SET_CHAR_SUFFERS_CRITICAL_HITS` |
 | [`setPedStayInSamePlace`](/neon/functions/setPedStayInSamePlace) / [`getPedStayInSamePlace`](/neon/functions/getPedStayInSamePlace) | Persistent stay-put flag; no movement task | `0350 SET_CHAR_STAY_IN_SAME_PLACE` |
 | [`setPedNeverTargeted`](/neon/functions/setPedNeverTargeted) / [`isPedNeverTargeted`](/neon/functions/isPedNeverTargeted) | Persistent targeting flag; no `CTask` | `0568 SET_CHAR_NEVER_TARGETTED` |
+| [`setPedPhysicalProofs`](/neon/functions/setPedPhysicalProofs) / [`getPedPhysicalProofs`](/neon/functions/getPedPhysicalProofs) | Five persistent ped damage-proof flags; no `CTask` | `SET_CHAR_PROOFS`; numeric opcode not claimed |
 
 `setPedTaskSequence` also exposes three child-only mappings that do not have separate public functions:
 
@@ -157,7 +159,7 @@ The intended general model keeps one native simulator and gives observers genera
 
 A lease can keep an existing native instance and task alive outside ordinary stream range. It does not decide which client should simulate the element, and it does not reconstruct work after a syncer change.
 
-The optional `native-task-runtime` test resource demonstrates the missing server layer for `drive_to` routes. It owns stable route handles, immutable waypoints, accepted progress, cancellation, and monotonically increasing owner epochs. A new syncer rebuilds the route from the last accepted waypoint instead of starting from zero.
+The optional `native-task-runtime` resource demonstrates the missing server layer. It owns stable `drive_to` routes and can also group several peds, vehicles, and targets into one native-task cohort. One client runs the complete cohort; a handoff revokes the old epoch before another client rebuilds it. The runtime can combine drive routes, `escort_left`, drive-bys, recorded-car playback, ped proof policies, tyre policy, and vehicle autopilot tuning while restoring captured state during cleanup.
 
 Those runtime exports are resource code, not core Neon Lua registrations, so they are not part of the engine API catalog. The current route layer also has no frozen-client heartbeat reassignment and does not reconstruct combat groups.
 
@@ -177,7 +179,7 @@ Progress lives on the MTA object and survives native object recreation. Release 
 
 Story resources often need native policies that are narrower than MTA's general abstractions.
 
-[`setPedMissionActor`](/neon/functions/setPedMissionActor) keeps a script ped in GTA's `PED_MISSION` population class. [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) controls the grouped safety flags used for important actors. Independent APIs expose critical-hit, stay-put, and targeting policies when a resource needs only one behavior.
+[`setPedMissionActor`](/neon/functions/setPedMissionActor) keeps a script ped in GTA's `PED_MISSION` population class. [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) controls the grouped safety flags used for important actors. Independent APIs expose critical-hit, stay-put, targeting, and the five separate physical-damage protections when a resource needs only one behavior. Use [`getPedPhysicalProofs`](/neon/functions/getPedPhysicalProofs) before [`setPedPhysicalProofs`](/neon/functions/setPedPhysicalProofs) when the original values must be restored later.
 
 These ped policies survive local native recreation. Some restore a captured value when cleared; others are explicit last-writer-wins values. Check each function's lifecycle before sharing a ped between resources.
 
@@ -190,7 +192,8 @@ Vehicles expose their native story state through:
 - [`setVehicleDoorLockMode`](/neon/functions/setVehicleDoorLockMode), including all seven GTA lock modes;
 - [`setVehicleTyresCanBurst`](/neon/functions/setVehicleTyresCanBurst);
 - [`setVehiclePhysicalProofs`](/neon/functions/setVehiclePhysicalProofs) for separate bullet, fire, explosion, collision, and melee flags;
-- [`setVehicleLoadCollisionFlag`](/neon/functions/setVehicleLoadCollisionFlag) for GTA's mission-car collision-loading policy.
+- [`setVehicleLoadCollisionFlag`](/neon/functions/setVehicleLoadCollisionFlag) for GTA's mission-car collision-loading policy;
+- [`setVehicleStraightLineDistance`](/neon/functions/setVehicleStraightLineDistance) for the native autopilot byte used by original mission driving.
 
 These are client-local policies reapplied after native vehicle recreation. Physical proofs and collision loading have no automatic resource-stop restoration, so the resource must clear the values or destroy the vehicle during cleanup.
 
@@ -251,9 +254,9 @@ Native subtitles have not yet been proved across the supported file-cutscene pat
 
 ## Mission checkpoints
 
-`Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's` are runnable regression resources that combine these primitives. They are examples and validation checkpoints, not a finished campaign runtime.
+`Sweet & Kendl`, `OG Loc`, `Tagging Up Turf`, `Drive-Thru`, and `Nines and AK's` are runnable regression resources that combine these primitives. They are examples and validation checkpoints, not a finished campaign runtime.
 
-Their implemented paths, strongest evidence, and remaining gaps are tracked on [Mission checkpoints](/neon/mission-checkpoints). `Tagging Up Turf` has a complete two-client success path, while `Drive-Thru` has a complete single-client route plus a two-client pursuit and `Nines and AK's` remains only partially exercised. A complete co-op branch and cleanup matrix is still open across the checkpoint set.
+Their implemented paths, strongest evidence, and remaining gaps are tracked on [Mission checkpoints](/neon/mission-checkpoints). `Sweet & Kendl` and `OG Loc` each completed two consecutive two-client headless runs. Their complete natural visual, camera, and audio presentation still needs manual replay; the older three checkpoints keep the more limited coverage documented on that page.
 
 ## Safe stock entry-exit transitions
 
@@ -307,6 +310,8 @@ The [recording APIs](/neon/functions#recording) expose GTA's direct non-looped o
 
 The calling resource must own the recording and playback slot. The vehicle must be streamed, locally synchronized through the unoccupied-vehicle path, non-frozen, non-blown, and not player-driven.
 
+[`setVehiclePlaybackSpeed`](/neon/functions/setVehiclePlaybackSpeed) changes that active recording from `0` to `16` times normal speed. This lets a mission slow a recorded car down, pause it, or make it catch up without replacing its route.
+
 Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops playback. Neon stops when the network frame is gone rather than guessing where playback should resume.
 
 ## Current limitations
@@ -316,7 +321,7 @@ Resource shutdown, vehicle destruction, stream-out, or sync ownership loss stops
 - Remote native-task presentation covers the checked locomotion, ordered animation, fight/chat, weapon audiovisual, and selected physical-response channels, not every GTA task or transition.
 - Client-local actor and vehicle policies must be replicated and cleared by the resource.
 - File cutscenes, camera state, audio, and text are local presentation systems coordinated by server barriers.
-- `Tagging Up Turf` has a complete two-client success path, but complete multi-participant branch, failure, restart, and cleanup validation remains open across the checkpoint set.
+- Headless multiplayer passes do not replace complete natural visual, camera, audio, failure, restart, and cleanup validation across the five mission checkpoints.
 - Campaign counters, save statistics, shops, progression, and a general SCM interpreter are outside these resources.
 
 See [Mission checkpoints](/neon/mission-checkpoints) for current resource coverage and [Tooling and verification](/neon/tooling-and-verification) for the evidence levels used throughout the wiki.

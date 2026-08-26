@@ -19,7 +19,17 @@ Use it when a server needs a stable platform identity for access policy, communi
 | `optional` | A signed-in player can provide verified identity, but a player without it may still join. |
 | `required` | The player must provide a valid, fresh ticket before the server creates the player element. |
 
-Enabled modes also require the stable server ID, issuer, active key ID, and matching published Ed25519 public key. Keep deployment secrets and private service administration outside resources and public documentation.
+For an ordinary public server, enabling Identity is now one setting:
+
+```xml
+<neon_auth>optional</neon_auth>
+```
+
+On first start, the server creates `neon-identity.keys`, keeps the same `nsrv_...` identity across restarts, proves its exact public endpoint through ASE, and renews its registration automatically. Keep that file private and include it in backups; replacing it creates a different server identity.
+
+Automatic onboarding needs a public ASE endpoint and Internet access. A private or LAN-only server can leave Identity disabled or use the existing complete manual/custom configuration. In `required` mode, connections are refused while automatic registration is unavailable or still pending. In `optional` mode, ordinary connections continue but their verified IDs may be unavailable.
+
+`neon_registry=0` hides the server from the public Neon list; it does not disable Identity registration when `neon_auth` is enabled.
 
 ## Read identity from Lua
 
@@ -30,6 +40,24 @@ Server resources can use:
 - [`getPlayerDiscordID`](/neon/functions/getPlayerDiscordID);
 - [`getBanNeonID`](/neon/functions/getBanNeonID) and [`getBanDiscordID`](/neon/functions/getBanDiscordID);
 - Neon's extended [`addBan`](/neon/functions/addBan) contract for identity keys.
+
+The cancellable `onPlayerConnect` event also appends both IDs after its existing arguments:
+
+```lua
+local allowedNeonIDs = {
+    ["replace-with-an-allowed-neon-id"] = true,
+}
+
+addEventHandler("onPlayerConnect", root, function(
+    nickname, ip, username, serial, versionNumber, versionString, neonID, discordID
+)
+    if neonID == false or not allowedNeonIDs[neonID] then
+        cancelEvent(true, "Sign in with an allowed Neon account before joining.")
+    end
+end)
+```
+
+`neonID` and `discordID` are verified strings when available, otherwise `false`. In `required` mode both are verified before this event runs, so a resource can apply its own account policy before `onPlayerJoin`.
 
 Discord IDs are returned as strings because a Discord snowflake can exceed the exact integer precision available to Lua 5.1.
 
@@ -49,4 +77,6 @@ Identity-only bans are accepted, but an invalid or already-overlapping identifie
 
 Registry verification confirms the registered service flow, not the integrity of every server binary or resource. Key-rotation overlap and a general owner administration portal are not presented as completed workflows.
 
-Commit [`e71b499eb`](https://github.com/Dryxio/mtasa-neon/commit/e71b499eb) introduced the player ticket flow and three player getters. Commit [`637f84214`](https://github.com/Dryxio/mtasa-neon/commit/637f84214) finalized identity-aware bans, the two ban getters, and the extended `addBan` contract. Service tests and development runtime flows exist, but there is no checked-in MTA test resource that directly asserts these five getters and `addBan` end to end.
+Commit [`e71b499eb`](https://github.com/Dryxio/mtasa-neon/commit/e71b499eb) introduced the player ticket flow and three player getters. Commit [`637f84214`](https://github.com/Dryxio/mtasa-neon/commit/637f84214) finalized identity-aware bans. Commit [`27101451c`](https://github.com/Dryxio/mtasa-neon/commit/27101451c) added automatic server onboarding, and [`1f1dc78e9`](https://github.com/Dryxio/mtasa-neon/commit/1f1dc78e9) added the two `onPlayerConnect` values.
+
+The onboarding change passed 24 Identity service tests, PostgreSQL migration and concurrent-claim checks, client/server builds, and two real server restarts that confirmed automatic key creation and stable identity persistence. [`neon-identity-connect-test`](https://github.com/Dryxio/mtasa-neon/tree/master/test-resources/neon-identity-connect-test) directly checks the connection-event values against the player getters and verifies that cancellation prevents `onPlayerJoin`. Identity-aware ban paths and key-rotation overlap still do not have one complete checked-in MTA runtime pass.

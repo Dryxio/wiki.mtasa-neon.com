@@ -30,6 +30,8 @@ Live player count, ping, game mode, map, and password state still come from ASE.
 
 The shell covers the offline menu, pause menu, GTA loading artwork, connection prompts, language controls, and the server list. Its UI text follows the selected client language. If the web shell cannot be used, Neon retains the existing CEGUI path rather than leaving the player without navigation.
 
+System dialogs now always show readable `Close`, `Cancel`, and `Confirm` actions instead of leaving an empty-looking prompt when a custom label is missing. Fully transparent peds, including the local player, also stop drawing their blob and dynamic shadows, so an invisible character no longer leaves a visible silhouette on the ground.
+
 The implemented flow has received build and targeted runtime work across startup, navigation, joining, localization, artwork, and cache behavior. The commits do not record one exhaustive clean-install matrix covering every DPI scale, aspect ratio, offline state, cache state, password outcome, and language combination.
 
 ## `mtaneon://` links
@@ -38,6 +40,6 @@ Neon owns the `mtaneon://` protocol registered by its Windows installer. Links a
 
 ## Where it came from
 
-Commit [`1ee69f008`](https://github.com/Dryxio/mtasa-neon/commit/1ee69f008) introduced the GTA-style shell, server browser, and public registry flow. Later commits refined startup and navigation, added localization, artwork and caching, and registered `mtaneon://` links. Those fixes support the workflow; they are not separate headline features.
+Commit [`1ee69f008`](https://github.com/Dryxio/mtasa-neon/commit/1ee69f008) introduced the GTA-style shell, server browser, and public registry flow. Later commits refined startup and navigation, added localization, artwork and caching, and registered `mtaneon://` links. The focused dialog and transparent-shadow corrections are tracked by [`92d8dbc8e`](https://github.com/Dryxio/mtasa-neon/commit/92d8dbc8e), [`72f457d19`](https://github.com/Dryxio/mtasa-neon/commit/72f457d19), and [`ba485ebdb`](https://github.com/Dryxio/mtasa-neon/commit/ba485ebdb). Those fixes support the workflow; they are not separate headline features.
 
 For the optional account layer behind verified players and stronger bans, see [Neon Identity](/neon/identity). For installation and update behavior, see [Download and install](/neon/download).

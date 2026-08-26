@@ -27,13 +27,13 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Give the game a PS2-style image or DE radar | [SkyGFX, radar, and client visuals](/neon/skygfx) | Selected SkyGFX effects, a Definitive Edition radar profile, layout controls, and resource-owned temporary visual overrides. |
 | Read or synchronize GTA radio playback | [Native GTA radio playback](/neon/native-radio) | Capture and restore the real GTA radio station/track/position/queue state; multiplayer synchronization remains resource-owned. |
 | Discover and join Neon servers | [Neon client experience](/neon/client-experience) | A GTA-style menu combines the public registry with live server data, filters, favorites, artwork, localization, and connection states. |
-| Add verified community identity | [Neon Identity](/neon/identity) | Servers can choose disabled, optional, or required Neon/Discord identity and use verified IDs in resources and bans. |
+| Add verified community identity | [Neon Identity](/neon/identity) | One server setting enables optional or required Neon/Discord identity; verified IDs are available before join and in resource bans. |
 | Give custom vehicles their own sound | [Custom vehicle audio](/neon/vehicle-audio) | Copy an existing Assetto Corsa or Soundize `.bank` into a resource, assign it to a vehicle, and Neon makes it follow RPM, throttle and gears automatically. It can also add automatic or Lua-triggered backfire sounds and exhaust flames. |
 | Use more of the world | [Extended world](/neon/extended-world) | A 20 km XY domain with matching sectors, water, radar, map, pickup, and network work. |
 | Load custom maps through GTA | [Native world packs](/neon/native-world) | Give the server a supported static-world pack and GTA loads and streams it as native world content. A set can contain up to eight packs, and a clean runtime teardown can admit a different server or set without restarting GTA. |
 | Give resources stable custom model IDs | [Custom models](/neon/models-and-streaming) | Server identities map to local GTA slots with native-parent fallback and cleanup. |
-| Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native tasks, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
-| See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Tagging Up Turf and Drive-Thru have substantial in-game coverage; Nines and AK's remains partially exercised. |
+| Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native pedestrian pathfinding, driving and combat AI, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
+| See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Five GTA mission recreations, including complete two-client headless passes for Sweet & Kendl and OG Loc, with exact evidence and remaining visual checks. |
 | Call a specific function | [Neon Lua API](/neon/functions) | Searchable reference with side, lifecycle, source, commit, native mapping, and test evidence. |
 
 ## World and streaming
@@ -125,6 +125,8 @@ The tables describe available code paths, not one shared stability level. Follow
 
 ## Tools and tests
 
+- `debugscript 4` opens a searchable client/server Lua error inspector with filters, grouped duplicates, capture, and TXT/JSON export.
+- The local `neon` CLI checks resource metadata and API sides, searches the complete MTA + Neon source catalogue, and generates deterministic Lua/editor context.
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
 - A native SA-MP map parser/loader fixture, object-streaming quota harness, native-radio playback resource, and a world-object scripting showcase.
