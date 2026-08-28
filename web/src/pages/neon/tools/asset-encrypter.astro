@@ -66,11 +66,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
       </div>
     </section>
 
-    <aside class="limits">
-      <h2>What this protects</h2>
-      <p>The downloaded resource cache contains authenticated ciphertext instead of reusable model data. A determined user can still inspect plaintext or key material while the game is actively using an asset. This is the same practical client-side limit faced by systems such as pcrypt.</p>
-      <a href="/neon/encrypted-assets">Read the deployment and Lua guide →</a>
-    </aside>
   </div>
 </StarlightPage>
 
@@ -371,12 +366,10 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .tool-hero > p:not(.eyebrow) { position: relative; max-width: 48rem; color: var(--sl-color-gray-2); font-size: 1.05rem; }
   .privacy-proof { position: relative; display: inline-flex; gap: .6rem; align-items: center; margin-top: 1rem; padding: .7rem .85rem; border: 1px solid rgba(74,222,128,.25); border-radius: .2rem; color: #bbf7d0; background: rgba(22,101,52,.14); }
   .privacy-proof span { color: #4ade80; }
-  .encrypter { display: grid; grid-template-columns: minmax(0,1fr) minmax(18rem,.42fr); gap: 1rem; margin-top: 1rem; }
-  .setup-card, .files-card, .build-card, .limits { padding: clamp(1.2rem,3vw,2rem); border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; background: linear-gradient(145deg,rgba(242,140,24,.045),transparent),var(--sl-color-bg-nav); }
-  .setup-card, .files-card, .build-card { grid-column: 1; }
-  .limits { grid-column: 2; grid-row: 1 / span 3; align-self: start; position: sticky; top: 6rem; border-top-color: rgba(242,140,24,.7); }
-  .setup-card h2, .files-card h2, .build-card h2, .limits h2 { margin: .6rem 0 .4rem; }
-  .setup-card > p, .build-card > p, .limits p { color: var(--sl-color-gray-3); }
+  .encrypter { display: grid; gap: 1rem; margin-top: 1rem; }
+  .setup-card, .files-card, .build-card { padding: clamp(1.2rem,3vw,2rem); border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; background: linear-gradient(145deg,rgba(242,140,24,.045),transparent),var(--sl-color-bg-nav); }
+  .setup-card h2, .files-card h2, .build-card h2 { margin: .6rem 0 .4rem; }
+  .setup-card > p, .build-card > p { color: var(--sl-color-gray-3); }
   .step-label { display: flex; align-items: center; gap: .65rem; }
   .step-label span { display: grid; place-items: center; width: 2rem; height: 2rem; color: #0a0806; border-radius: 50%; background: #f28c18; letter-spacing: 0; }
   .field-grid { max-width: 38rem; margin-top: 1.4rem; }
@@ -416,7 +409,5 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .result > span { color: #86efac; font-size: .72rem; font-weight: 850; text-transform: uppercase; letter-spacing: .12em; }
   .result > strong { overflow-wrap: anywhere; margin-top: .25rem; font-family: monospace; }
   .result p { margin-bottom: 0; color: var(--sl-color-gray-2); }
-  .limits a { color: #ffad35; font-weight: 700; }
-  @media (max-width: 850px) { .encrypter { grid-template-columns: 1fr; } .setup-card,.files-card,.build-card,.limits { grid-column: 1; } .limits { grid-row: auto; position: static; } }
   @media (max-width: 600px) { .file-row { grid-template-columns: minmax(0,1fr) 2rem; } .file-size { display: none; } .tool-hero { padding: 1.4rem; } }
 </style>
