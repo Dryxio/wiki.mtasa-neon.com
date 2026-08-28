@@ -25,7 +25,7 @@ The ZIP contains:
 | `neon-assets.key` | Server-only 256-bit content key |
 | `meta.xml.snippet` | Package descriptor and client-file declarations |
 | `neon-assets-client.lua` | Grouped TXD, DFF, and COL helper without hard-coded model IDs |
-| `INSTALL.txt` | Package ID and deployment checklist |
+| `INSTALL.txt` | Short setup checklist with a custom-model example |
 
 The resource name and every `.neonasset` path are authenticated. Renaming the resource, moving a container, or changing its bytes makes loading fail instead of silently applying different data.
 
