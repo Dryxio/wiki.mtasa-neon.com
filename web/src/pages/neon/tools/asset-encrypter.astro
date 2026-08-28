@@ -11,7 +11,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   <header class="tool-hero">
     <p class="eyebrow">LOCAL · AES-256-GCM · NO UPLOAD</p>
     <h2>Protect your resource assets before players download them.</h2>
-    <p>Drop DFF, TXD, and COL files below. Your browser encrypts them on this device and creates one ZIP with the protected files, server-only key, and integration snippets.</p>
+    <p>Drop DFF, TXD, and COL files below. Your browser encrypts them on this device and creates one ZIP with the protected files, server-only key, and integration snippets. Model IDs stay in your Lua code.</p>
     <div class="privacy-proof"><span aria-hidden="true">●</span><strong>Your files never leave this browser.</strong> The page has no upload endpoint.</div>
   </header>
 
@@ -19,7 +19,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
   <div class="encrypter" data-encrypter>
     <section class="setup-card" aria-labelledby="package-settings">
-      <div class="step-label"><span>01</span> Package settings</div>
+      <div class="step-label"><span>01</span> Resource binding</div>
       <h2 id="package-settings">Name the target resource</h2>
       <p>The name must exactly match the resource folder deployed on your Neon server. It becomes part of the authentication data.</p>
       <div class="field-grid">
@@ -27,11 +27,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
           <span>Resource name</span>
           <input type="text" value="my-resource" maxlength="96" pattern="[A-Za-z0-9_.-]+" spellcheck="false" autocomplete="off" data-resource-name />
           <small>Example: <code>vehicle-pack</code></small>
-        </label>
-        <label>
-          <span>Default model ID</span>
-          <input type="number" value="411" min="0" max="65535" step="1" inputmode="numeric" data-default-model />
-          <small>Applied to newly added assets; editable per file.</small>
         </label>
       </div>
     </section>
@@ -57,7 +52,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
     <section class="build-card" aria-labelledby="download-package">
       <div class="step-label"><span>03</span> Encrypt and download</div>
       <h2 id="download-package">Create the server package</h2>
-      <p>Each build creates a fresh 256-bit key, package ID, and random nonce for every file.</p>
+      <p>Each build creates a fresh 256-bit key, package ID, and random nonce for every file. Choose target models later when calling the generated Lua helper.</p>
       <button type="button" class="build-button" data-build disabled>Encrypt files and download ZIP</button>
       <div class="progress" data-progress hidden>
         <div><span data-progress-bar></span></div>
@@ -87,7 +82,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
   if (root instanceof HTMLElement) {
     const resourceInput = root.querySelector('[data-resource-name]');
-    const defaultModelInput = root.querySelector('[data-default-model]');
     const fileInput = root.querySelector('[data-file-input]');
     const dropZone = root.querySelector('[data-drop-zone]');
     const chooseButton = root.querySelector('[data-choose-files]');
@@ -167,20 +161,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
         size.className = 'file-size';
         size.textContent = humanSize(asset.file.size);
 
-        const modelLabel = document.createElement('label');
-        modelLabel.className = 'model-field';
-        const modelCaption = document.createElement('span');
-        modelCaption.textContent = 'Model ID';
-        const modelInput = document.createElement('input');
-        modelInput.type = 'number';
-        modelInput.min = '0';
-        modelInput.max = '65535';
-        modelInput.step = '1';
-        modelInput.value = String(asset.modelId);
-        modelInput.setAttribute('aria-label', `Model ID for ${asset.file.name}`);
-        modelInput.addEventListener('input', () => { asset.modelId = modelInput.value; clearStatus(); });
-        modelLabel.append(modelCaption, modelInput);
-
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'remove';
@@ -192,7 +172,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
           renderFiles();
         });
 
-        row.append(identity, size, modelLabel, remove);
+        row.append(identity, size, remove);
         fileRows.append(row);
       });
       updateBuildState();
@@ -200,7 +180,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 
     function addFiles(files) {
       clearStatus();
-      const defaultModel = defaultModelInput instanceof HTMLInputElement ? defaultModelInput.value : '411';
       const rejected = [];
       for (const file of files) {
         const extension = file.name.split('.').pop()?.toLowerCase();
@@ -214,11 +193,12 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
         }
         const outputName = safeOutputName(file.name);
         const path = `models/${outputName}.neonasset`;
-        if (!outputName || state.assets.some((asset) => asset.path.toLowerCase() === path.toLowerCase())) {
+        const group = safeOutputName(file.name.replace(/\.[^.]+$/u, ''));
+        if (!outputName || !group || state.assets.some((asset) => asset.path.toLowerCase() === path.toLowerCase())) {
           rejected.push(`${file.name}: duplicate or unusable output name`);
           continue;
         }
-        state.assets.push({ file, type: extension, path, modelId: defaultModel });
+        state.assets.push({ file, type: extension, path, group });
       }
       renderFiles();
       if (rejected.length) showMessage(rejected.join(' · '), true);
@@ -264,14 +244,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
         resourceInput?.focus();
         return;
       }
-      for (const asset of state.assets) {
-        const modelId = Number(asset.modelId);
-        if (!Number.isInteger(modelId) || modelId < 0 || modelId > 65535) {
-          showMessage(`Enter a valid model ID for ${asset.file.name}.`, true);
-          return;
-        }
-      }
-
       state.building = true;
       updateBuildState();
       if (progress instanceof HTMLElement) progress.hidden = false;
@@ -298,7 +270,13 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
         }
 
         const packageHex = bytesToHex(packageId);
-        const ordered = [...state.assets].sort((left, right) => typeOrder[left.type] - typeOrder[right.type]);
+        const ordered = [...state.assets].sort((left, right) => left.group.localeCompare(right.group) || typeOrder[left.type] - typeOrder[right.type]);
+        const groups = new Map();
+        for (const asset of ordered) {
+          const paths = groups.get(asset.group) ?? [];
+          paths.push(asset.path);
+          groups.set(asset.group, paths);
+        }
         const metaSnippet = [
           `<!-- Add these entries inside your existing <meta> element. -->`,
           `<neon_assets package="${packageHex}" keyfile="neon-assets.key" />`,
@@ -307,15 +285,27 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
           '',
         ].join('\n');
         const clientSnippet = [
-          '-- Generated by the Neon Asset Encrypter. TXD is applied before DFF and COL.',
-          'local encryptedAssets = {',
-          ...ordered.map((asset) => `    { path = ${luaString(asset.path)}, model = ${Number(asset.modelId)} },`),
+          '-- Generated by the Neon Asset Encrypter. Model IDs remain runtime choices.',
+          'local encryptedAssetGroups = {',
+          ...Array.from(groups, ([group, paths]) => [
+            `    [${luaString(group)}] = {`,
+            ...paths.map((path) => `        ${luaString(path)},`),
+            '    },',
+          ].join('\n')),
           '}',
           '',
-          'for _, asset in ipairs(encryptedAssets) do',
-          '    assert(engineReplaceEncryptedModel(asset.path, asset.model),',
-          '        ("Failed to load encrypted asset %s"):format(asset.path))',
+          'function neonReplaceEncryptedAssetGroup(groupName, model)',
+          '    local paths = assert(encryptedAssetGroups[groupName], "Unknown encrypted asset group")',
+          '    local elements = {}',
+          '    for index, path in ipairs(paths) do',
+          '        elements[index] = assert(engineReplaceEncryptedModel(path, model),',
+          '            ("Failed to load encrypted asset %s"):format(path))',
+          '    end',
+          '    return elements',
           'end',
+          '',
+          '-- Call this after choosing a native model or obtaining a custom model ID:',
+          `-- neonReplaceEncryptedAssetGroup(${luaString(ordered[0].group)}, modelId)`,
           '',
         ].join('\n');
         const install = [
@@ -328,7 +318,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
           '1. Extract this ZIP into the root of that exact resource.',
           '2. Merge meta.xml.snippet into the existing <meta> element.',
           '3. Keep neon-assets.key on the server. Never declare it as a <file> or <script>.',
-          '4. Merge or use neon-assets-client.lua after adjusting model IDs if necessary.',
+          '4. Load neon-assets-client.lua, then call its helper with your runtime model ID.',
           '5. Restart the resource and check the client debug log for any rejected asset.',
           '',
           'Renaming the resource or a .neonasset path after encryption invalidates authentication.',
@@ -385,7 +375,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .setup-card > p, .build-card > p, .limits p { color: var(--sl-color-gray-3); }
   .step-label { display: flex; align-items: center; gap: .65rem; }
   .step-label span { display: grid; place-items: center; width: 2rem; height: 2rem; color: #0a0806; border-radius: 50%; background: #f28c18; letter-spacing: 0; }
-  .field-grid { display: grid; grid-template-columns: 1fr 13rem; gap: 1rem; margin-top: 1.4rem; }
+  .field-grid { max-width: 38rem; margin-top: 1.4rem; }
   label > span { display: block; margin-bottom: .4rem; color: var(--sl-color-gray-2); font-size: .8rem; font-weight: 700; }
   input { width: 100%; padding: .75rem .8rem; color: var(--sl-color-white); border: 1px solid var(--sl-color-gray-5); border-radius: .2rem; outline: none; background: #090807; }
   input:focus { border-color: #f28c18; box-shadow: 0 0 0 3px rgba(242,140,24,.12); }
@@ -399,7 +389,7 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .drop-zone small { margin-top: .9rem; color: var(--sl-color-gray-3); }
   .list-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 1.3rem; padding-bottom: .65rem; border-bottom: 1px solid var(--sl-color-gray-5); font-weight: 700; }
   button.quiet { color: #ffad35; border: 0; background: none; cursor: pointer; }
-  .file-row { display: grid; grid-template-columns: minmax(0,1fr) 5rem 6rem 2rem; gap: .75rem; align-items: center; padding: .8rem 0; border-bottom: 1px solid rgba(101,91,80,.35); }
+  .file-row { display: grid; grid-template-columns: minmax(0,1fr) 5rem 2rem; gap: .75rem; align-items: center; padding: .8rem 0; border-bottom: 1px solid rgba(101,91,80,.35); }
   .file-identity { display: flex; gap: .75rem; min-width: 0; align-items: center; }
   .file-identity > div { min-width: 0; }
   .file-identity strong, .file-identity small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -408,8 +398,6 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .type-txd { color: #60a5fa; border-color: rgba(96,165,250,.35); background: rgba(37,99,235,.12); }
   .type-dff { color: #fbbf24; border-color: rgba(251,191,36,.35); background: rgba(180,83,9,.12); }
   .type-col { color: #4ade80; border-color: rgba(74,222,128,.35); background: rgba(22,101,52,.12); }
-  .model-field span { margin: 0 0 .2rem; font-size: .68rem; }
-  .model-field input { padding: .45rem; }
   .remove { width: 2rem; height: 2rem; color: var(--sl-color-gray-2); border: 1px solid var(--sl-color-gray-5); border-radius: .2rem; background: transparent; cursor: pointer; font-size: 1.2rem; }
   .remove:hover { color: #fecaca; border-color: #ef4444; }
   .build-button { width: 100%; padding: 1rem; font-size: 1rem; }
@@ -426,5 +414,5 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
   .result p { margin-bottom: 0; color: var(--sl-color-gray-2); }
   .limits a { color: #ffad35; font-weight: 700; }
   @media (max-width: 850px) { .encrypter { grid-template-columns: 1fr; } .setup-card,.files-card,.build-card,.limits { grid-column: 1; } .limits { grid-row: auto; position: static; } }
-  @media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } .file-row { grid-template-columns: minmax(0,1fr) 5.5rem 2rem; } .file-size { display: none; } .tool-hero { padding: 1.4rem; } }
+  @media (max-width: 600px) { .file-row { grid-template-columns: minmax(0,1fr) 2rem; } .file-size { display: none; } .tool-hero { padding: 1.4rem; } }
 </style>

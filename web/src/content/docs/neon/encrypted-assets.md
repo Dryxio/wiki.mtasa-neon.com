@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Drop DFF, TXD, and COL files into the [Neon Asset Encrypter](/neon/tools/asset-encrypter), enter the exact resource name and model IDs, then download the generated ZIP. Neon clients receive authenticated ciphertext in their resource cache instead of reusable model files.
+Drop DFF, TXD, and COL files into the [Neon Asset Encrypter](/neon/tools/asset-encrypter), enter the exact resource name, then download the generated ZIP. Neon clients receive authenticated ciphertext in their resource cache instead of reusable model files. Choosing which native or custom model to replace remains a runtime Lua decision.
 
 The encrypter runs entirely in the browser. Files and keys are not uploaded to the wiki or Vercel.
 
@@ -13,7 +13,7 @@ The encrypter runs entirely in the browser. Files and keys are not uploaded to t
 
 1. Open the [Asset Encrypter](/neon/tools/asset-encrypter).
 2. Enter the resource folder name exactly as it will appear on the server.
-3. Drop one or more `.dff`, `.txd`, or `.col` files and check each target model ID.
+3. Drop one or more `.dff`, `.txd`, or `.col` files. Files with the same base name become one TXD/DFF/COL group.
 4. Select **Encrypt files and download ZIP**.
 5. Extract the ZIP into the resource and merge the generated snippets.
 
@@ -24,7 +24,7 @@ The ZIP contains:
 | `models/*.neonasset` | Client-downloadable authenticated ciphertext |
 | `neon-assets.key` | Server-only 256-bit content key |
 | `meta.xml.snippet` | Package descriptor and client-file declarations |
-| `neon-assets-client.lua` | Ordered TXD, DFF, and COL replacement calls |
+| `neon-assets-client.lua` | Grouped TXD, DFF, and COL helper without hard-coded model IDs |
 | `INSTALL.txt` | Package ID and deployment checklist |
 
 The resource name and every `.neonasset` path are authenticated. Renaming the resource, moving a container, or changing its bytes makes loading fail instead of silently applying different data.
@@ -47,17 +47,17 @@ Use one generated key and package ID for all protected files in the same package
 
 ## Load and replace assets
 
-Call `engineReplaceEncryptedModel` from the resource that owns the declared file:
+The generated script defines `neonReplaceEncryptedAssetGroup`. Pass it a native model ID, model name, or custom model ID obtained through your model-allocation flow:
 
 ```lua
-local modelId = 411
+-- Native replacement
+neonReplaceEncryptedAssetGroup("taxi", 411)
 
-local txd = assert(engineReplaceEncryptedModel("models/taxi.txd.neonasset", modelId))
-local dff = assert(engineReplaceEncryptedModel("models/taxi.dff.neonasset", modelId))
-local col = assert(engineReplaceEncryptedModel("models/taxi.col.neonasset", modelId))
+-- The same helper also accepts a custom model ID made available to this client.
+neonReplaceEncryptedAssetGroup("custom-taxi", customModelId)
 ```
 
-Apply TXD before DFF and COL for a complete model triplet. The function authenticates, decrypts, validates, and applies each asset as one native operation. Neither the key nor plaintext is returned to Lua. The returned TXD, DFF, or COL element belongs to the calling resource and is cleaned up when that resource stops.
+The helper applies TXD before DFF and COL for each matching filename group. Internally, `engineReplaceEncryptedModel` authenticates, decrypts, validates, and applies each asset as one native operation. Neither the key nor plaintext is returned to Lua. The returned TXD, DFF, or COL elements belong to the calling resource and are cleaned up when that resource stops.
 
 The optional third argument enables DFF alpha transparency. The fourth controls TXD filtering:
 
