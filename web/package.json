@@ -8,6 +8,7 @@
     "start": "astro dev",
     "prebuild": "node scripts/preprocess.js",
     "build": "astro build",
+    "test:asset-encrypter": "node scripts/test-neon-asset-encrypter.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

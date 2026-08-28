@@ -17,6 +17,12 @@ export type { NeonArgument, NeonNativeTask, NeonOptionKey, NeonSide, NeonTaskGro
 
 export const neonCategories = {
   ...baseNeonCategories,
+  assets: {
+    title: 'Encrypted resource assets',
+    guide: '/neon/encrypted-assets',
+    test: 'test-resources/neon-encrypted-assets',
+    lifecycle: 'The server keeps the package key outside downloadable resource files and sends it as resource-scoped capability state. The client revokes and wipes that key when the resource stops; the TXD, DFF, and COL replacement elements belong to the calling resource and are cleaned up with it.',
+  },
   population: {
     title: 'Synchronized NPCs and road traffic',
     guide: '/neon/synchronized-ai',
@@ -1579,6 +1585,27 @@ const updates: NeonFunction[] = [
     ],
     source: 'Client/mods/deathmatch/logic/luadefs/CLuaRuntimeCollisionDefs.cpp', commit: 'aba2101e9', test: 'test-resources/runtime-collision-wall-demo',
     example: 'local col = engineLoadCOL({\n    boxes = { { position = { 0, 0, 0 }, size = { 4, 0.4, 2.5 }, material = 1 } },\n})\nengineReplaceCOL(col, engineRequestModel("object", 980))',
+  },
+  {
+    name: 'engineReplaceEncryptedModel', category: 'assets', side: 'client',
+    signature: 'element|false engineReplaceEncryptedModel(string path, string|int model [, bool alphaTransparency = false, bool filteringEnabled = true])',
+    summary: 'Authenticates, decrypts, validates, and applies a protected DFF, TXD, or COL file without exposing its key or plaintext to client Lua.',
+    arguments: [
+      arg('path', 'string', 'Canonical .neonasset path declared by this resource with neon_asset="true".'),
+      arg('model', 'string|int', 'GTA model name or valid model ID to replace.'),
+      arg('alphaTransparency', 'bool', 'Enable alpha transparency when applying a DFF.', true, 'false'),
+      arg('filteringEnabled', 'bool', 'Enable texture filtering when applying a TXD.', true, 'true'),
+    ],
+    returns: 'The resource-owned DFF, TXD, or COL element after a successful authenticated replacement; false when authentication, loading, validation, or replacement fails.',
+    notes: [
+      'The file must belong to the calling resource, be auto-downloaded, end in .neonasset, and match that resource name and exact path used during encryption.',
+      'TXD should be applied before the matching DFF and COL. Clothing-model targets are intentionally rejected in format version 1.',
+      'The package key is transported as native resource capability state and is never passed to Lua. Resource stop revokes the key and destroys the owned replacement elements.',
+      'This protects cached files from trivial reuse; it cannot prevent a determined user from inspecting data while the running client is rendering it.',
+    ],
+    source: 'Client/mods/deathmatch/logic/luadefs/CLuaEngineDefs.cpp', commit: '6b7965afb', test: 'test-resources/neon-encrypted-assets',
+    example: 'local model = 411\nlocal txd = assert(engineReplaceEncryptedModel("models/taxi.txd.neonasset", model))\nlocal dff = assert(engineReplaceEncryptedModel("models/taxi.dff.neonasset", model))\nlocal col = assert(engineReplaceEncryptedModel("models/taxi.col.neonasset", model))',
+    featuredExample: true,
   },
   {
     name: 'engineSetCOLData', category: 'collision', side: 'client',

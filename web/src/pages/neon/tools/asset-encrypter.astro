@@ -1,0 +1,430 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+---
+
+<StarlightPage frontmatter={{
+  template: 'doc',
+  title: 'Neon Asset Encrypter',
+  description: 'Encrypt DFF, TXD, and COL files locally in your browser and download a resource-ready Neon package.',
+  tableOfContents: false,
+}}>
+  <header class="tool-hero">
+    <p class="eyebrow">LOCAL · AES-256-GCM · NO UPLOAD</p>
+    <h2>Protect your resource assets before players download them.</h2>
+    <p>Drop DFF, TXD, and COL files below. Your browser encrypts them on this device and creates one ZIP with the protected files, server-only key, and integration snippets.</p>
+    <div class="privacy-proof"><span aria-hidden="true">●</span><strong>Your files never leave this browser.</strong> The page has no upload endpoint.</div>
+  </header>
+
+  <noscript><div class="message error">JavaScript is required because encryption happens locally in your browser.</div></noscript>
+
+  <div class="encrypter" data-encrypter>
+    <section class="setup-card" aria-labelledby="package-settings">
+      <div class="step-label"><span>01</span> Package settings</div>
+      <h2 id="package-settings">Name the target resource</h2>
+      <p>The name must exactly match the resource folder deployed on your Neon server. It becomes part of the authentication data.</p>
+      <div class="field-grid">
+        <label>
+          <span>Resource name</span>
+          <input type="text" value="my-resource" maxlength="96" pattern="[A-Za-z0-9_.-]+" spellcheck="false" autocomplete="off" data-resource-name />
+          <small>Example: <code>vehicle-pack</code></small>
+        </label>
+        <label>
+          <span>Default model ID</span>
+          <input type="number" value="411" min="0" max="65535" step="1" inputmode="numeric" data-default-model />
+          <small>Applied to newly added assets; editable per file.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="files-card" aria-labelledby="asset-files">
+      <div class="step-label"><span>02</span> Source files</div>
+      <h2 id="asset-files">Drop your models</h2>
+      <div class="drop-zone" tabindex="0" role="button" aria-describedby="drop-help" data-drop-zone>
+        <input type="file" accept=".dff,.txd,.col" multiple data-file-input />
+        <div class="drop-icon" aria-hidden="true">↓</div>
+        <strong>Drop DFF, TXD, or COL files here</strong>
+        <span>or choose files from your computer</span>
+        <button type="button" data-choose-files>Choose files</button>
+        <small id="drop-help">Maximum 64 MiB per file. DFF, TXD, and COL only.</small>
+      </div>
+
+      <div class="file-list" data-file-list hidden>
+        <div class="list-heading"><span data-file-count>0 files</span><button type="button" class="quiet" data-clear-files>Clear all</button></div>
+        <div data-file-rows></div>
+      </div>
+    </section>
+
+    <section class="build-card" aria-labelledby="download-package">
+      <div class="step-label"><span>03</span> Encrypt and download</div>
+      <h2 id="download-package">Create the server package</h2>
+      <p>Each build creates a fresh 256-bit key, package ID, and random nonce for every file.</p>
+      <button type="button" class="build-button" data-build disabled>Encrypt files and download ZIP</button>
+      <div class="progress" data-progress hidden>
+        <div><span data-progress-bar></span></div>
+        <p data-progress-label aria-live="polite">Preparing package…</p>
+      </div>
+      <div class="message" data-message hidden aria-live="polite"></div>
+      <div class="result" data-result hidden>
+        <span>Package created</span>
+        <strong data-package-id></strong>
+        <p>The ZIP download has started. Keep <code>neon-assets.key</code> on the server and never add it as a <code>&lt;file&gt;</code> or <code>&lt;script&gt;</code>.</p>
+      </div>
+    </section>
+
+    <aside class="limits">
+      <h2>What this protects</h2>
+      <p>The downloaded resource cache contains authenticated ciphertext instead of reusable model data. A determined user can still inspect plaintext or key material while the game is actively using an asset. This is the same practical client-side limit faced by systems such as pcrypt.</p>
+      <a href="/neon/encrypted-assets">Read the deployment and Lua guide →</a>
+    </aside>
+  </div>
+</StarlightPage>
+
+<script>
+  import { MAX_PLAINTEXT_SIZE, bytesToHex, createZip, generatePackageSecrets, packAsset } from '../../../lib/neon-asset-encrypter.mjs';
+
+  const encoder = new TextEncoder();
+  const root = document.querySelector('[data-encrypter]');
+
+  if (root instanceof HTMLElement) {
+    const resourceInput = root.querySelector('[data-resource-name]');
+    const defaultModelInput = root.querySelector('[data-default-model]');
+    const fileInput = root.querySelector('[data-file-input]');
+    const dropZone = root.querySelector('[data-drop-zone]');
+    const chooseButton = root.querySelector('[data-choose-files]');
+    const clearButton = root.querySelector('[data-clear-files]');
+    const fileList = root.querySelector('[data-file-list]');
+    const fileRows = root.querySelector('[data-file-rows]');
+    const fileCount = root.querySelector('[data-file-count]');
+    const buildButton = root.querySelector('[data-build]');
+    const progress = root.querySelector('[data-progress]');
+    const progressBar = root.querySelector('[data-progress-bar]');
+    const progressLabel = root.querySelector('[data-progress-label]');
+    const message = root.querySelector('[data-message]');
+    const result = root.querySelector('[data-result]');
+    const packageIdOutput = root.querySelector('[data-package-id]');
+
+    const state = { assets: [], building: false };
+    const typeOrder = { txd: 0, dff: 1, col: 2 };
+
+    const humanSize = (bytes) => bytes < 1024 * 1024
+      ? `${(bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)} KiB`
+      : `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
+
+    const safeOutputName = (fileName) => fileName
+      .normalize('NFKD')
+      .replace(/[^A-Za-z0-9._-]+/gu, '-')
+      .replace(/^-+|-+$/gu, '');
+
+    const luaString = (value) => `"${value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`;
+    const xmlAttribute = (value) => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+
+    function showMessage(text, isError = false) {
+      if (!(message instanceof HTMLElement)) return;
+      message.textContent = text;
+      message.classList.toggle('error', isError);
+      message.hidden = false;
+    }
+
+    function clearStatus() {
+      if (message instanceof HTMLElement) message.hidden = true;
+      if (result instanceof HTMLElement) result.hidden = true;
+    }
+
+    function setProgress(done, total, label) {
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      if (progressBar instanceof HTMLElement) progressBar.style.width = `${percent}%`;
+      if (progressLabel instanceof HTMLElement) progressLabel.textContent = label;
+    }
+
+    function updateBuildState() {
+      if (buildButton instanceof HTMLButtonElement) buildButton.disabled = state.building || state.assets.length === 0;
+    }
+
+    function renderFiles() {
+      if (!(fileRows instanceof HTMLElement) || !(fileList instanceof HTMLElement)) return;
+      fileRows.replaceChildren();
+      fileList.hidden = state.assets.length === 0;
+      if (fileCount instanceof HTMLElement) fileCount.textContent = `${state.assets.length} file${state.assets.length === 1 ? '' : 's'}`;
+
+      state.assets.forEach((asset, index) => {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+
+        const identity = document.createElement('div');
+        identity.className = 'file-identity';
+        const type = document.createElement('span');
+        type.className = `type type-${asset.type}`;
+        type.textContent = asset.type.toUpperCase();
+        const name = document.createElement('div');
+        const strong = document.createElement('strong');
+        strong.textContent = asset.file.name;
+        const path = document.createElement('small');
+        path.textContent = asset.path;
+        name.append(strong, path);
+        identity.append(type, name);
+
+        const size = document.createElement('span');
+        size.className = 'file-size';
+        size.textContent = humanSize(asset.file.size);
+
+        const modelLabel = document.createElement('label');
+        modelLabel.className = 'model-field';
+        const modelCaption = document.createElement('span');
+        modelCaption.textContent = 'Model ID';
+        const modelInput = document.createElement('input');
+        modelInput.type = 'number';
+        modelInput.min = '0';
+        modelInput.max = '65535';
+        modelInput.step = '1';
+        modelInput.value = String(asset.modelId);
+        modelInput.setAttribute('aria-label', `Model ID for ${asset.file.name}`);
+        modelInput.addEventListener('input', () => { asset.modelId = modelInput.value; clearStatus(); });
+        modelLabel.append(modelCaption, modelInput);
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'remove';
+        remove.setAttribute('aria-label', `Remove ${asset.file.name}`);
+        remove.textContent = '×';
+        remove.addEventListener('click', () => {
+          state.assets.splice(index, 1);
+          clearStatus();
+          renderFiles();
+        });
+
+        row.append(identity, size, modelLabel, remove);
+        fileRows.append(row);
+      });
+      updateBuildState();
+    }
+
+    function addFiles(files) {
+      clearStatus();
+      const defaultModel = defaultModelInput instanceof HTMLInputElement ? defaultModelInput.value : '411';
+      const rejected = [];
+      for (const file of files) {
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        if (!extension || !['dff', 'txd', 'col'].includes(extension)) {
+          rejected.push(`${file.name}: unsupported type`);
+          continue;
+        }
+        if (file.size < 1 || file.size > MAX_PLAINTEXT_SIZE) {
+          rejected.push(`${file.name}: must be between 1 byte and 64 MiB`);
+          continue;
+        }
+        const outputName = safeOutputName(file.name);
+        const path = `models/${outputName}.neonasset`;
+        if (!outputName || state.assets.some((asset) => asset.path.toLowerCase() === path.toLowerCase())) {
+          rejected.push(`${file.name}: duplicate or unusable output name`);
+          continue;
+        }
+        state.assets.push({ file, type: extension, path, modelId: defaultModel });
+      }
+      renderFiles();
+      if (rejected.length) showMessage(rejected.join(' · '), true);
+    }
+
+    chooseButton?.addEventListener('click', () => fileInput instanceof HTMLInputElement && fileInput.click());
+    fileInput?.addEventListener('change', () => {
+      if (fileInput instanceof HTMLInputElement && fileInput.files) addFiles(fileInput.files);
+      if (fileInput instanceof HTMLInputElement) fileInput.value = '';
+    });
+    clearButton?.addEventListener('click', () => { state.assets = []; clearStatus(); renderFiles(); });
+    resourceInput?.addEventListener('input', clearStatus);
+
+    dropZone?.addEventListener('keydown', (event) => {
+      if ((event.key === 'Enter' || event.key === ' ') && fileInput instanceof HTMLInputElement) {
+        event.preventDefault();
+        fileInput.click();
+      }
+    });
+    for (const eventName of ['dragenter', 'dragover']) {
+      dropZone?.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.add('dragging');
+      });
+    }
+    for (const eventName of ['dragleave', 'drop']) {
+      dropZone?.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.remove('dragging');
+      });
+    }
+    dropZone?.addEventListener('drop', (event) => {
+      if (event.dataTransfer?.files) addFiles(event.dataTransfer.files);
+    });
+
+    buildButton?.addEventListener('click', async () => {
+      if (state.building || !state.assets.length) return;
+      clearStatus();
+
+      const resourceName = resourceInput instanceof HTMLInputElement ? resourceInput.value : '';
+      if (!resourceName || resourceName !== resourceName.trim() || !/^[A-Za-z0-9_.-]+$/u.test(resourceName)) {
+        showMessage('Enter the exact resource folder name using letters, numbers, dots, underscores, or hyphens.', true);
+        resourceInput?.focus();
+        return;
+      }
+      for (const asset of state.assets) {
+        const modelId = Number(asset.modelId);
+        if (!Number.isInteger(modelId) || modelId < 0 || modelId > 65535) {
+          showMessage(`Enter a valid model ID for ${asset.file.name}.`, true);
+          return;
+        }
+      }
+
+      state.building = true;
+      updateBuildState();
+      if (progress instanceof HTMLElement) progress.hidden = false;
+      setProgress(0, state.assets.length, 'Generating a fresh package key…');
+
+      const { key, packageId } = generatePackageSecrets();
+      try {
+        const encryptedEntries = [];
+        for (let index = 0; index < state.assets.length; index += 1) {
+          const asset = state.assets[index];
+          setProgress(index, state.assets.length, `Encrypting ${asset.file.name}…`);
+          const plaintext = new Uint8Array(await asset.file.arrayBuffer());
+          const container = await packAsset({
+            plaintext,
+            key,
+            packageId,
+            resourceName,
+            relativePath: asset.path,
+            assetType: asset.type,
+          });
+          plaintext.fill(0);
+          encryptedEntries.push({ name: asset.path, data: container });
+          setProgress(index + 1, state.assets.length, `${index + 1} of ${state.assets.length} encrypted`);
+        }
+
+        const packageHex = bytesToHex(packageId);
+        const ordered = [...state.assets].sort((left, right) => typeOrder[left.type] - typeOrder[right.type]);
+        const metaSnippet = [
+          `<!-- Add these entries inside your existing <meta> element. -->`,
+          `<neon_assets package="${packageHex}" keyfile="neon-assets.key" />`,
+          ...state.assets.map((asset) => `<file src="${xmlAttribute(asset.path)}" neon_asset="true" />`),
+          `<script src="neon-assets-client.lua" type="client" />`,
+          '',
+        ].join('\n');
+        const clientSnippet = [
+          '-- Generated by the Neon Asset Encrypter. TXD is applied before DFF and COL.',
+          'local encryptedAssets = {',
+          ...ordered.map((asset) => `    { path = ${luaString(asset.path)}, model = ${Number(asset.modelId)} },`),
+          '}',
+          '',
+          'for _, asset in ipairs(encryptedAssets) do',
+          '    assert(engineReplaceEncryptedModel(asset.path, asset.model),',
+          '        ("Failed to load encrypted asset %s"):format(asset.path))',
+          'end',
+          '',
+        ].join('\n');
+        const install = [
+          'NEON ENCRYPTED ASSET PACKAGE',
+          '============================',
+          '',
+          `Target resource: ${resourceName}`,
+          `Package ID: ${packageHex}`,
+          '',
+          '1. Extract this ZIP into the root of that exact resource.',
+          '2. Merge meta.xml.snippet into the existing <meta> element.',
+          '3. Keep neon-assets.key on the server. Never declare it as a <file> or <script>.',
+          '4. Merge or use neon-assets-client.lua after adjusting model IDs if necessary.',
+          '5. Restart the resource and check the client debug log for any rejected asset.',
+          '',
+          'Renaming the resource or a .neonasset path after encryption invalidates authentication.',
+          'The ciphertext protects the downloadable cache, not plaintext already in a running game process.',
+          '',
+        ].join('\n');
+        const zip = createZip([
+          ...encryptedEntries,
+          { name: 'neon-assets.key', data: `${bytesToHex(key)}\n` },
+          { name: 'meta.xml.snippet', data: metaSnippet },
+          { name: 'neon-assets-client.lua', data: clientSnippet },
+          { name: 'INSTALL.txt', data: install },
+        ]);
+
+        const blob = new Blob([zip], { type: 'application/zip' });
+        const url = URL.createObjectURL(blob);
+        const download = document.createElement('a');
+        download.href = url;
+        download.download = `${resourceName}-neon-assets.zip`;
+        document.body.append(download);
+        download.click();
+        download.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
+
+        if (packageIdOutput instanceof HTMLElement) packageIdOutput.textContent = packageHex;
+        if (result instanceof HTMLElement) result.hidden = false;
+        setProgress(state.assets.length, state.assets.length, 'Package ready');
+      } catch (error) {
+        showMessage(error instanceof Error ? error.message : 'The package could not be created.', true);
+      } finally {
+        key.fill(0);
+        state.building = false;
+        updateBuildState();
+      }
+    });
+
+    renderFiles();
+  }
+</script>
+
+<style>
+  .tool-hero { position: relative; overflow: hidden; padding: clamp(1.5rem, 5vw, 4rem); border: 1px solid rgba(242,140,24,.38); border-radius: .35rem; background: radial-gradient(circle at 85% 20%, rgba(242,140,24,.18), transparent 28%), linear-gradient(135deg,#0a0908,#18120c); box-shadow: .45rem .45rem 0 rgba(88,42,6,.2); }
+  .tool-hero::after { content: ''; position: absolute; inset: 0 0 0 auto; width: 28%; opacity: .12; background: repeating-linear-gradient(135deg,#f28c18 0 2px,transparent 2px 18px); pointer-events: none; }
+  .eyebrow, .step-label { color: #f28c18; font-size: .72rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+  .tool-hero h2 { position: relative; max-width: 15ch; margin: .9rem 0; font-size: clamp(2rem,5vw,4rem); line-height: .98; }
+  .tool-hero > p:not(.eyebrow) { position: relative; max-width: 48rem; color: var(--sl-color-gray-2); font-size: 1.05rem; }
+  .privacy-proof { position: relative; display: inline-flex; gap: .6rem; align-items: center; margin-top: 1rem; padding: .7rem .85rem; border: 1px solid rgba(74,222,128,.25); border-radius: .2rem; color: #bbf7d0; background: rgba(22,101,52,.14); }
+  .privacy-proof span { color: #4ade80; }
+  .encrypter { display: grid; grid-template-columns: minmax(0,1fr) minmax(18rem,.42fr); gap: 1rem; margin-top: 1rem; }
+  .setup-card, .files-card, .build-card, .limits { padding: clamp(1.2rem,3vw,2rem); border: 1px solid var(--sl-color-gray-5); border-radius: .35rem; background: linear-gradient(145deg,rgba(242,140,24,.045),transparent),var(--sl-color-bg-nav); }
+  .setup-card, .files-card, .build-card { grid-column: 1; }
+  .limits { grid-column: 2; grid-row: 1 / span 3; align-self: start; position: sticky; top: 6rem; border-top-color: rgba(242,140,24,.7); }
+  .setup-card h2, .files-card h2, .build-card h2, .limits h2 { margin: .6rem 0 .4rem; }
+  .setup-card > p, .build-card > p, .limits p { color: var(--sl-color-gray-3); }
+  .step-label { display: flex; align-items: center; gap: .65rem; }
+  .step-label span { display: grid; place-items: center; width: 2rem; height: 2rem; color: #0a0806; border-radius: 50%; background: #f28c18; letter-spacing: 0; }
+  .field-grid { display: grid; grid-template-columns: 1fr 13rem; gap: 1rem; margin-top: 1.4rem; }
+  label > span { display: block; margin-bottom: .4rem; color: var(--sl-color-gray-2); font-size: .8rem; font-weight: 700; }
+  input { width: 100%; padding: .75rem .8rem; color: var(--sl-color-white); border: 1px solid var(--sl-color-gray-5); border-radius: .2rem; outline: none; background: #090807; }
+  input:focus { border-color: #f28c18; box-shadow: 0 0 0 3px rgba(242,140,24,.12); }
+  label small { display: block; margin-top: .35rem; color: var(--sl-color-gray-3); }
+  .drop-zone { position: relative; display: flex; flex-direction: column; align-items: center; margin-top: 1.3rem; padding: 2.4rem 1rem; text-align: center; border: 2px dashed rgba(242,140,24,.35); border-radius: .35rem; background: rgba(242,140,24,.025); cursor: pointer; }
+  .drop-zone:hover, .drop-zone:focus, .drop-zone.dragging { border-color: #f28c18; background: rgba(242,140,24,.08); }
+  .drop-zone input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .drop-icon { display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: .75rem; color: #0a0806; border-radius: 50%; background: #f28c18; font-size: 1.5rem; font-weight: 900; }
+  .drop-zone > span { color: var(--sl-color-gray-3); }
+  .drop-zone button, .build-button { margin-top: 1rem; padding: .75rem 1rem; border: 0; border-radius: .2rem; color: #0a0806; background: #f28c18; font-weight: 850; cursor: pointer; box-shadow: .22rem .22rem 0 #5b2a06; }
+  .drop-zone small { margin-top: .9rem; color: var(--sl-color-gray-3); }
+  .list-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 1.3rem; padding-bottom: .65rem; border-bottom: 1px solid var(--sl-color-gray-5); font-weight: 700; }
+  button.quiet { color: #ffad35; border: 0; background: none; cursor: pointer; }
+  .file-row { display: grid; grid-template-columns: minmax(0,1fr) 5rem 6rem 2rem; gap: .75rem; align-items: center; padding: .8rem 0; border-bottom: 1px solid rgba(101,91,80,.35); }
+  .file-identity { display: flex; gap: .75rem; min-width: 0; align-items: center; }
+  .file-identity > div { min-width: 0; }
+  .file-identity strong, .file-identity small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-identity small, .file-size { color: var(--sl-color-gray-3); font-size: .73rem; }
+  .type { flex: 0 0 auto; padding: .3rem .4rem; border: 1px solid; border-radius: .15rem; font: 800 .65rem/1 monospace; }
+  .type-txd { color: #60a5fa; border-color: rgba(96,165,250,.35); background: rgba(37,99,235,.12); }
+  .type-dff { color: #fbbf24; border-color: rgba(251,191,36,.35); background: rgba(180,83,9,.12); }
+  .type-col { color: #4ade80; border-color: rgba(74,222,128,.35); background: rgba(22,101,52,.12); }
+  .model-field span { margin: 0 0 .2rem; font-size: .68rem; }
+  .model-field input { padding: .45rem; }
+  .remove { width: 2rem; height: 2rem; color: var(--sl-color-gray-2); border: 1px solid var(--sl-color-gray-5); border-radius: .2rem; background: transparent; cursor: pointer; font-size: 1.2rem; }
+  .remove:hover { color: #fecaca; border-color: #ef4444; }
+  .build-button { width: 100%; padding: 1rem; font-size: 1rem; }
+  .build-button:disabled { cursor: not-allowed; opacity: .4; box-shadow: none; }
+  .progress { margin-top: 1.3rem; }
+  .progress > div { overflow: hidden; height: .55rem; border-radius: 1rem; background: var(--sl-color-gray-6); }
+  .progress > div span { display: block; width: 0; height: 100%; background: #f28c18; transition: width 160ms ease; }
+  .progress p { margin: .45rem 0 0; color: var(--sl-color-gray-3); font-size: .8rem; }
+  .message, .result { margin-top: 1rem; padding: .9rem 1rem; border: 1px solid rgba(74,222,128,.25); border-radius: .2rem; background: rgba(22,101,52,.12); }
+  .message.error { color: #fecaca; border-color: rgba(239,68,68,.35); background: rgba(127,29,29,.15); }
+  .result > span, .result > strong { display: block; }
+  .result > span { color: #86efac; font-size: .72rem; font-weight: 850; text-transform: uppercase; letter-spacing: .12em; }
+  .result > strong { overflow-wrap: anywhere; margin-top: .25rem; font-family: monospace; }
+  .result p { margin-bottom: 0; color: var(--sl-color-gray-2); }
+  .limits a { color: #ffad35; font-weight: 700; }
+  @media (max-width: 850px) { .encrypter { grid-template-columns: 1fr; } .setup-card,.files-card,.build-card,.limits { grid-column: 1; } .limits { grid-row: auto; position: static; } }
+  @media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } .file-row { grid-template-columns: minmax(0,1fr) 5.5rem 2rem; } .file-size { display: none; } .tool-hero { padding: 1.4rem; } }
+</style>

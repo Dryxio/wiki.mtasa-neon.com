@@ -83,6 +83,7 @@ export default defineConfig({
             { label: "Dynamic object physics", link: "/neon/object-physics" },
             { label: "Managed ropes", link: "/neon/ropes" },
             { label: "Custom models", link: "/neon/models-and-streaming" },
+            { label: "Encrypted assets", link: "/neon/encrypted-assets" },
             { label: "SA-MP maps", link: "/neon/samp-maps" },
             { label: "Native world packs", link: "/neon/native-world" },
             { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
@@ -91,6 +92,7 @@ export default defineConfig({
         {
           label: "Reference & evidence",
           items: [
+            { label: "Asset Encrypter", link: "/neon/tools/asset-encrypter" },
             { label: "Tooling & verification", link: "/neon/tooling-and-verification" },
           ],
         },

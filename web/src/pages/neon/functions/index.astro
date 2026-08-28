@@ -5,6 +5,7 @@ import { neonFunctions, neonCategories, neonTaskGroups } from '@src/data/neon-fu
 const categoryPresentation: Record<string, { title: string; description: string }> = {
   radar: { title: 'Custom radar tiles', description: 'Replace individual radar and F11 map tiles with resource-provided textures.' },
   models: { title: 'Custom models', description: 'Allocate stable custom model IDs and resolve the GTA slots used by each client.' },
+  assets: { title: 'Encrypted resource assets', description: 'Authenticate and apply protected DFF, TXD, and COL files without exposing keys or plaintext to Lua.' },
   rendering: { title: 'Rendering limits and distant lights', description: 'Inspect expanded renderer capacity and control distant world lights.' },
   cull: { title: 'World environment zones (CULL)', description: 'Read, create, change, disable, and restore GTA environment zones.' },
   markers: { title: 'Mission markers and marker limits', description: 'Inspect marker capacity and draw GTA’s pulsing mission-area marker.' },
@@ -40,7 +41,7 @@ const categoryPresentation: Record<string, { title: string; description: string 
 const familyDefinitions = [
   { key: 'npcs-gameplay', title: 'NPCs and gameplay AI', description: 'Walking styles, ambient populations, traffic, and actions driven by GTA’s original AI.', categories: ['walking', 'population', 'tasks'] },
   { key: 'story-missions', title: 'Story and mission tools', description: 'Streaming, mission vehicles, scene loading, cameras, cutscenes, audio, text, and recorded routes.', categories: ['streaming', 'vehicle', 'scene', 'camera', 'cutscene', 'audio', 'text', 'recording'] },
-  { key: 'world-models', title: 'World, maps and models', description: 'Custom models, imported maps, radar tiles, environment zones, seabed, and runtime collision.', categories: ['models', 'mapping', 'radar', 'seabed', 'cull', 'collision'] },
+  { key: 'world-models', title: 'World, maps and models', description: 'Custom models, protected assets, imported maps, radar tiles, environment zones, seabed, and runtime collision.', categories: ['models', 'assets', 'mapping', 'radar', 'seabed', 'cull', 'collision'] },
   { key: 'objects-effects', title: 'Objects, environment and effects', description: 'Physics, breakable objects, ropes, fire, birds, foliage, and model lights or effects.', categories: ['physics', 'fracture', 'ropes', 'fire', 'birds', 'foliage', 'effects'] },
   { key: 'rendering-client', title: 'Rendering, audio and client', description: 'Renderer diagnostics, markers, vehicle sound, GTA radio, visual settings, and web links.', categories: ['rendering', 'markers', 'vehicleAudio', 'radio', 'visuals', 'browser'] },
   { key: 'server-compatibility', title: 'Server and compatibility', description: 'Verified player identity, bans, and extensions to existing MTA settings.', categories: ['identity', 'compatibility'] },
