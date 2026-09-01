@@ -9,6 +9,30 @@ Point an AI coding agent at a gamemode, and the Neon CLI gives it the real MTA +
 
 Everything runs locally and returns structured JSON that an agent can use directly. It does not need an account, a remote service, or an MCP server.
 
+## Download the portable CLI
+
+[Download Neon CLI Portable v1.0.0](https://github.com/Dryxio/mtasa-neon/releases/download/neon-cli-v1.0.0/Neon-CLI-Portable.zip), extract it, and open the resulting `neon-cli` folder. The same ZIP works on Windows and macOS; it does not require an MTA build.
+
+Check the extracted package before using it:
+
+```powershell
+# Windows
+neon.cmd self-test --json
+```
+
+```sh
+# macOS
+./neon self-test --json
+```
+
+A successful run reports seven passing tests and no errors. The published archive was checked with the macOS self-test and the Windows VM harness, both at 7/7. The Windows launcher and installation paths containing spaces were also exercised.
+
+SHA-256: `be82ce3e3910afbfc556af87302804aab31d255ba9d220d47f744ee3ae944288`
+
+[Download the SHA-256 file](https://github.com/Dryxio/mtasa-neon/releases/download/neon-cli-v1.0.0/Neon-CLI-Portable.zip.sha256) or view the [GitHub release](https://github.com/Dryxio/mtasa-neon/releases/tag/neon-cli-v1.0.0).
+
+Python 3.10 or newer is required, but no third-party Python package is needed.
+
 ## What the agent can do
 
 | Task | Command | Concrete result |
@@ -21,8 +45,6 @@ Everything runs locally and returns structured JSON that an agent can use direct
 | Detect stale generated files | `neon context verify` | Confirms that the agent is working from the current project and API context. |
 | Test the CLI package | `neon self-test` | Checks the package and runs an isolated check/generate/verify workflow. |
 | Prove the game really ran | `neon runtime prove` | Waits for fresh reports from the server and from the resource loaded inside GTA instead of trusting that a process merely started. |
-
-Python 3.10 or newer is required, but no third-party Python package is needed.
 
 The examples use `neon` as the command name. From a source checkout, call the launcher's full path, such as `/path/to/mtasa-neon/neon` on macOS or `C:\path\to\mtasa-neon\neon.cmd` on Windows, unless it is already in `PATH`.
 
@@ -82,11 +104,9 @@ Give the agent this recipe:
 
 This gives the agent a small, repeatable context instead of making it infer engine behavior from source fragments. Static checks still do not prove that a mission, animation, vehicle, or other visible behavior worked in GTA; that requires a focused runtime test.
 
-## Current distribution
+## Build the package yourself
 
-For now, run the CLI from a Neon source checkout. No portable CLI ZIP has been published on GitHub Releases.
-
-Maintainers can build the same deterministic package for Windows and macOS locally, without compiling MTA:
+Maintainers can reproduce the same deterministic Windows and macOS package locally, without compiling MTA:
 
 ```sh
 python3 Tools/neon-api/packaging/build_portable.py --json
