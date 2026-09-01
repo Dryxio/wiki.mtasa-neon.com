@@ -67,6 +67,8 @@ combat, actor policies, task sequences, and gang tags.
 
 Mutating task or combat calls require a living, streamed ped simulated by the caller. That can be the local player, a client-local ped, or a server ped for which this client is the current syncer. Vehicle tasks also require local control of the streamed vehicle.
 
+Just after a stream-in or native cutscene, the element can exist for a few frames before GTA has rebuilt the ped's AI brain. [`isPedNativeTaskReady`](/neon/functions/isPedNativeTaskReady) lets a resource wait for that exact condition before sending the next task. It is only a readiness check: it does not report that a task started, finished, or reached its target, and it does not grant sync ownership.
+
 ### Complete GTA task and SCM mapping
 
 Every mapped function page names the original `CTask`, opcode, command, source commit, and focused evidence. The public C++ bindings below live in [`CLuaPedDefs.cpp`](https://github.com/Dryxio/mtasa-neon/blob/master/Client/mods/deathmatch/logic/luadefs/CLuaPedDefs.cpp).
@@ -76,6 +78,7 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 
 | Neon API | Original GTA C++ task or state | SCM opcode / command |
 | --- | --- | --- |
+| [`isPedNativeTaskReady`](/neon/functions/isPedNativeTaskReady) | Checks that GTA has recreated the ped intelligence required by script-command tasks; creates no `CTask` | No SCM opcode |
 | [`setPedGoTo`](/neon/functions/setPedGoTo) | `CTaskComplexGoToPointAndStandStill` or timed variant | `05D3 TASK_GO_STRAIGHT_TO_COORD` |
 | [`setPedNavigateTo`](/neon/functions/setPedNavigateTo) | `CTaskComplexFollowNodeRoute` | Task type 906; no numeric SCM opcode claimed |
 | [`setPedChatWith`](/neon/functions/setPedChatWith) | `CTaskComplexPartnerChat` | `0677 TASK_CHAT_WITH_CHAR` |
@@ -101,6 +104,8 @@ Every mapped function page names the original `CTask`, opcode, command, source c
 | [`setPedMissionActor`](/neon/functions/setPedMissionActor) / [`isPedMissionActor`](/neon/functions/isPedMissionActor) | Persistent `PED_MISSION` policy; no `CTask` | No SCM opcode |
 | [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) / [`isPedStoryProtected`](/neon/functions/isPedStoryProtected) | Grouped native story-actor flags; no `CTask` | No SCM opcode |
 | [`setPedSuffersCriticalHits`](/neon/functions/setPedSuffersCriticalHits) / [`getPedSuffersCriticalHits`](/neon/functions/getPedSuffersCriticalHits) | Persistent inverse no-critical-hits bit | `0446 SET_CHAR_SUFFERS_CRITICAL_HITS` |
+| [`setPedCanBeDraggedOut`](/neon/functions/setPedCanBeDraggedOut) / [`canPedBeDraggedOut`](/neon/functions/canPedBeDraggedOut) | Persistent carjack-extraction flag; no `CTask` | `SET_CHAR_CANT_BE_DRAGGED_OUT`; numeric opcode not claimed |
+| [`setPedOnlyDamagedByPlayer`](/neon/functions/setPedOnlyDamagedByPlayer) / [`isPedOnlyDamagedByPlayer`](/neon/functions/isPedOnlyDamagedByPlayer) | Persistent attacker-based damage flag; no `CTask` | `02A9 SET_CHAR_ONLY_DAMAGED_BY_PLAYER` |
 | [`setPedStayInSamePlace`](/neon/functions/setPedStayInSamePlace) / [`getPedStayInSamePlace`](/neon/functions/getPedStayInSamePlace) | Persistent stay-put flag; no movement task | `0350 SET_CHAR_STAY_IN_SAME_PLACE` |
 | [`setPedNeverTargeted`](/neon/functions/setPedNeverTargeted) / [`isPedNeverTargeted`](/neon/functions/isPedNeverTargeted) | Persistent targeting flag; no `CTask` | `0568 SET_CHAR_NEVER_TARGETTED` |
 | [`setPedPhysicalProofs`](/neon/functions/setPedPhysicalProofs) / [`getPedPhysicalProofs`](/neon/functions/getPedPhysicalProofs) | Five persistent ped damage-proof flags; no `CTask` | `SET_CHAR_PROOFS`; numeric opcode not claimed |
@@ -120,6 +125,8 @@ Use the [GTA mapping and SCM opcode filters](/neon/functions?gta=1&scm=1) when y
 ### Task dispatch and completion
 
 Some calls replace the ped's primary task directly. Others use GTA's script-command event path. In both cases, a `true` return means the task was accepted; it does not mean the ped has already started or completed the action.
+
+[`isPedNativeTaskReady`](/neon/functions/isPedNativeTaskReady) answers an earlier question: whether GTA has recreated the ped intelligence object needed to accept script-command tasks. It is not a universal task-status or completion API.
 
 Low-level tasks do not return durable resource handles and do not emit a universal completion event. A resource can observe the relevant world state, but the server should validate that observation before advancing the mission.
 
@@ -179,9 +186,13 @@ Progress lives on the MTA object and survives native object recreation. Release 
 
 Story resources often need native policies that are narrower than MTA's general abstractions.
 
-[`setPedMissionActor`](/neon/functions/setPedMissionActor) keeps a script ped in GTA's `PED_MISSION` population class. [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) controls the grouped safety flags used for important actors. Independent APIs expose critical-hit, stay-put, targeting, and the five separate physical-damage protections when a resource needs only one behavior. Use [`getPedPhysicalProofs`](/neon/functions/getPedPhysicalProofs) before [`setPedPhysicalProofs`](/neon/functions/setPedPhysicalProofs) when the original values must be restored later.
+[`setPedMissionActor`](/neon/functions/setPedMissionActor) keeps a script ped in GTA's `PED_MISSION` population class. [`setPedStoryProtected`](/neon/functions/setPedStoryProtected) controls the grouped safety flags used for important actors.
 
-These ped policies survive local native recreation. Some restore a captured value when cleared; others are explicit last-writer-wins values. Check each function's lifecycle before sharing a ped between resources.
+The individual policy functions let a mission reproduce only the rule it needs. [`setPedCanBeDraggedOut`](/neon/functions/setPedCanBeDraggedOut) can keep an important driver or passenger inside the vehicle during a carjack, while `true` restores normal extraction. [`setPedOnlyDamagedByPlayer`](/neon/functions/setPedOnlyDamagedByPlayer) makes GTA reject damage events whose attacker is not a player while retaining player-attributed attacks. It is not blanket immunity from every possible damage source; use [`setPedPhysicalProofs`](/neon/functions/setPedPhysicalProofs) when bullets, fire, explosions, collisions, or melee need separate protection.
+
+Other independent APIs expose critical-hit, stay-put, targeting, and the five physical-damage protections. Use the matching query before a temporary change—such as [`canPedBeDraggedOut`](/neon/functions/canPedBeDraggedOut), [`isPedOnlyDamagedByPlayer`](/neon/functions/isPedOnlyDamagedByPlayer), or [`getPedPhysicalProofs`](/neon/functions/getPedPhysicalProofs)—when the original value must be restored later.
+
+These ped policies survive local native recreation. The new carjack and player-damage scalars apply to script peds only, are client-local, and override the matching grouped story-protection flags regardless of call order. They are last-writer-wins values with no automatic resource-stop restoration, so synchronized missions must apply and clear them deliberately on the relevant clients. Other grouped policies may restore captured state when cleared; check each function's lifecycle before sharing a ped between resources.
 
 The resource-owned [`acquirePedNativeEventProfile`](/neon/functions/acquirePedNativeEventProfile) lease is different. Its current `mission` profile restores a narrow set of GTA mission-ped event decisions while this client is the authoritative syncer with a live native ped. It does not load arbitrary decision-maker files or serialize an active response task across migration.
 

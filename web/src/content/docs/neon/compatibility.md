@@ -99,7 +99,7 @@ Do not redistribute a local `CUSTOM` build as if it were the public package.
 
 Native-world transport and activation need matching Neon client and server builds. A format-3 child can be published inertly, but only the selected-set coordinator may request startup. An incompatible client is rejected rather than receiving a partial set.
 
-The first authorization requires a clean two-launch transaction to the same passwordless numeric endpoint. While a selected catalogue is active, the session is pinned to its owner endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated, and spatial residency can switch between packs already admitted to the set.
+A format-3 set can download, pass its full audit, and load on the first connection in the same GTA process. If the process cannot prove that admission is safe, Neon uses the exact passwordless numeric endpoint and verified restart fallback. Legacy formats 1 and 2 still require their original clean two-launch transaction. While a selected catalogue is active, the session is pinned to its owner endpoint and suppresses saved or supplied credentials. Exact reconnect remains possible after the opaque server identity is revalidated, and spatial residency can switch between packs already admitted to the set.
 
 Connecting to a different server or changing the selected set no longer requires the player to close GTA first. Neon queues the connection, unloads the active native content, returns the process to a clean state, and admits the new audited set. If that safe drain cannot be proved, it uses an exact-readback restart fallback instead of mixing two native-world sessions.
 

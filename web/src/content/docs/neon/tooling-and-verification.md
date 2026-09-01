@@ -15,21 +15,128 @@ Use the search box and the severity, side, or resource filters to isolate the pr
 
 Press `Ctrl+Shift+I` or use `devtools` to toggle the view; `Escape` closes it. The original `debugscript` levels still work. The packaged frontend, store logic, and affected client/server projects were tested and built; a final post-build visual replay is not recorded as complete.
 
-## Check a resource with the Neon CLI
+## Give a coding agent the real MTA + Neon API
 
-Developers working from a Neon source checkout can run the repository's `neon` command with Python 3.10 or newer. Daily checks need no third-party Python packages:
+Point an AI coding agent at the local Neon CLI and it can look up the complete MTA + Neon API, read exact function contracts, and check a gamemode without guessing. The results are structured JSON, so the agent can tell which functions exist, whether they run on the client or server, and what still needs to be tested.
+
+The daily commands run locally. They do not require an account, a remote service, or an MCP server. Python 3.10 or newer is required, but no third-party Python package is needed.
+
+The examples below use `neon` as the command name. From a source checkout, call the launcher's full path, such as `/path/to/mtasa-neon/neon` on macOS or `C:\path\to\mtasa-neon\neon.cmd` on Windows, unless you have already added it to `PATH`.
+
+### Prepare an existing gamemode once
+
+Start with a gamemode folder that contains one or more resources with a `meta.xml` file:
 
 ```sh
-./neon check --json
-./neon api search "npc pathfinding" --side client --json
-./neon api get setPedNavigateTo --json
-./neon generate project --json
-./neon context verify --json
+neon init --workspace /path/to/gamemode --profile neon-pair --json
 ```
 
-`check` catches invalid project files, missing resource metadata or dependencies, and API or event calls used on the wrong side. The local API commands cover the complete effective MTA + Neon catalogue for source development. `generate project` writes deterministic project context, a side-aware Lua language-server setup, and the API index so editors and coding agents use the same contracts.
+`init` finds the resources and prepares the folder for an agent. It creates:
 
-Scenarios and the runtime supervisor are advanced tools. They are read-only by default, bind to loopback, and expire. Runtime start/stop/restart actions require explicit opt-in and apply only to declared resources; a submitted command is not by itself proof that the resource reached the requested state. The CLI never turns a static result into gameplay evidence.
+- `neon.project.json`, which describes the gamemode and its client/server profile;
+- `NEON_AGENT.md`, which tells an agent which checks to run;
+- `.neon-tooling`, which contains the gamemode's pinned copy of the complete API catalogue;
+- `.neon`, which contains compact agent context, an API index, project contracts, and client/server Lua language-server files.
+
+The command refuses to replace an existing `neon.project.json` or `.neon` directory. If `NEON_AGENT.md` already exists, it is preserved and the result tells you to merge the Neon instructions manually. If automatic discovery is not suitable, repeat `--resource path/to/resource` to name each resource explicitly.
+
+### Use this loop while developing
+
+Run these commands from the gamemode folder after meaningful Lua, `meta.xml`, dependency, or project changes:
+
+```sh
+neon check --json
+neon api search "npc pathfinding" --side client --json
+neon api get setPedNavigateTo --profile neon-pair --json
+neon generate project --json
+neon context verify --json
+```
+
+Each command answers a different question:
+
+1. `neon check` validates the project and resource metadata. It also detects known API and event calls used on the wrong side.
+2. `neon api search` finds likely functions, events, classes, and enums by name or purpose. Filters such as `--side client` keep the result focused.
+3. `neon api get` returns the exact selected contract, including its arguments, returns, side, availability, and evidence.
+4. `neon generate project` refreshes deterministic agent context, the API index, project contracts, and separate client/server Lua language-server definitions.
+5. `neon context verify` checks that none of those generated files are missing, changed, or stale compared with the current gamemode.
+
+Search is only for discovery. An agent should still call `api get` before relying on a result. The CLI reports what its checks observed; it does not claim that a command passed unless that command was actually run and its JSON result says so.
+
+### Complete recipe for an AI-assisted gamemode change
+
+Give the agent this workflow:
+
+```text
+1. Read NEON_AGENT.md and .neon/agent-context.json.
+2. Search the API with: neon api search "what the script must do" --json
+3. Read each selected contract with: neon api get NAME --json
+4. Edit the gamemode.
+5. Run: neon check --json
+6. Run: neon generate project --json
+7. Require: neon context verify --json
+8. Run the gamemode's own focused tests and report their exact result.
+```
+
+This gives the agent a small, repeatable context instead of making it infer engine behavior from source fragments. Static checks still do not prove that a mission, animation, vehicle, or other visible behavior worked in GTA; that requires a focused runtime test.
+
+### Current distribution
+
+For now, ordinary users run the CLI from a Neon source checkout. No portable CLI ZIP has been published on GitHub Releases.
+
+Maintainers can build the same deterministic package for Windows and macOS locally, without compiling MTA:
+
+```sh
+python3 Tools/neon-api/packaging/build_portable.py --json
+```
+
+The ZIP includes both launchers: use `neon.cmd` on Windows and `./neon` on macOS. It also includes the complete API catalogue, schemas, licences, and the runtime probe. Python 3.10 or newer remains required.
+
+`NEON_CLI_MANIFEST.json` records the hash and size of every packaged file. The adjacent `.sha256` file records the hash of the whole ZIP. Run this after extracting it:
+
+```sh
+neon self-test --json
+```
+
+On Windows, run the equivalent command as `neon.cmd self-test --json`. The self-test verifies the package manifest, checks API discovery, and exercises an isolated check/generate/verify workflow. These hashes detect changed or damaged files; they are not a publisher signature. Building the ZIP does not upload or publish it.
+
+### Prove that the server and GTA really joined the test
+
+The Windows runtime workflow can start an approved local server, launch the approved MTA client, and wait for reports from both the server resource and the client running inside GTA. This is stronger than treating a successfully started process as proof that gameplay loaded.
+
+First install the bundled probe into an isolated development server:
+
+```powershell
+neon.cmd runtime probe install --server-root C:\path\to\mta-server --json
+```
+
+Then open a short-lived session with the required actions explicitly enabled:
+
+```powershell
+neon.cmd supervisor start --workspace . `
+  --enable resource.lifecycle --enable client.launch `
+  --server-root C:\path\to\mta-server `
+  --client-root C:\path\to\mta-client `
+  --connect-port 22003 --json
+```
+
+Use the `session.json` path returned by that command in the following steps:
+
+```powershell
+neon.cmd resource start .neon-sessions/session-ID/session.json neon-agent-probe `
+  --workspace . --json
+neon.cmd client launch .neon-sessions/session-ID/session.json client-1 `
+  --workspace . --json
+neon.cmd runtime prove .neon-sessions/session-ID/session.json `
+  --workspace . --timeout-ms 120000 --json
+```
+
+`runtime prove` waits for a current, authenticated server report and a report sent by the probe after the real client loaded it inside GTA. It checks the expected topology, engine and build identities, live processes, session window, and project contracts before granting its evidence labels. A two-client `neon-multiclient` project additionally requires two distinct clients before it can report multiplayer evidence.
+
+Installing the probe, starting or restarting a resource, and launching a client are mutations. They require explicit paths and opt-in capabilities; the supervisor is otherwise read-only, loopback-only, and expires. A submitted start or restart command is not proof that MTA processed it. Only a successful fresh observation or `runtime prove` result establishes the scope it reports.
+
+This is evidence for an isolated development session. It is not anti-cheat and does not prove anything against a hostile administrator, native module, or resource that can replace the probe's private files.
+
+Implementation provenance: the [portable workspace and safe initialization](https://github.com/Dryxio/mtasa-neon/commit/eed0bd21c) and the [authenticated Windows runtime proof](https://github.com/Dryxio/mtasa-neon/commit/7685d87f0) are tracked separately from the evidence produced by an actual CLI run.
 
 ## Evidence levels
 
@@ -118,8 +225,8 @@ An API page labels an explicitly assigned resource as **Test resource**. When it
 | Neon Identity | Service tests and development OAuth/ticket/required-auth flows; two real server restarts verified automatic key creation and stable identity; `neon-identity-connect-test` checks the connection-event values, getter agreement, and pre-join cancellation | One checked-in MTA pass covering every getter and identity-aware ban path, key-rotation overlap, and a general owner portal |
 | Custom vehicle audio | Client build plus manual AE86/Soundize-bank and BUST gameplay runs | A public reproducible config/bank resource and a focused automated or multiplayer playback matrix |
 | Custom model registry | Server/client registry harnesses plus spawn, replacement, free, and parent-fallback runtime checks | Universal behavior for arbitrary resource combinations and legacy fallback expectations |
-| Native world packs | Format-3 multi-IMG transport, exact selected-set audit, four-city generations 2–29, direct switching, bank reuse, reconnect, resource/server restart, non-contiguous selection, ten same-process server switches, a different four-pack to three-pack switch, and the forced restart fallback | Every possible custom pack or one-to-eight-pack combination, optional GTA subsystems, and a true D3D device reset |
-| Synchronized NPCs and road traffic | Two-client runs covered pedestrian spawning and behavior, group/couple and owner handoffs, combat and cleanup; road-traffic passes covered atomic vehicle/occupant creation, `DriveWander`, passenger entry, owner changes, stuck recovery, destruction, and cleanup | Boats, aircraft, trailers, parked-car generation, mission routes, emergency services, headless simulation, universal task snapshots, and perfect collision-frame agreement; the later four-per-area/global-40 allocation was simulated rather than rerun in game |
+| Native world packs | Format-3 multi-IMG transport, exact selected-set audit, first admission in the same GTA process without a required restart, four-city generations 2–29, direct switching, bank reuse, reconnect, resource/server restart, non-contiguous selection, ten same-process server switches, a different four-pack to three-pack switch, and the forced restart fallback. The checked cache runs measured about 9 seconds in a fresh process and 1–4 seconds when reusing the same process. | Every possible custom pack or one-to-eight-pack combination, optional GTA subsystems, a true D3D device reset, and universal loading times across different hardware and packs |
+| Synchronized NPCs and road traffic | Two-client runs covered pedestrian spawning and behavior, group/couple and owner handoffs, combat and cleanup; road-traffic passes covered atomic vehicle/occupant creation, `DriveWander`, passenger entry, owner changes, stuck recovery, destruction, and cleanup. The current production allocation is 16 vehicles per player area with a global cap of 160, and 12–20 pedestrians per populated area with a global cap of 240. Nearby players share population instead of multiplying the same crowd. | Boats, aircraft, trailers, parked-car generation, mission routes, emergency services, headless simulation, universal task snapshots, perfect collision-frame agreement, and sustained production performance at the configured population ceilings |
 | Ambient cops | A two-client cop-locomotion oracle requiring three metres of native patrol, one owner at a time, an unchanged wanted level, no forbidden police task, one handoff epoch, and two cleanup ACKs | Rare path and RNG branches are recorded as evidence rather than required outcomes; there is deliberately no pursuit or arrest behavior to prove |
 | Ambient couples | Atomic pair formation, leader selection from native walk speeds, and the separate observer presentation lease, with per-member reciprocity and role diagnostics | Long-run couple churn under heavy density and every native walk-side branch |
 | Dynamic world objects | Client-only harness covering discovery, live transforms under player and vehicle pushes, damage and break events, matrix writes, destroy refusal, and preserved element identity across stream-out and stream-in | Server-side or synchronized behavior, object health and break-state properties, and behavior under arbitrary Lua-driven transform fighting |
