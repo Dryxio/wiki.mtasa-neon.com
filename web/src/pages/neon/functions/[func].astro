@@ -1,0 +1,237 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Code } from '@astrojs/starlight/components';
+import { neonFunctions, neonCategories } from '@src/data/neon-functions';
+
+export function getStaticPaths() {
+  return neonFunctions.map((func) => ({ params: { func: func.name }, props: { func } }));
+}
+
+const { func } = Astro.props;
+const category = neonCategories[func.category];
+Astro.locals.side = func.side;
+const sourceUrl = `https://github.com/Dryxio/mtasa-neon/blob/master/${func.source}`;
+const commitUrl = `https://github.com/Dryxio/mtasa-neon/commit/${func.commit}`;
+const testPath = func.test === undefined ? category.test : func.test;
+const testRelation = func.test === undefined ? 'related' : func.test ? 'direct' : 'none';
+const categoryFunctions = neonFunctions.filter((entry) => entry.category === func.category);
+const categoryIndex = categoryFunctions.findIndex((entry) => entry.name === func.name);
+const previousFunction = categoryIndex > 0 ? categoryFunctions[categoryIndex - 1] : undefined;
+const nextFunction = categoryIndex < categoryFunctions.length - 1 ? categoryFunctions[categoryIndex + 1] : undefined;
+const groupedRelated = func.group
+  ? categoryFunctions.filter((entry) => entry.name !== func.name && entry.group === func.group)
+  : [];
+const guideRoot = category.guide.split('#')[0];
+const sameGuideRelated = neonFunctions.filter((entry) => neonCategories[entry.category].guide.split('#')[0] === guideRoot);
+const relatedCandidates = [
+  ...groupedRelated,
+  ...categoryFunctions,
+  ...sameGuideRelated,
+  ...neonFunctions.filter((entry) => Boolean(entry.extension) === Boolean(func.extension)),
+].filter((entry) => entry.name !== func.name);
+const relatedFunctions = relatedCandidates
+  .filter((entry, index) => relatedCandidates.findIndex((candidate) => candidate.name === entry.name) === index)
+  .slice(0, 3);
+---
+
+<StarlightPage frontmatter={{ template: 'doc', title: func.name, description: func.summary, tableOfContents: true }}>
+  <div class="neon-function-banner">
+    <div><span>NEON {func.extension ? 'EXTENSION' : 'API'}</span><a href={`/neon/functions#${func.category}`}>{category.title}</a></div>
+  </div>
+
+  <p class="summary">{func.summary}</p>
+
+  {func.featuredExample && func.example && <>
+    <h2 id="example">Complete example</h2>
+    <Code code={func.example} lang="lua" />
+  </>}
+
+  <div class="syntax-heading">
+    <h2 id="syntax">Syntax</h2>
+    <button type="button" data-copy-signature data-signature={func.signature} aria-describedby="copy-status">Copy signature</button>
+    <span id="copy-status" class="visually-hidden" aria-live="polite"></span>
+  </div>
+  <Code code={func.signature} lang="lua" />
+
+  {func.nativeTask && <>
+    <h2 id="gta-task-mapping">GTA task mapping</h2>
+    <div class="native-task">
+      <div class="native-task-header">
+        <span>{func.nativeTask.tasks?.length ? 'ORIGINAL GTA TASK' : 'NATIVE GTA BEHAVIOR'}</span>
+        {func.nativeTask.opcode && <code>{func.nativeTask.opcode}</code>}
+      </div>
+      {func.nativeTask.tasks?.length
+        ? <div class="native-task-names">{func.nativeTask.tasks.map((task) => <code>{task}</code>)}</div>
+        : <strong>No CTask is created</strong>}
+      {func.nativeTask.command && <p class="native-command">SCM equivalent: <code>{func.nativeTask.command}</code></p>}
+      <p>{func.nativeTask.note}</p>
+    </div>
+  </>}
+
+  {func.arguments && func.arguments.length > 0 && <>
+    <h2 id="arguments">Arguments</h2>
+    <div class="argument-list">
+      {func.arguments.map((argument) => <div>
+        <div><code>{argument.name}</code><span>{argument.type}</span>{argument.optional && <em>optional{argument.default ? ` · default ${argument.default}` : ''}</em>}</div>
+        <p>{argument.description}</p>
+      </div>)}
+    </div>
+  </>}
+
+  {func.optionKeys && func.optionKeys.length > 0 && <>
+    <h2 id="table-keys">Table keys</h2>
+    {[...new Set(func.optionKeys.map((key) => key.group ?? ''))].map((group) => <>
+      {group && <h3 class="key-group">{group}</h3>}
+      <div class="key-list">
+        {func.optionKeys.filter((key) => (key.group ?? '') === group).map((key) => <div>
+          <div><code>{key.name}</code><span>{key.type}</span>{key.required
+            ? <em class="req">required</em>
+            : <em>optional{key.default ? ` · default ${key.default}` : ''}</em>}</div>
+          <p>{key.description}</p>
+        </div>)}
+      </div>
+    </>)}
+  </>}
+
+  <h2 id="returns">Returns</h2>
+  <p>{func.returns}</p>
+
+  <h2 id="ownership-and-lifecycle">Ownership and lifecycle</h2>
+  <p>{category.lifecycle}</p>
+
+  {func.notes && func.notes.length > 0 && <div class="notes"><strong>Important behavior</strong><ul>{func.notes.map((note) => <li>{note}</li>)}</ul></div>}
+
+  {func.oop && func.oop.length > 0 && <>
+    <h2 id="oop">OOP aliases</h2>
+    <ul>{func.oop.map((alias) => <li><code>{alias}</code></li>)}</ul>
+  </>}
+
+  {func.example && !func.featuredExample && <>
+    <h2 id="example">Example</h2>
+    <Code code={func.example} lang="lua" />
+  </>}
+
+  <h2 id="implementation-evidence">Where this comes from</h2>
+  <div class="evidence-grid">
+    <a href={sourceUrl}><span>SOURCE</span><strong>{func.source.split('/').pop()}</strong><small>{func.source}</small></a>
+    <a href={commitUrl}><span>INTRODUCED / EXTENDED</span><strong>{func.commit}</strong><small>Read the commit and why the change was made</small></a>
+    {testPath && <a href={`https://github.com/Dryxio/mtasa-neon/tree/master/${testPath}`}>
+      <span>{testRelation === 'direct' ? 'TEST RESOURCE' : 'RELATED CATEGORY HARNESS'}</span>
+      <strong>{testPath.split('/').pop()}</strong>
+      <small>{testRelation === 'direct' ? testPath : `Category-level coverage · ${testPath}`}</small>
+    </a>}
+  </div>
+
+  <section class="continue-exploring" aria-labelledby="continue-title" data-pagefind-ignore>
+    <div class="continue-heading">
+      <div><span>RELATED NEON APIS</span><h2 id="continue-title">Continue exploring</h2></div>
+      <a href={category.guide}>Read the system guide →</a>
+    </div>
+    {relatedFunctions.length > 0 && <div class="related-grid">
+      {relatedFunctions.map((entry) => <a href={`/neon/functions/${entry.name}`}>
+        <code>{entry.name}</code>
+        <span>{entry.summary}</span>
+      </a>)}
+    </div>}
+    <nav class="function-sequence" aria-label={`Functions in ${category.title}`}>
+      {previousFunction
+        ? <a class="previous" href={`/neon/functions/${previousFunction.name}`}><span>← Previous in category</span><code>{previousFunction.name}</code></a>
+        : <span></span>}
+      {nextFunction && <a class="next" href={`/neon/functions/${nextFunction.name}`}><span>Next in category →</span><code>{nextFunction.name}</code></a>}
+    </nav>
+  </section>
+
+  <p class="back-link"><a href="/neon/functions">← Back to the Neon Lua API</a> · <a href={category.guide}>How {category.title} works →</a></p>
+</StarlightPage>
+
+<script>
+  document.querySelectorAll('[data-copy-signature]').forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    button.addEventListener('click', async () => {
+      const signature = button.dataset.signature || '';
+      const status = document.getElementById('copy-status');
+      let copied = false;
+
+      try {
+        await navigator.clipboard.writeText(signature);
+        copied = true;
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = signature;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.append(textarea);
+        textarea.select();
+        copied = document.execCommand('copy');
+        textarea.remove();
+      }
+
+      button.textContent = copied ? 'Copied' : 'Copy failed';
+      if (status) status.textContent = copied ? 'Signature copied to clipboard.' : 'The signature could not be copied.';
+      window.setTimeout(() => { button.textContent = 'Copy signature'; }, 1600);
+    });
+  });
+</script>
+
+<style>
+  .neon-function-banner { display: flex; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; border: 1px solid rgba(242,140,24,.38); border-radius: .2rem; background: rgba(242,140,24,.065); }
+  .neon-function-banner div { display: flex; align-items: center; gap: .7rem; }
+  .neon-function-banner span { padding: .22rem .45rem; color: #0a0806; background: #f28c18; border-radius: .12rem; font-size: .65rem; font-weight: 900; letter-spacing: .08em; }
+  .neon-function-banner a { color: #ffad35; font-weight: 700; }
+  .summary { margin: 2rem 0; font-size: 1.2rem; color: var(--sl-color-gray-2); }
+  .syntax-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .syntax-heading h2 { margin-bottom: .6rem; }
+  .syntax-heading button { padding: .4rem .6rem; color: #ffbd5c; background: rgba(242,140,24,.06); border: 1px solid rgba(242,140,24,.4); border-radius: .35rem; font-size: .72rem; font-weight: 800; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .argument-list { display: grid; gap: .65rem; }
+  .argument-list > div { padding: .9rem 1rem; border-left: 2px solid rgba(242,140,24,.62); background: var(--sl-color-bg-nav); }
+  .argument-list > div > div { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+  .argument-list span { color: #ffad35; font-family: monospace; font-size: .78rem; }
+  .argument-list em { color: var(--sl-color-gray-3); font-size: .74rem; }
+  .argument-list p { margin: .4rem 0 0; }
+  .key-group { margin: 1.4rem 0 .55rem; font-size: .95rem; color: #ffad35; }
+  .key-list { display: grid; gap: .5rem; }
+  .key-list > div { padding: .7rem .9rem; border-left: 2px solid rgba(242,140,24,.32); background: var(--sl-color-bg-nav); }
+  .key-list > div > div { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+  .key-list span { color: #ffad35; font-family: monospace; font-size: .76rem; }
+  .key-list em { color: var(--sl-color-gray-3); font-size: .72rem; }
+  .key-list em.req { color: #ffbd5c; font-style: normal; font-weight: 700; }
+  .key-list p { margin: .35rem 0 0; font-size: .92rem; }
+  .native-task { padding: 1rem 1.1rem; border: 1px solid rgba(242,140,24,.36); border-left: 3px solid #f28c18; border-radius: .35rem; background: linear-gradient(110deg, rgba(242,140,24,.08), rgba(10,8,6,.08)); }
+  .native-task-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+  .native-task-header span { color: #f28c18; font-size: .67rem; font-weight: 900; letter-spacing: .1em; }
+  .native-task-header > code { color: #ffbd5c; }
+  .native-task-names { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .native-task-names code { min-width: 0; max-width: 100%; padding: .35rem .55rem; overflow-wrap: anywhere; white-space: normal; border: 1px solid rgba(242,140,24,.25); background: rgba(242,140,24,.08); color: #ffd08b; }
+  .native-task > strong { color: var(--sl-color-gray-2); }
+  .native-task p { margin: .75rem 0 0; }
+  .native-task .native-command { color: var(--sl-color-gray-3); font-size: .88rem; }
+  .notes { margin: 1.5rem 0; padding: 1rem 1.2rem; border: 1px solid rgba(245,194,107,.35); border-radius: .7rem; background: rgba(245,194,107,.06); }
+  .notes ul { margin-bottom: 0; }
+  .evidence-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .7rem; }
+  .evidence-grid a { display: flex; flex-direction: column; min-width: 0; padding: 1rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .7rem; }
+  .evidence-grid a:hover { border-color: #f28c18; transform: translateY(-2px); }
+  .evidence-grid span { color: #f28c18; font-size: .62rem; font-weight: 900; letter-spacing: .1em; }
+  .evidence-grid strong { margin: .35rem 0; }
+  .evidence-grid small { overflow-wrap: anywhere; color: var(--sl-color-gray-3); }
+  .continue-exploring { margin-top: 3.5rem; padding: 1.2rem; border: 1px solid rgba(242,140,24,.35); border-radius: .7rem; background: linear-gradient(135deg, rgba(242,140,24,.07), transparent); }
+  .continue-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+  .continue-heading span { color: #f28c18; font-size: .64rem; font-weight: 900; letter-spacing: .1em; }
+  .continue-heading h2 { margin: .2rem 0 0; }
+  .continue-heading > a { color: #ffad35; font-size: .8rem; }
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
+  .related-grid > a { display: flex; flex-direction: column; min-width: 0; padding: .8rem; color: inherit; text-decoration: none; border: 1px solid var(--sl-color-gray-5); border-radius: .55rem; background: rgba(10,8,6,.22); }
+  .related-grid > a:hover { border-color: #f28c18; transform: translateY(-2px); }
+  .related-grid code { overflow-wrap: anywhere; }
+  .related-grid span { margin-top: .45rem; color: var(--sl-color-gray-3); font-size: .76rem; }
+  .function-sequence { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--sl-color-gray-5); }
+  .function-sequence a { display: flex; flex-direction: column; min-width: 0; color: inherit; text-decoration: none; }
+  .function-sequence .next { align-items: end; text-align: right; }
+  .function-sequence span { color: var(--sl-color-gray-3); font-size: .68rem; }
+  .function-sequence code { margin-top: .25rem; overflow-wrap: anywhere; }
+  .back-link { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--sl-color-gray-5); }
+  :is(.syntax-heading button, .related-grid a, .function-sequence a):focus-visible { outline: 2px solid #ffad35; outline-offset: 3px; }
+  @media (max-width: 760px) { .neon-function-banner, .continue-heading { align-items: start; flex-direction: column; } .evidence-grid, .related-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .function-sequence { grid-template-columns: 1fr; } .function-sequence > span:empty { display: none; } .function-sequence .next { align-items: start; text-align: left; } }
+  @media (max-width: 480px) { :global(h1.page-title) { font-size: 1.625rem !important; line-height: 1.15 !important; } }
+</style>

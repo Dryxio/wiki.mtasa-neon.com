@@ -1,68 +1,40 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
-import path from 'node:path';
-import mtasaStarlightThemePlugin from "@multitheftauto/starlight-theme-mtasa";
+import path from "node:path";
 import { SITE_TITLE, SITE_URL } from "./src/content.constants";
-import starlightScrollToTop from 'starlight-scroll-to-top'
 
 export default defineConfig({
   site: SITE_URL,
   build: {
-    // Generates /reference/createBlip.html instead of /reference/createBlip/index.html
-    // which makes the canonical URL not have a trailing slash.
-    format: 'file',
-  },
-  redirects: {
-    '/reference/matrix': '/reference/Matrix',
-  },
-  i18n: {
-    locales: ["en", "es", "fr", "pl"],
-    defaultLocale: "en",
-    routing: {
-      prefixDefaultLocale: false,
-    },
+    // Directory indexes keep public routes extensionless on static hosts.
+    format: "directory",
   },
   vite: {
     ssr: {
-      noExternal: ['zod'],
+      noExternal: ["zod"],
     },
     resolve: {
       alias: {
-        '@src': path.resolve('./src'),
-      }
-    }
+        "@src": path.resolve("./src"),
+      },
+    },
   },
   integrations: [
     starlight({
-      plugins: [mtasaStarlightThemePlugin(), starlightScrollToTop({
-        tooltipText: {
-          "en": "Scroll to top",
-          "pl": "Na górę",
-        },
-        showTooltip: true,
-        showProgressRing: false,
-      })],
-      favicon: "favicon.ico",
+      favicon: "favicon.svg",
       title: SITE_TITLE,
-      logo: {
-        replacesTitle: true,
-        light: "./src/assets/images/logo-black.png",
-        dark: "./src/assets/images/logo-white.png",
-      },
       social: [
         {
           icon: "github",
-          label: "GitHub",
-          href: "https://github.com/multitheftauto/wiki.multitheftauto.com",
+          label: "Neon documentation on GitHub",
+          href: "https://github.com/Dryxio/wiki.mtasa-neon.com",
         },
       ],
       editLink: {
-        baseUrl:
-          "https://github.com/multitheftauto/wiki.multitheftauto.com/edit/main/web/",
+        baseUrl: "https://github.com/Dryxio/wiki.mtasa-neon.com/edit/main/web/",
       },
       components: {
-        // Override some default components
         PageTitle: "./src/overrides/PageTitle.astro",
         Pagination: "./src/overrides/Pagination.astro",
       },
@@ -70,114 +42,68 @@ export default defineConfig({
       disable404Route: true,
       sidebar: [
         {
-          label: "Welcome",
+          label: "MTA:SA Neon · Start here",
           items: [
-            {
-              label: "Introduction",
-              link: "/",
-            },
-            {
-              label: "Contributing",
-              link: "/Contributing",
-            },
+            { label: "Overview", link: "/neon" },
+            { label: "Download & install", link: "/neon/download" },
+            { label: "What's different", link: "/neon/features" },
+            { label: "Synchronized NPCs & traffic", link: "/neon/synchronized-ai" },
+            { label: "Neon Lua API", link: "/neon/functions" },
+            { label: "Neon CLI for AI agents", link: "/neon/cli" },
+            { label: "Compatibility", link: "/neon/compatibility" },
           ],
         },
         {
-          label: "Articles",
-          autogenerate: { directory: "articles" },
+          label: "Build GTA-style stories",
+          items: [
+            { label: "Story runtime", link: "/neon/story-runtime" },
+            { label: "Mission checkpoints", link: "/neon/mission-checkpoints" },
+          ],
         },
         {
-          label: "Reference",
+          label: "Player & server systems",
           items: [
-            {
-              label: "Resources",
-              items: [
-                { label: "Element data", link: "/reference/Element_data"},
-                { label: "Lua API", link: "/reference/Lua_API" },
-                { label: "ID Lists", link: "/reference/ID_Lists" },
-                { label: "Meta.xml", link: "/reference/Meta.xml" },
-                {label: 'Predefined variables', link: '/reference/Predefined_variables'},
-                {label: "Resource Web Access", link: "/reference/Resource_Web_Access"},
-                {label: "CEF Tutorial", link: "/reference/CEF-tutorial"},
-                {label: "Game processing order", link: '/reference/Game_Processing_Order'},
-                {label: "Texture pixels", link: '/reference/Pixels'},
-                {
-                  label: "Functions",
-                  collapsed: true,
-                  badge: { text: "Help Wanted", variant: "tip" },
-                  items: [
-                    {
-                      label: "All Functions",
-                      link: "/reference/Scripting_Functions",
-                    },
-                    {
-                      label: "Shared Functions",
-                      link: "/reference/Shared_Scripting_Functions",
-                    },
-                    {
-                      label: "Client Functions",
-                      link: "/reference/Client_Scripting_Functions",
-                    },
-                    {
-                      label: "Server Functions",
-                      link: "/reference/Server_Scripting_Functions",
-                    },
-                  ],
-                },
-                {
-                  label: "Events",
-                  collapsed: true,
-                  items: [
-                    { label: "Event System", link: "/reference/Event_System" },
-                    {
-                      label: "All Events",
-                      link: "/reference/Scripting_Events",
-                    },
-                    {
-                      label: "Client Events",
-                      link: "/reference/Client_Scripting_Events",
-                    },
-                    {
-                      label: "Server Events",
-                      link: "/reference/Server_Scripting_Events",
-                    },
-                  ],
-                },
-                {
-                  label: "Elements",
-                  collapsed: true,
-                  items: [
-                    { label: "Element Types", link: "/reference/Element" },
-                    { label: "Element Tree", link: "/reference/Element_tree" },
-                    { label: "Entities", link: "/reference/Entity" },
-                    { label: "Visibility", link: "/reference/Visibility" },
-                  ],
-                },
-                {
-                  label: "OOP",
-                  collapsed: true,
-                  items: [
-                    { label: "About OOP", link: "/reference/OOP" },
-                    { label: "OOP Classes", link: "/reference/OOP_Classes" },
-                  ],
-                },
-              ],
-            },
-            {
-              label: "Configuration",
-              items: [
-                {
-                  label: "MTAServer.conf",
-                  link: "/reference/Server_mtaserver.conf",
-                },
-                { label: "Settings.xml", link: "/reference/Settings_System" },
-                { label: "ACL.xml", link: "/reference/Access_Control_List" },
-                {
-                  label: "Anti cheat guide",
-                  link: "/reference/Anti_Cheat_Guide",
-                },
-              ],
-            },
+            { label: "Neon client", link: "/neon/client-experience" },
+            { label: "SkyGFX & radar", link: "/neon/skygfx" },
+            { label: "Native GTA radio", link: "/neon/native-radio" },
+            { label: "Neon Identity", link: "/neon/identity" },
+            { label: "Custom vehicle audio", link: "/neon/vehicle-audio" },
+          ],
+        },
+        {
+          label: "World & engine systems",
+          items: [
+            { label: "Extended world", link: "/neon/extended-world" },
+            { label: "Scriptable dynamic objects", link: "/neon/world-objects" },
+            { label: "Runtime collision", link: "/neon/runtime-collision" },
+            { label: "Custom foliage", link: "/neon/foliage" },
+            { label: "Managed fire", link: "/neon/fire" },
+            { label: "Scriptable birds", link: "/neon/birds" },
+            { label: "Model 2DFX effects", link: "/neon/model-2dfx" },
+            { label: "Object fracture effects", link: "/neon/break-effects" },
+            { label: "Dynamic object physics", link: "/neon/object-physics" },
+            { label: "Managed ropes", link: "/neon/ropes" },
+            { label: "Custom models", link: "/neon/models-and-streaming" },
+            { label: "Encrypted assets", link: "/neon/encrypted-assets" },
+            { label: "SA-MP maps", link: "/neon/samp-maps" },
+            { label: "Native world packs", link: "/neon/native-world" },
+            { label: "Rendering & limits", link: "/neon/rendering-and-limits" },
+          ],
+        },
+        {
+          label: "Reference & evidence",
+          items: [
+            { label: "Asset Encrypter", link: "/neon/tools/asset-encrypter" },
+            { label: "Tooling & verification", link: "/neon/tooling-and-verification" },
+          ],
+        },
+        {
+          label: "Official MTA documentation ↗",
+          items: [
+            { label: "MTA Wiki", link: "https://wiki.multitheftauto.com/wiki/Main_Page" },
+            { label: "Scripting functions", link: "https://wiki.multitheftauto.com/wiki/Scripting_Functions" },
+            { label: "Scripting events", link: "https://wiki.multitheftauto.com/wiki/Scripting_Events" },
+            { label: "Elements", link: "https://wiki.multitheftauto.com/wiki/Element" },
           ],
         },
       ],

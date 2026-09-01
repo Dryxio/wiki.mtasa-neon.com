@@ -2,52 +2,37 @@
 import { CardGrid } from '@astrojs/starlight/components';
 import IconLinkCard from '@src/components/IconLinkCard.astro';
 ---
-<div data-pagefind-ignore>
-    <CardGrid>
-        <IconLinkCard
-            icon="seti:powershell"
-            iconColor="#ca6c26"
-            title="Functions"
-            titleColor="#ca6c26"
-            description="List of all client-side, server-side and shared functions"
-            href="/reference/Scripting_Functions" />
-        
-        <IconLinkCard
-            icon="seti:purescript"
-            iconColor="#ca6c26"
-            title="Events"
-            titleColor="#ca6c26"
-            description="List of all client-side and server-side events"
-            href="/reference/Scripting_Events" />
 
-        <IconLinkCard
-            icon="seti:plan"
-            iconColor="#ca6c26"
-            title="Elements"
-            titleColor="#ca6c26"
-            description="List of all element types and their properties"
-            href="/reference/Element" />
+<div data-pagefind-ignore class="neon-footer-links">
+  <p>CONTINUE OUTSIDE NEON</p>
+  <CardGrid>
+    <IconLinkCard
+      icon="seti:powershell"
+      iconColor="#f28c18"
+      title="Official MTA Wiki"
+      titleColor="#f28c18"
+      description="Use this for standard MTA APIs, events, elements, and scripting concepts."
+      href="https://wiki.multitheftauto.com/wiki/Main_Page" />
 
-        <IconLinkCard
-            icon="seti:hex"
-            iconColor="#ca6c26"
-            title="OOP"
-            titleColor="#ca6c26"
-            description="Information about MTA object-oriented programming"
-            href="/reference/OOP" />
+    <IconLinkCard
+      icon="seti:purescript"
+      iconColor="#f28c18"
+      title="MTA scripting functions"
+      titleColor="#f28c18"
+      description="The complete function reference for standard MTA."
+      href="https://wiki.multitheftauto.com/wiki/Scripting_Functions" />
 
-
-        <IconLinkCard
-            icon="discord" 
-            title="Discord"
-            description="Ask questions and chat live with the community."
-            href="https://discord.com/invite/mtasa" />
-        
-        <IconLinkCard
-            icon="gitter"
-            title="Forum"
-            description="Engage with the community in the old-fashioned way."
-            href="https://forum.multitheftauto.com/" />
-
-    </CardGrid>
+    <IconLinkCard
+      icon="github"
+      iconColor="#f28c18"
+      title="Neon engine source"
+      titleColor="#f28c18"
+      description="Read the code, commits, and focused test resources behind these docs."
+      href="https://github.com/Dryxio/mtasa-neon" />
+  </CardGrid>
 </div>
+
+<style>
+  .neon-footer-links { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid #3a2b1d; }
+  .neon-footer-links > p { color: #f28c18; font-size: .64rem; font-weight: 900; letter-spacing: .17em; }
+</style>

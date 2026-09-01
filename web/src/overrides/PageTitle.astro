@@ -1,14 +1,19 @@
 ---
-import { functionTypePrettyName } from "@src/utils/functions";
 const funcType = Astro.locals.side;
+const hasFunctionType = funcType === "client" || funcType === "server" || funcType === "shared";
+const functionTypePrettyName = {
+    client: "Client-side",
+    server: "Server-side",
+    shared: "Shared",
+} as const;
 ---
 
-<div class={`page-title-container type-${funcType}`}>
+<div class={`page-title-container ${hasFunctionType ? `type-${funcType}` : ""}`}>
     <h1 class="page-title">{Astro.locals.starlightRoute.entry.data.title}</h1>
 
-    <div class={`type-badge type-badge-${funcType}`}>
+    {hasFunctionType && <div class={`type-badge type-badge-${funcType}`}>
         {functionTypePrettyName[funcType]}
-    </div>
+    </div>}
 </div>
 
 <style>
@@ -136,5 +141,3 @@ window.addEventListener("load", () => {
   new ResizeObserver(adjust).observe(container);
 });
 </script>
-
-<script type="module" src="/mta-keyword_linker.js"></script>
