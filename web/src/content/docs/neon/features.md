@@ -35,6 +35,7 @@ Neon is still experimental. Its capacity patches keep the normal San Andreas def
 | Build GTA-style scenes or missions | [Story runtime](/neon/story-runtime) | Native pedestrian pathfinding, driving and combat AI, camera and cutscene leases, mission audio and text, recordings, and actor policies. |
 | See what the mission harnesses prove | [Mission checkpoints](/neon/mission-checkpoints) | Five GTA mission recreations, including complete two-client headless passes for Sweet & Kendl and OG Loc, with exact evidence and remaining visual checks. |
 | Call a specific function | [Neon Lua API](/neon/functions) | Searchable reference with side, lifecycle, source, commit, native mapping, and test evidence. |
+| Build a gamemode with an AI coding agent | [Neon CLI for AI agents](/neon/cli) | Give the agent the complete MTA + Neon API, exact function contracts, project checks, generated context, and real server/client/GTA observations without an MCP server. |
 
 ## World and streaming
 
@@ -126,7 +127,7 @@ The tables describe available code paths, not one shared stability level. Follow
 ## Tools and tests
 
 - `debugscript 4` opens a searchable client/server Lua error inspector with filters, grouped duplicates, capture, and TXT/JSON export.
-- The local `neon` CLI checks resource metadata and API sides, searches the complete MTA + Neon source catalogue, and generates deterministic Lua/editor context.
+- The [Neon CLI for AI agents](/neon/cli) gives coding agents the complete MTA + Neon API, checks resource metadata and API sides, generates deterministic project context, and can verify that the server, client, and GTA actually joined a test.
 - Drag-and-drop DFF/TXD skin and IFP animation previews for local development.
 - Extended-world generators, IMG packers, radar extractors, manifest validators, cache tests, and native payload audits.
 - A native SA-MP map parser/loader fixture, object-streaming quota harness, native-radio playback resource, and a world-object scripting showcase.

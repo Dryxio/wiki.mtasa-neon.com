@@ -49,6 +49,7 @@ export default defineConfig({
             { label: "What's different", link: "/neon/features" },
             { label: "Synchronized NPCs & traffic", link: "/neon/synchronized-ai" },
             { label: "Neon Lua API", link: "/neon/functions" },
+            { label: "Neon CLI for AI agents", link: "/neon/cli" },
             { label: "Compatibility", link: "/neon/compatibility" },
           ],
         },
